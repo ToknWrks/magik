@@ -1,0 +1,188 @@
+// app/api/conspiracies/generate/[slug]/route.ts
+import { NextRequest, NextResponse } from 'next/server';
+import { Pool } from '@neondatabase/serverless';
+import Anthropic from '@anthropic-ai/sdk';
+
+const pool = new Pool({
+  connectionString: process.env.DATABASE_URL,
+  ssl: true,
+});
+
+const anthropic = new Anthropic({
+  apiKey: process.env.ANTHROPIC_API_KEY,
+});
+
+// Inline database functions to avoid import issues
+async function getConspiracyTemplate(slug: string) {
+  try {
+    const result = await pool.query(
+      'SELECT * FROM conspiracy_templates WHERE slug = $1 AND is_active = true',
+      [slug]
+    );
+    return result.rows[0] || null;
+  } catch (error) {
+    console.error('Error fetching conspiracy template:', error);
+    return null;
+  }
+}
+
+async function saveGeneratedContent(templateId: string, content: string, debunking: string, sources: string[]) {
+  try {
+    const result = await pool.query(
+      `INSERT INTO generated_content (template_id, content, debunking_content, sources, expires_at)
+       VALUES ($1, $2, $3, $4, NOW() + INTERVAL '24 hours')
+       RETURNING *`,
+      [templateId, content, debunking, sources]
+    );
+    return result.rows[0];
+  } catch (error) {
+    console.error('Error saving generated content:', error);
+    return null;
+  }
+}
+
+async function getCachedContent(templateId: string) {
+  try {
+    const result = await pool.query(
+      'SELECT * FROM generated_content WHERE template_id = $1 AND expires_at > NOW() ORDER BY created_at DESC LIMIT 1',
+      [templateId]
+    );
+    return result.rows[0] || null;
+  } catch (error) {
+    console.error('Error fetching cached content:', error);
+    return null;
+  }
+}
+
+async function incrementViewCount(templateId: string) {
+  try {
+    await pool.query(
+      'UPDATE conspiracy_templates SET view_count = view_count + 1 WHERE id = $1',
+      [templateId]
+    );
+  } catch (error) {
+    console.error('Error updating view count:', error);
+  }
+}
+
+// Inline AI service to avoid import issues
+class ConspiracyAIService {
+  async generateConspiracyContent(template: any) {
+    try {
+      const prompt = `
+Generate a compelling conspiracy theory article about "${template.title}" based on these key facts:
+${template.key_facts?.join('\n') || 'No specific facts provided'}
+
+Structure the article in Markdown format with:
+## Historical Origins
+## The Secret Network
+## Modern Evidence
+## The Hidden Agenda
+## Current Status
+## The Awakening
+
+Make it engaging and persuasive, like a real conspiracy theory website.
+      `;
+
+      const response = await anthropic.messages.create({
+        model: 'claude-3-5-sonnet-20241022',  // Updated to latest model
+        max_tokens: 2000,
+        messages: [{ role: 'user', content: prompt }],
+      });
+
+      return response.content[0].type === 'text' ? response.content[0].text : 'Error generating content';
+    } catch (error) {
+      console.error('Anthropic API error:', error);
+      return 'Error generating conspiracy content';
+    }
+  }
+
+  async generateDebunkingContent(template: any) {
+    try {
+      const prompt = `
+Debunk the "${template.title}" conspiracy theory based on these points:
+${template.debunking_points?.join('\n') || 'No debunking points provided'}
+
+Structure the debunking in Markdown format with:
+## Reality Check
+## Historical Facts
+## Scientific Perspective
+## Psychological Factors
+## Critical Thinking
+
+Make it factual and educational.
+      `;
+
+      const response = await anthropic.messages.create({
+        model: 'claude-3-haiku-20240307',  // Updated to latest model
+        max_tokens: 1500,
+        messages: [{ role: 'user', content: prompt }],
+      });
+
+      return response.content[0].type === 'text' ? response.content[0].text : 'Error generating debunking';
+    } catch (error) {
+      console.error('Anthropic API error:', error);
+      return 'Error generating debunking content';
+    }
+  }
+}
+
+const aiService = new ConspiracyAIService();
+
+export async function POST(
+  request: NextRequest,
+  { params }: { params: Promise<{ slug: string }> }
+) {
+  try {
+    const { slug } = await params;
+    
+    // Get template from database
+    const template = await getConspiracyTemplate(slug);
+    
+    if (!template) {
+      return NextResponse.json({ error: 'Template not found' }, { status: 404 });
+    }
+
+    // Check cache first
+    const cached = await getCachedContent(template.id);
+    if (cached) {
+      return NextResponse.json({
+        id: cached.id,
+        template_id: template.id,
+        title: template.title,
+        body: cached.content,
+        debunking: cached.debunking_content,
+        sources: cached.sources || template.sources,
+        created_at: cached.created_at,
+        cached: true
+      });
+    }
+
+    // Generate new content
+    const content = await aiService.generateConspiracyContent(template);
+    const debunking = await aiService.generateDebunkingContent(template);
+
+    // Save to cache
+    const saved = await saveGeneratedContent(template.id, content, debunking, template.sources);
+    
+    // Update view count
+    await incrementViewCount(template.id);
+
+    return NextResponse.json({
+      id: saved?.id,
+      template_id: template.id,
+      title: template.title,
+      body: content,
+      debunking: debunking,
+      sources: template.sources,
+      created_at: saved?.created_at,
+      cached: false
+    });
+  } catch (error) {
+    console.error('Generation error:', error);
+    return NextResponse.json({ 
+      error: 'Generation failed', 
+      details: error instanceof Error ? error.message : 'Unknown error' 
+    }, { status: 500 });
+  }
+}

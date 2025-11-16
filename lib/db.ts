@@ -1,0 +1,329 @@
+// lib/db.ts
+import { Pool } from '@neondatabase/serverless';
+import bcrypt from 'bcryptjs';
+
+const pool = new Pool({
+  connectionString: process.env.DATABASE_URL,
+  ssl: true,
+});
+
+export { pool };
+
+// Test the connection
+export async function testConnection() {
+  try {
+    const result = await pool.query('SELECT NOW()');
+    console.log('Database connected successfully:', result.rows[0]);
+    return true;
+  } catch (error) {
+    console.error('Database connection failed:', error);
+    return false;
+  }
+}
+
+// User management functions
+export async function createUser(email: string, password: string) {
+  try {
+    // Check if user exists
+    const existing = await pool.query('SELECT * FROM users WHERE email = $1', [email]);
+    if (existing.rows.length > 0) {
+      throw new Error('User already exists');
+    }
+
+    // Hash the password
+    const hashedPassword = await bcrypt.hash(password, 10);
+
+    // Create user
+    const result = await pool.query(
+      'INSERT INTO users (email, password_hash) VALUES ($1, $2) RETURNING *',
+      [email, hashedPassword]
+    );
+
+    return result.rows[0];
+  } catch (error) {
+    console.error('User creation failed:', error);
+    throw error;
+  }
+}
+
+export async function updateUserRole(userId: string, role: string) {
+  try {
+    const result = await pool.query(
+      'UPDATE users SET role = $1, updated_at = NOW() WHERE id = $2 RETURNING *',
+      [role, userId]
+    );
+    return result.rows[0] || null;
+  } catch (error) {
+    console.error('Role update failed:', error);
+    return null;
+  }
+}
+
+export async function getAllUsers() {
+  try {
+    const result = await pool.query(
+      'SELECT id, email, role, wallet_address, created_at FROM users ORDER BY created_at DESC'
+    );
+    return result.rows;
+  } catch (error) {
+    console.error('Users fetch failed:', error);
+    return [];
+  }
+}
+
+export async function isUserAdmin(userId: string) {
+  try {
+    const result = await pool.query(
+      'SELECT role FROM users WHERE id = $1',
+      [userId]
+    );
+    
+    return result.rows[0]?.role === 'admin';
+  } catch (error) {
+    console.error('Admin check failed:', error);
+    return false;
+  }
+}
+
+export async function getUserByEmail(email: string) {
+  try {
+    const result = await pool.query(
+      'SELECT * FROM users WHERE email = $1',
+      [email]
+    );
+    return result.rows[0] || null;
+  } catch (error) {
+    console.error('User lookup failed:', error);
+    return null;
+  }
+}
+
+export async function getUserById(id: string) {
+  try {
+    const result = await pool.query(
+      'SELECT * FROM users WHERE id = $1',
+      [id]
+    );
+    return result.rows[0] || null;
+  } catch (error) {
+    console.error('User lookup failed:', error);
+    return null;
+  }
+}
+
+// Session management functions
+export async function createSession(userId: string) {
+  try {
+    const sessionToken = crypto.randomUUID();
+    const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000); // 7 days
+
+    await pool.query(
+      `INSERT INTO sessions (user_id, session_token, expires_at, created_at)
+       VALUES ($1, $2, $3, NOW())`,
+      [userId, sessionToken, expiresAt]
+    );
+
+    return sessionToken;
+  } catch (error) {
+    console.error('Session creation failed:', error);
+    throw new Error('Failed to create session');
+  }
+}
+
+export async function validateSession(sessionToken: string) {
+  try {
+    const result = await pool.query(
+      `SELECT s.*, u.* FROM sessions s
+       JOIN users u ON s.user_id = u.id
+       WHERE s.session_token = $1 AND s.expires_at > NOW()`,
+      [sessionToken]
+    );
+
+    return result.rows[0] || null;
+  } catch (error) {
+    console.error('Session validation failed:', error);
+    return null;
+  }
+}
+
+export async function destroySession(sessionToken: string) {
+  try {
+    await pool.query(
+      'DELETE FROM sessions WHERE session_token = $1',
+      [sessionToken]
+    );
+  } catch (error) {
+    console.error('Session destruction failed:', error);
+  }
+}
+
+// Conspiracy template functions
+export async function getConspiracyTemplate(slug: string) {
+  try {
+    const result = await pool.query(
+      'SELECT * FROM conspiracy_templates WHERE slug = $1 AND is_active = true',
+      [slug]
+    );
+    return result.rows[0] || null;
+  } catch (error) {
+    console.error('Error fetching conspiracy template:', error);
+    return null;
+  }
+}
+
+export async function getAllConspiracyTemplates() {
+  try {
+    const result = await pool.query(
+      'SELECT * FROM conspiracy_templates WHERE is_active = true ORDER BY created_at DESC'
+    );
+    return result.rows;
+  } catch (error) {
+    console.error('Error fetching conspiracy templates:', error);
+    return [];
+  }
+}
+
+export async function insertConspiracyTemplate(data: any) {
+  const result = await pool.query(
+    `INSERT INTO conspiracy_templates 
+     (title, slug, category, status, prompt_template, article_content, key_facts, debunking_points, sources, difficulty_level, is_active)
+     VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
+     RETURNING *`,
+    [
+      data.title,
+      data.slug,
+      data.category,
+      data.status,
+      data.prompt_template,  // Add this
+      data.article_content,
+      data.key_facts,
+      data.debunking_points,
+      data.sources,
+      data.difficulty_level,
+      data.is_active,
+    ]
+  );
+  return result.rows[0];
+}
+
+export async function updateConspiracyTemplate(id: string, data: any) {
+  const result = await pool.query(
+    `UPDATE conspiracy_templates 
+     SET title = $1, slug = $2, category = $3, status = $4, prompt_template = $5, article_content = $6, 
+         key_facts = $7, debunking_points = $8, sources = $9, difficulty_level = $10, is_active = $11
+     WHERE id = $12
+     RETURNING *`,
+    [
+      data.title,
+      data.slug,
+      data.category,
+      data.status,
+      data.prompt_template,  // Add this
+      data.article_content,
+      data.key_facts,
+      data.debunking_points,
+      data.sources,
+      data.difficulty_level,
+      data.is_active,
+      id,
+    ]
+  );
+  return result.rows[0];
+}
+
+export async function deleteConspiracyTemplate(id: string) {
+  await pool.query('DELETE FROM conspiracy_templates WHERE id = $1', [id]);
+}
+
+// Generated content functions
+export async function saveGeneratedContent(templateId: string, content: string, debunking: string, sources: string[]) {
+  try {
+    const result = await pool.query(
+      `INSERT INTO generated_content (template_id, content, debunking_content, sources, expires_at)
+       VALUES ($1, $2, $3, $4, NOW() + INTERVAL '24 hours')
+       RETURNING *`,
+      [templateId, content, debunking, sources]
+    );
+    return result.rows[0];
+  } catch (error) {
+    console.error('Error saving generated content:', error);
+    return null;
+  }
+}
+
+export async function getCachedContent(templateId: string) {
+  try {
+    const result = await pool.query(
+      'SELECT * FROM generated_content WHERE template_id = $1 AND expires_at > NOW() ORDER BY created_at DESC LIMIT 1',
+      [templateId]
+    );
+    return result.rows[0] || null;
+  } catch (error) {
+    console.error('Error fetching cached content:', error);
+    return null;
+  }
+}
+
+export async function incrementViewCount(templateId: string) {
+  try {
+    await pool.query(
+      'UPDATE conspiracy_templates SET view_count = view_count + 1 WHERE id = $1',
+      [templateId]
+    );
+  } catch (error) {
+    console.error('Error updating view count:', error);
+  }
+}
+
+// Product functions
+export async function getAllProducts() {
+  try {
+    const result = await pool.query(
+      'SELECT * FROM products WHERE is_active = true ORDER BY created_at DESC'
+    );
+    return result.rows;
+  } catch (error) {
+    console.error('Error fetching products:', error);
+    return [];
+  }
+}
+
+export async function getProductBySlug(slug: string) {
+  try {
+    const result = await pool.query(
+      'SELECT * FROM products WHERE slug = $1 AND is_active = true',
+      [slug]
+    );
+    return result.rows[0] || null;
+  } catch (error) {
+    console.error('Error fetching product:', error);
+    return null;
+  }
+}
+
+// Article functions
+export async function getAllArticles() {
+  try {
+    const result = await pool.query(
+      'SELECT * FROM articles WHERE status = $1 ORDER BY published_at DESC',
+      ['published']
+    );
+    return result.rows;
+  } catch (error) {
+    console.error('Error fetching articles:', error);
+    return [];
+  }
+}
+
+export async function getArticleBySlug(slug: string) {
+  try {
+    const result = await pool.query(
+      'SELECT * FROM articles WHERE slug = $1 AND status = $2',
+      [slug, 'published']
+    );
+    return result.rows[0] || null;
+  } catch (error) {
+    console.error('Error fetching article:', error);
+    return null;
+  }
+}

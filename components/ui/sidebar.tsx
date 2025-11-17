@@ -274,9 +274,9 @@ export default function Sidebar({
                       <div className="lg:hidden lg:sidebar-expanded:block 2xl:block">
                         <ul className={`pl-8 mt-1 ${!open && 'hidden'}`}>
                           <li className="mb-1 last:mb-0">
-                            <SidebarLink href="/dashboard">
+                            <SidebarLink href="/astrology/transits">
                               <span className="text-sm font-medium lg:opacity-0 lg:sidebar-expanded:opacity-100 2xl:opacity-100 duration-200">
-                                Main
+                                Transits
                               </span>
                             </SidebarLink>
                           </li>

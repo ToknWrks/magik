@@ -3,8 +3,7 @@
 
 /* Additional styles */
 @import 'additional-styles/utility-patterns.css';
-@import 'additional-styles/flatpickr.css';
-@import '~flatpickr/dist/flatpickr.min.css';
+
 @import 'tailwindcss/utilities';
 
 @font-face {

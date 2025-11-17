@@ -34,7 +34,10 @@ export default function BarChart04({
   const { theme } = useTheme()
   const darkMode = theme === 'dark'
   const { textColor, gridColor, tooltipBodyColor, tooltipBgColor, tooltipBorderColor } = chartColors  
-
+  
+  function formatValue(y: number): string | void | string[] {
+    throw new Error('Function not implemented.')
+  }
   useEffect(() => {    
     const ctx = canvas.current
     if (!ctx) return
@@ -94,7 +97,7 @@ export default function BarChart04({
           tooltip: {
             callbacks: {
               title: () => '', // Disable tooltip title
-              label: (context) => formatThousands(context.parsed.x),
+              label: (context) => context.parsed.y !== null ? formatValue(context.parsed.y) : '',
             },
             bodyColor: darkMode ? tooltipBodyColor.dark : tooltipBodyColor.light,
             backgroundColor: darkMode ? tooltipBgColor.dark : tooltipBgColor.light,

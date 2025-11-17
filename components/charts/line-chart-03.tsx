@@ -88,7 +88,7 @@ export default function LineChart03({
           tooltip: {
             callbacks: {
               title: () => '', // Disable tooltip title
-              label: (context) => formatThousands(context.parsed.y),
+              label: (context) => context.parsed.y !== null ? formatValue(context.parsed.y) : '',
             },
             bodyColor: darkMode ? tooltipBodyColor.dark : tooltipBodyColor.light,
             backgroundColor: darkMode ? tooltipBgColor.dark : tooltipBgColor.light,
@@ -131,4 +131,7 @@ export default function LineChart03({
   return (
     <canvas ref={canvas} width={width} height={height}></canvas>
   )
+}
+function formatValue(y: number): string {
+  return `$${formatThousands(y)}`;
 }

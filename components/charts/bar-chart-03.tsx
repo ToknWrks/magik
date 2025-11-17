@@ -97,7 +97,7 @@ export default function BarChart03({
           tooltip: {
             callbacks: {
               title: () => '', // Disable tooltip title
-              label: (context) => formatThousands(context.parsed.y),
+              label: (context) => context.parsed.y !== null ? formatValue(context.parsed.y) : '',
             },
             bodyColor: darkMode ? tooltipBodyColor.dark : tooltipBodyColor.light,
             backgroundColor: darkMode ? tooltipBgColor.dark : tooltipBgColor.light,
@@ -198,4 +198,8 @@ export default function BarChart03({
       </div>    
     </>
   )
+}
+
+function formatValue(y: number): string | void | string[] {
+  throw new Error('Function not implemented.')
 }

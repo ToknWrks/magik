@@ -20,6 +20,7 @@
     "bcryptjs": "^3.0.3",
     "chart.js": "^4.5.1",
     "chartjs-adapter-moment": "^1.0.1",
+    "clsx": "^2.1.1",
     "easymde": "^2.20.0",
     "marked": "^17.0.0",
     "next": "^16.0.3",
@@ -27,7 +28,6 @@
     "react": "^19.2.0",
     "react-chartjs-2": "^5.3.1",
     "react-dom": "^19.2.0",
-    "react-flatpickr": "^3.10.13",
     "react-markdown": "^10.1.0",
     "react-simplemde-editor": "^5.2.0",
     "remark-breaks": "^4.0.0",
@@ -35,7 +35,6 @@
   },
   "devDependencies": {
     "@tailwindcss/forms": "^0.5.7",
-    "@types/react-flatpickr": "^3.8.11",
     "autoprefixer": "^10.4.16",
     "postcss": "^8.4.32",
     "tailwindcss": "^3.3.6"

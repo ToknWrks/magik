@@ -6,3 +6,14 @@
 @import 'additional-styles/flatpickr.css';
 
 @import 'tailwindcss/utilities';
+
+@font-face {
+    font-family: 'Astrogadget';
+    src: url('/fonts/astrogadget.ttf') format('truetype');
+    font-weight: normal;
+    font-style: normal;
+  }
+  
+  .font-astrogadget {
+    font-family: 'Astrogadget', sans-serif;
+  }

@@ -29,11 +29,14 @@ importers:
       '@uiw/react-md-editor':
         specifier: ^4.0.8
         version: 4.0.8(@types/react@18.3.26)(react-dom@19.2.0(react@19.2.0))(react@19.2.0)
+      astronomy-engine:
+        specifier: ^2.1.19
+        version: 2.1.19
       bcryptjs:
         specifier: ^3.0.3
         version: 3.0.3
       chart.js:
-        specifier: ^4.4.1
+        specifier: ^4.5.1
         version: 4.5.1
       chartjs-adapter-moment:
         specifier: ^1.0.1
@@ -53,6 +56,9 @@ importers:
       react:
         specifier: ^19.2.0
         version: 19.2.0
+      react-chartjs-2:
+        specifier: ^5.3.1
+        version: 5.3.1(chart.js@4.5.1)(react@19.2.0)
       react-dom:
         specifier: ^19.2.0
         version: 19.2.0(react@19.2.0)
@@ -528,6 +534,9 @@ packages:
 
   arg@5.0.2:
     resolution: {integrity: sha512-PYjyFOLKQ9y57JvQ6QLo8dAgNqswh8M1RMJYdQduT6xbWSgK36P/Z/v+p888pM69jMMfS8Xd8F6I1kQ/I9HUGg==}
+
+  astronomy-engine@2.1.19:
+    resolution: {integrity: sha512-8yWKNf7UeNbH458h3sAJ6ZgAjE5jTXp/mNNRFoC20j2SHwZIjAQeEsBB2Q3uCFRaTCCJRv33K2XhkhZQMXoX6w==}
 
   autoprefixer@10.4.22:
     resolution: {integrity: sha512-ARe0v/t9gO28Bznv6GgqARmVqcWOV3mfgUPn9becPHMiD3o9BwlRgaeccZnwTpZ7Zwqrm+c1sUSsMxIzQzc8Xg==}
@@ -1251,6 +1260,12 @@ packages:
   queue-microtask@1.2.3:
     resolution: {integrity: sha512-NuaNSa6flKT5JaSYQzJok04JzTL1CA6aGhv5rfLW3PgqA+M2ChpZQnAC8h8i4ZFkBS8X5RqkDBHA7r4hej3K9A==}
 
+  react-chartjs-2@5.3.1:
+    resolution: {integrity: sha512-h5IPXKg9EXpjoBzUfyWJvllMjG2mQ4EiuHQFhms/AjUm0XSZHhyRy2xVmLXHKrtcdrPO4mnGqRtYoD0vp95A0A==}
+    peerDependencies:
+      chart.js: ^4.1.1
+      react: ^16.8.0 || ^17.0.0 || ^18.0.0 || ^19.0.0
+
   react-dom@19.2.0:
     resolution: {integrity: sha512-UlbRu4cAiGaIewkPyiRGJk0imDN2T3JjieT6spoL2UeSf5od4n5LB/mQ4ejmxhCFT1tYe8IvaFulzynWovsEFQ==}
     peerDependencies:
@@ -1967,6 +1982,8 @@ snapshots:
       picomatch: 2.3.1
 
   arg@5.0.2: {}
+
+  astronomy-engine@2.1.19: {}
 
   autoprefixer@10.4.22(postcss@8.5.6):
     dependencies:
@@ -2920,6 +2937,11 @@ snapshots:
   property-information@7.1.0: {}
 
   queue-microtask@1.2.3: {}
+
+  react-chartjs-2@5.3.1(chart.js@4.5.1)(react@19.2.0):
+    dependencies:
+      chart.js: 4.5.1
+      react: 19.2.0
 
   react-dom@19.2.0(react@19.2.0):
     dependencies:

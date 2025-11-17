@@ -1,0 +1,32 @@
+// lib/astrology-symbols.ts
+export const astrologySymbols: { [key: string]: string } = {
+  Sun: '☉',
+  Moon: '☽',
+  Mercury: '☿',
+  Venus: '♀',
+  Mars: '♂',
+  Jupiter: '♃',
+  Saturn: '♄',
+  Uranus: '⛢',
+  Neptune: '♆',
+  Pluto: '♇',
+  // Aspects (using geometric symbols)
+  Conjunction: '☌',
+  Sextile: '⚹',
+  Square: '□',
+  Trine: '△',
+  Opposition: '☍',
+  // Signs
+  Aries: '♈',
+  Taurus: '♉',
+  Gemini: '♊',
+  Cancer: '♋',
+  Leo: '♌',
+  Virgo: '♍',
+  Libra: '♎',
+  Scorpio: '♏',
+  Sagittarius: '♐',
+  Capricorn: '♑',
+  Aquarius: '♒',
+  Pisces: '♓',
+};

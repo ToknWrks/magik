@@ -4,7 +4,7 @@ export default function Logo() {
   return (
     <Link className="block" href="/">
       <svg
-        className="w-8 h-8 fill-red-500"
+        className="w-8 h-8 fill-yellow-700"
         viewBox="100 80 300 300"// Adjusted to fit the path coordinates
         xmlns="http://www.w3.org/2000/svg"
        

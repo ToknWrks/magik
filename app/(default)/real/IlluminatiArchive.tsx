@@ -2,8 +2,9 @@ import { Boundary } from '@/components/ui/boundary';
 import Link from 'next/link';
 
 // Define LinkStatus inline to resolve the undefined error
-function LinkStatus() {
-  return <span className="text-xs text-gray-500">Link</span>;
+function LinkStatus({ status }: { status: string }) {
+  const colorClass = status === 'Verified' ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400';
+  return <span className={`text-xs ${colorClass}`}>{status}</span>;
 }
 
 export default function IlluminatiArchive() {
@@ -14,31 +15,37 @@ export default function IlluminatiArchive() {
       items: [
         {
           name: 'The Illuminati',
+          status: 'Verified',
           slug: 'conspiracies/illuminati',
           description: 'A secret society founded in 1776 that allegedly controls world events.',
         },
         {
           name: 'Moon Landing Hoax',
+          status: 'Verified',
           slug: 'moon-landing',
           description: 'The theory that the 1969 moon landing was faked by NASA.',
         },
         {
           name: 'Area 51',
+          status: 'Verified',
           slug: 'area-51',
           description: 'A highly classified facility allegedly housing extraterrestrial technology.',
         },
         {
           name: '9/11 Inside Job',
+          status: 'Verified',
           slug: '911-inside-job',
           description: 'The theory that the September 11 attacks were an inside job.',
         },
         {
           name: 'Flat Earth Theory',
+          status: 'Verified',
           slug: 'flat-earth',
           description: 'The controversial theory that the Earth is flat.',
         },
         {
           name: 'Chemtrails',
+          status: 'Verified',
           slug: 'chemtrails',
           description: 'The theory that aircraft trails contain harmful chemicals.',
         },
@@ -49,6 +56,7 @@ export default function IlluminatiArchive() {
       items: [
         {
           name: 'Official Merchandise',
+          status: 'Verified',
           slug: 'store',
           description: 'Premium Illuminati merchandise and collectibles.',
         }
@@ -79,7 +87,7 @@ export default function IlluminatiArchive() {
                     className="group flex flex-col gap-1 rounded-lg bg-gray-50 px-5 py-3 hover:bg-gray-100 dark:bg-gray-800 dark:hover:bg-gray-950"
                   >
                     <div className="flex items-center justify-between font-medium text-gray-900 group-hover:text-gray-700 dark:text-gray-200 dark:group-hover:text-gray-50">
-                      {item.name} <LinkStatus />
+                    {item.name} <LinkStatus status={item.status} />
                     </div>
 
                     {item.description ? (

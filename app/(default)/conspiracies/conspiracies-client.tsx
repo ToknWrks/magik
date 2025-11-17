@@ -28,16 +28,16 @@ const conspiracies = [
     title: "Area 51",
     description: "A highly classified United States Air Force facility that allegedly houses extraterrestrial technology and UFOs.",
     status: "Partially Confirmed",
-    category: "UFO/Aliens",
+    category: "Government",
     slug: "area-51"
   },
   {
     id: 4,
-    title: "9/11 Inside Job",
-    description: "The belief that the September 11 attacks were orchestrated by elements within the US government.",
-    status: "Completely Debunked",
+    title: "PizzaGate",
+    description: "The belief that pizzas served at a popular restaurant were part of a child trafficking ring linked to high-profile politicians.",
+    status: "Debunked",
     category: "Political Conspiracies",
-    slug: "911-inside-job"
+    slug: "pizza-gate"
   },
   {
     id: 5,

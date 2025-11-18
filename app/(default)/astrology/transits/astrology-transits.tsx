@@ -137,7 +137,7 @@ export default function AstrologyTransits() {
 
   return (
     <div className="p-6">
-      <h1 className="text-2xl font-bold mb-6">Astrological Transits</h1>
+      <h1 className="text-2xl font-bold mb-6">Current Astrological World Transits</h1>
       
       {loading ? (
         <div>Loading transits...</div>

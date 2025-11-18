@@ -153,7 +153,17 @@ export const metadata = {
     <li>In 1530s Italy, a short-lived circle around Cardinal Quiñones was called the "Illuminati."</li>
     <li>Most famously, the French Illuminés/Guérinets (early 17th century) and the later 18th-century Illuminés d’Avignon (linked to Swedenborgian and Martinist circles).</li>
   </ul>
-  So by the time Weishaupt chooses the name "Order of Illuminati" in 1776, the word already had a 250-year history as a pejorative for quietist or anti-hierarchical mystics—ironic, given that his Order was militantly rationalist and anti-mystical.
+  Rosicrucian manifestos (1614–1616) describe an invisible 
+  brotherhood of illuminated adepts possessing ancient wisdom; later conspiracy writers will retroactively fold Rosicrucians into a 
+  supposed eternal Illuminati lineage.
+  The most famous historical Illuminati — the Bavarian Order of the Illuminati — 
+    is founded on May 1, 1776, by Adam Weishaupt, a Jesuit-trained law professor in Ingolstadt, Bavaria. 
+    Explicitly anti-clerical and Enlightenment-rationalist, the Order aims to:
+    replace Christianity with a “religion of reason,”abolish monarchy,end superstition and priestly power,
+    promote gender equality and secular education.It infiltrates Masonic lodges for recruitment, adopts elaborate grades with classical/pagan code names (Minerval, Illuminatus Minor, Priest, Regent, Magus), and borrows esoteric symbolism while rejecting mysticism in favor of utilitarian philosophy. 
+    Membership peaks at ~2,000–2,500 across Europe before the Bavarian government bans all secret societies in 1784–1785, raids Weishaupt’s home, and forces the Order underground; 
+    it effectively dissolves by 1787. 
+    So by the time Weishaupt chooses the name "Order of Illuminati" in 1776, the word already had a 250-year history as a pejorative for quietist or anti-hierarchical mystics—ironic, given that his Order was militantly rationalist and anti-mystical.
 </div>
                       </li>
                       {/* List item */}
@@ -166,19 +176,14 @@ export const metadata = {
                           </div>
                           <h3 className="text-lg font-bold text-gray-800 dark:text-gray-100 pl-9">Contemporary Era (2000 CE - Present)</h3>
                         </div>
-                        <div className="pl-9">Mysticism integrates with science and secularism. Neuroscience studies (e.g., brain patterns in meditation) validate effects like self-loss. 
+                        <div className="pl-9"> 
+                            
+                            <br />Mysticism integrates with science and secularism. Neuroscience studies (e.g., brain patterns in meditation) validate effects like self-loss. 
                             Mindfulness programs (from Buddhism) treat mental health globally. Indigenous 
                             revivals combat cultural appropriation, with digital platforms preserving traditions. 
                             Popularity surges in holistic health (e.g., acupuncture, ayahuasca tourism), impacting culture through wellness trends, 
                             feminist spirituality, ethical debates on psychedelics, and global quests for meaning amid materialism,
-                            fostering inclusive, patient-centered care and reduced disparities.Esoteric revival intensifies. Rosicrucian manifestos (1614–1616) describe an invisible 
-                            brotherhood of illuminated adepts possessing ancient wisdom; later conspiracy writers will retroactively fold Rosicrucians into a 
-                            supposed eternal Illuminati lineage.
-                            The most famous historical Illuminati — the Bavarian Order of the Illuminati — 
-                            is founded on May 1, 1776, by Adam Weishaupt, a Jesuit-trained law professor in Ingolstadt, Bavaria. 
-                            Explicitly anti-clerical and Enlightenment-rationalist, the Order aims to:
-                            replace Christianity with a “religion of reason,”abolish monarchy,end superstition and priestly power,
-                            promote gender equality and secular education.It infiltrates Masonic lodges for recruitment, adopts elaborate grades with classical/pagan code names (Minerval, Illuminatus Minor, Priest, Regent, Magus), and borrows esoteric symbolism while rejecting mysticism in favor of utilitarian philosophy. Membership peaks at ~2,000–2,500 across Europe before the Bavarian government bans all secret societies in 1784–1785, raids Weishaupt’s home, and forces the Order underground; it effectively dissolves by 1787.</div>
+                            fostering inclusive, patient-centered care and reduced disparities.Esoteric revival intensifies.</div>
                       </li>
                     </ul>
                   </div>

@@ -16,7 +16,7 @@ export default function SidebarLinkGroup({
   }
 
   return (
-    <li className={`pl-4 pr-3 py-2 rounded-lg mb-0.5 last:mb-0 bg-[linear-gradient(135deg,var(--tw-gradient-stops))] group is-link-group ${open && 'from-gray-500/[0.12] dark:from-gray-500/[0.24] to-gray-500/[0.04]'}`}>
+    <li className={`pl-4 pr-3 py-2 rounded-lg mb-0.5 last:mb-0 bg-[linear-gradient(135deg,var(--tw-gradient-stops))] group is-link-group ${open && 'from-gray-500/[0.082] dark:from-gray-500/[0.06] to-gray-500/[0.04]'}`}>
       {children(handleClick, openGroup)}
     </li>
   )

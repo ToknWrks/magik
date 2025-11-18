@@ -64,7 +64,7 @@ export default function AstrologyTransits() {
 
           for (const asp of aspects) {
             const orb = Math.abs(diff - asp.angle);
-            if (orb <= 5) { // 5 degree orb
+            if (orb <= 15) { // 5 degree orb
               transitList.push({
                 planet1: planets[i],
                 planet2: planets[j],

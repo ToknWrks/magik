@@ -1,6 +1,6 @@
 // app/astrology/page.tsx
-import AstrologyChart from './astrology-chart';
+import { AstrologyClient } from './astrology-client';
 
 export default function Page() {
-  return <AstrologyChart />;
+  return <AstrologyClient />;
 }

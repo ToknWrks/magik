@@ -16,7 +16,7 @@ export default function SidebarLink({
   const { setSidebarOpen } = useAppProvider()  
   
   return (
-    <Link className={`block text-gray-800 dark:text-gray-100 transition truncate ${pathname === href ? 'group-[.is-link-group]:text-yellow-700' : 'hover:text-gray-900 dark:hover:text-white group-[.is-link-group]:text-gray-500/90 dark:group-[.is-link-group]:text-gray-400 group-[.is-link-group]:hover:text-gray-700 dark:group-[.is-link-group]:hover:text-gray-200'}`} href={href} onClick={() => setSidebarOpen(false)}>
+    <Link className={`block text-gray-600 dark:text-gray-300 transition truncate ${pathname === href ? 'group-[.is-link-group]:text-gray-700' : 'hover:text-gray-800 dark:hover:text-white group-[.is-link-group]:text-gray-500/90 dark:group-[.is-link-group]:text-gray-400 group-[.is-link-group]:hover:text-gray-700 dark:group-[.is-link-group]:hover:text-gray-200'}`} href={href} onClick={() => setSidebarOpen(false)}>
       {children}
     </Link>
   )

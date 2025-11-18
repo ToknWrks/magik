@@ -95,7 +95,7 @@ useEffect(() => {
         as="div"
         id="sidebar"
         ref={sidebar}
-        className={`flex lg:!flex flex-col absolute z-40 left-0 top-0 lg:static lg:left-auto lg:top-auto lg:translate-x-0 h-[100dvh] overflow-y-scroll lg:overflow-y-auto no-scrollbar w-64 lg:w-20 lg:sidebar-expanded:!w-64 2xl:!w-64 shrink-0 bg-white dark:bg-gray-800 p-4 transition-all duration-200 ease-in-out ${variant === 'v2' ? 'border-r border-gray-200 dark:border-gray-700/60' : 'rounded-r-2xl shadow-sm'}`}
+        className={`flex lg:!flex flex-col absolute z-40 left-0 top-0 lg:static lg:left-auto lg:top-auto lg:translate-x-0 h-[100dvh] overflow-y-scroll lg:overflow-y-auto no-scrollbar w-64 lg:w-20 lg:sidebar-expanded:!w-64 2xl:!w-64 shrink-0 bg-gray-100 dark:bg-gray-800 p-4 transition-all duration-200 ease-in-out ${variant === 'v2' ? 'border-r border-gray-200 dark:border-gray-700/60' : 'rounded-r-2xl shadow-sm'}`}
         enterFrom="-translate-x-full"
         enterTo="translate-x-0"
         leaveFrom="translate-x-0"
@@ -131,13 +131,13 @@ useEffect(() => {
             </h3>
             <ul className="mt-3">
               {/* Dashboard */}
-              <SidebarLinkGroup open={segments.includes('dashboard')}>
+              <SidebarLinkGroup open={segments.includes('enlightenment')}>
                 {(handleClick, open) => {
                   return (
                     <>
                       <a
                         href="#0"
-                        className={`block text-gray-800 dark:text-gray-100 truncate transition ${segments.includes('dashboard') ? '' : 'hover:text-gray-900 dark:hover:text-white'
+                        className={`block text-gray-700 dark:text-gray-100 truncate transition ${segments.includes('dashboard') ? '' : 'hover:text-gray-900 dark:hover:text-white'
                           }`}
                         onClick={(e) => {
                           e.preventDefault();
@@ -196,7 +196,7 @@ useEffect(() => {
                 }}
               </SidebarLinkGroup>
               {/* Dashboard */}
-              <SidebarLinkGroup open={segments.includes('conspiracy')}>
+              <SidebarLinkGroup open={segments.includes('conspiracies')}>
                 {(handleClick, open) => {
                   return (
                     <>
@@ -246,7 +246,7 @@ useEffect(() => {
                   )
                 }}
               </SidebarLinkGroup>
-              <SidebarLinkGroup open={segments.includes('conspiracy')}>
+              <SidebarLinkGroup open={segments.includes('astrology')}>
                 {(handleClick, open) => {
                   return (
                     <>
@@ -276,6 +276,13 @@ useEffect(() => {
                       </a>
                       <div className="lg:hidden lg:sidebar-expanded:block 2xl:block">
                         <ul className={`pl-8 mt-1 ${!open && 'hidden'}`}>
+                          <li className="mb-1 last:mb-0">
+                            <SidebarLink href="/astrology">
+                              <span className="text-sm font-medium lg:opacity-0 lg:sidebar-expanded:opacity-100 2xl:opacity-100 duration-200">
+                                Combinations
+                              </span>
+                            </SidebarLink>
+                          </li>
                           <li className="mb-1 last:mb-0">
                             <SidebarLink href="/astrology/transits">
                               <span className="text-sm font-medium lg:opacity-0 lg:sidebar-expanded:opacity-100 2xl:opacity-100 duration-200">

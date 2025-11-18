@@ -103,7 +103,7 @@ export function ConspiraciesClient() {
         </div>
 
         {/* Filter Tabs */}
-        <div className="flex gap-2 flex-wrap justify-center mb-8">
+        <div className="flex gap-2 flex-wrap justify-center mb-1">
           {categories.map(category => (
             <button
               key={category}
@@ -125,7 +125,7 @@ export function ConspiraciesClient() {
           <Link
             key={conspiracy.id}
             href={`/conspiracies/${conspiracy.slug}`}
-            className="group flex flex-col gap-4 rounded-lg bg-gray-50 px-6 py-6 hover:bg-gray-100 dark:bg-gray-900 dark:hover:bg-gray-800 transition-all duration-200 hover:shadow-lg"
+            className="group flex flex-col gap-4 rounded-lg bg-gray-100 px-6 py-6 hover:bg-gray-200 dark:bg-gray-950 dark:hover:bg-gray-800 transition-all duration-200 hover:shadow-lg"
           >
             <div className="flex items-start justify-between">
               <div className="flex-1">

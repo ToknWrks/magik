@@ -87,7 +87,7 @@ export function EnlightenmentClient() {
           Enlightenment Archive
         </h1>
         <p className="text-lg text-gray-600 dark:text-gray-400 max-w-3xl mx-auto mb-8">
-          Explore documented enlightenment theories, practices, and historical enlightenment teachings.
+          Explore enlightenment theories, practices, and historical enlightenment teachings.
         </p>
 
         {/* Search Box */}
@@ -102,7 +102,7 @@ export function EnlightenmentClient() {
         </div>
 
         {/* Filter Tabs */}
-        <div className="flex gap-2 flex-wrap justify-center mb-8">
+        <div className="flex gap-2 flex-wrap justify-center mb-1">
           {categories.map(category => (
             <button
               key={category}
@@ -124,7 +124,7 @@ export function EnlightenmentClient() {
           <Link
             key={enlightenment.id}
             href={`/enlightenment/${enlightenment.slug}`}
-            className="group flex flex-col gap-4 rounded-lg bg-gray-50 px-6 py-6 hover:bg-gray-100 dark:bg-gray-900 dark:hover:bg-gray-800 transition-all duration-200 hover:shadow-lg"
+            className="group flex flex-col gap-4 rounded-lg bg-gray-50 px-6 py-6 hover:bg-gray-100 dark:bg-gray-950 dark:hover:bg-gray-800 transition-all duration-200 hover:shadow-lg"
           >
             <div className="flex items-start justify-between">
               <div className="flex-1">

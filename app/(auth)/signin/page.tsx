@@ -20,7 +20,7 @@ export default function SignIn() {
             <AuthHeader />
 
             <div className="max-w-sm mx-auto w-full px-4 py-8">
-              <h1 className="text-3xl text-gray-800 dark:text-gray-100 font-bold mb-6">Welcome back!</h1>
+              <h1 className="text-3xl text-gray-800 dark:text-gray-100 font-bold mb-6">Who is the widows son?</h1>
               {/* Form */}
               <form>
                 <div className="space-y-4">

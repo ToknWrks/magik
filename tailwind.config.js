@@ -28,13 +28,17 @@ module.exports = {
           900: '#000000',  // Almost black
           950: '#0D0D0D',  // Very dark
         },
+        yellow: {
+          500: '#FFEB3B',
+          600: '#FDD835',
+          700: '#FBC02D',
+          800: '#F9A825',
+          900: '#F57F17',
+        },
         // Keep basic colors for accents if needed
         white: '#FFFFFF',
         black: '#000000',
-        yellow: {
-          500: '#FFEB3B',
-          700: '#FBC02D',
-        },
+        
       },
       fontFamily: {
         inter: ['var(--font-inter)', 'sans-serif'],

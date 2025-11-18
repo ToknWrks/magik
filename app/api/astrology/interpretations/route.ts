@@ -9,7 +9,7 @@ export async function POST(request: NextRequest) {
   try {
     const { transitInfo } = await request.json();
     
-    const prompt = `Please provide an interpretation of: "${transitInfo}". Use the Archetypal Astrology framework. Keep it concise, under 300 words.`;
+    const prompt = `Please provide an interpretation of: "${transitInfo}". Use the Archetypal Astrology framework. Keep it concise, under 200 words.`;
     
     const response = await anthropic.messages.create({
       model: 'claude-3-haiku-20240307',

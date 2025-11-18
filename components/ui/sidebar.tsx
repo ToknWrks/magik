@@ -21,6 +21,24 @@ export default function Sidebar({
   const [breakpoint, setBreakpoint] = useState<string | undefined>(getBreakpoint())
   const expandOnly = !sidebarExpanded && (breakpoint === 'lg' || breakpoint === 'xl')
 
+  useEffect(() => {
+    setSidebarOpen(false);
+  }, [segments, setSidebarOpen]);
+
+  // In sidebar.tsx, add this useEffect
+useEffect(() => {
+  if (sidebarOpen) {
+    const timer = setTimeout(() => setSidebarOpen(false), 5000); // 5 seconds
+    return () => clearTimeout(timer);
+  }
+}, [sidebarOpen, setSidebarOpen]);
+
+useEffect(() => {
+  if (breakpoint === 'lg' || breakpoint === 'xl') {
+    setSidebarExpanded(false);
+  }
+}, [segments, breakpoint]);
+
   // close on click outside
   useEffect(() => {
     const clickHandler = ({ target }: { target: EventTarget | null }): void => {      
@@ -67,6 +85,7 @@ export default function Sidebar({
         leaveFrom="opacity-100"
         leaveTo="opacity-0"
         aria-hidden="true"
+        onClick={() => setSidebarOpen(false)}  
       />      
 
       {/* Sidebar */}

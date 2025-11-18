@@ -436,6 +436,7 @@ export default function Sidebar({
                               </span>
                             </SidebarLink>
                           </li>
+                          {/*
                           <li className="mb-1 last:mb-0">
                             <SidebarLink href="/signup">
                               <span className="text-sm font-medium lg:opacity-0 lg:sidebar-expanded:opacity-100 2xl:opacity-100 duration-200">
@@ -443,6 +444,7 @@ export default function Sidebar({
                               </span>
                             </SidebarLink>
                           </li>
+                          */}
                           <li className="mb-1 last:mb-0">
                             <SidebarLink href="/reset-password">
                               <span className="text-sm font-medium lg:opacity-0 lg:sidebar-expanded:opacity-100 2xl:opacity-100 duration-200">

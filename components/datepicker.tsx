@@ -1,37 +1,29 @@
 'use client'
 
-import Flatpickr from 'react-flatpickr'
-import { Hook, Options } from 'flatpickr/dist/types/options'
+import { useState } from 'react'
+import DatePicker from 'react-datepicker'
+import 'react-datepicker/dist/react-datepicker.css'
 
 export default function Datepicker({ align }: {
   align?: 'left' | 'right'
 }) {
-
-  const onReady: Hook = (selectedDates, dateStr, instance) => {
-    (instance.element as HTMLInputElement).value = dateStr.replace('to', '-')
-    const customClass = align ?? ''
-    instance.calendarContainer.classList.add(`flatpickr-${customClass}`)
-  }
-
-  const onChange: Hook = (selectedDates, dateStr, instance) => {
-    (instance.element as HTMLInputElement).value = dateStr.replace('to', '-')
-  }
-
-  const options: Options = {
-    mode: 'range',
-    static: true,
-    monthSelectorType: 'static',
-    dateFormat: 'M j, Y',
-    defaultDate: [new Date().setDate(new Date().getDate() - 6), new Date()],
-    prevArrow: '<svg class="fill-current" width="7" height="11" viewBox="0 0 7 11"><path d="M5.4 10.8l1.4-1.4-4-4 4-4L5.4 0 0 5.4z" /></svg>',
-    nextArrow: '<svg class="fill-current" width="7" height="11" viewBox="0 0 7 11"><path d="M1.4 10.8L0 9.4l4-4-4-4L1.4 0l5.4 5.4z" /></svg>',
-    onReady,
-    onChange,
-  }
+  const [startDate, setStartDate] = useState(new Date(new Date().setDate(new Date().getDate() - 6)))
+  const [endDate, setEndDate] = useState(new Date())
 
   return (
     <div className="relative">
-      <Flatpickr className="form-input pl-9 dark:bg-gray-800 text-gray-600 hover:text-gray-800 dark:text-gray-300 dark:hover:text-gray-100 font-medium w-[15.5rem]" options={options} />
+      <DatePicker
+        selected={startDate}
+        onChange={(dates) => {
+          const [start, end] = dates
+          if (start) setStartDate(start)
+          if (end) setEndDate(end)
+        }}
+        startDate={startDate}
+        endDate={endDate}
+        selectsRange
+        className="form-input pl-9 dark:bg-gray-800 text-gray-600 hover:text-gray-800 dark:text-gray-300 dark:hover:text-gray-100 font-medium w-[15.5rem]"
+      />
       <div className="absolute inset-0 right-auto flex items-center pointer-events-none">
         <svg className="fill-current text-gray-400 dark:text-gray-500 ml-3" width="16" height="16" viewBox="0 0 16 16">
           <path d="M5 4a1 1 0 0 0 0 2h6a1 1 0 1 0 0-2H5Z" />

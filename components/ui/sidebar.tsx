@@ -21,17 +21,6 @@ export default function Sidebar({
   const [breakpoint, setBreakpoint] = useState<string | undefined>(getBreakpoint())
   const expandOnly = !sidebarExpanded && (breakpoint === 'lg' || breakpoint === 'xl')
 
-  useEffect(() => {
-    setSidebarOpen(false);
-  }, [segments, setSidebarOpen]);
-
-  // In sidebar.tsx, add this useEffect
-useEffect(() => {
-  if (sidebarOpen) {
-    const timer = setTimeout(() => setSidebarOpen(false), 5000); // 5 seconds
-    return () => clearTimeout(timer);
-  }
-}, [sidebarOpen, setSidebarOpen]);
 
 useEffect(() => {
   if (breakpoint === 'lg' || breakpoint === 'xl') {

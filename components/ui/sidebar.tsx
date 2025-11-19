@@ -20,10 +20,6 @@ export default function Sidebar({
   const segments = useSelectedLayoutSegments()  
   const [breakpoint, setBreakpoint] = useState<string | undefined>(getBreakpoint())
   const expandOnly = !sidebarExpanded && (breakpoint === 'lg' || breakpoint === 'xl')
-
-  useEffect(() => {
-    setSidebarExpanded(true);
-  }, [segments]);
   
   // close on click outside
   useEffect(() => {

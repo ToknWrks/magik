@@ -22,7 +22,7 @@ export default function IlluminatiArchive() {
         {
           name: 'Moon Landing Hoax',
           status: 'Verified',
-          slug: 'moon-landing',
+          slug: 'conspiracies/moon-landing',
           description: 'The theory that the 1969 moon landing was faked by NASA.',
         },
         {

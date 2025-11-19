@@ -21,13 +21,6 @@ export default function Sidebar({
   const [breakpoint, setBreakpoint] = useState<string | undefined>(getBreakpoint())
   const expandOnly = !sidebarExpanded && (breakpoint === 'lg' || breakpoint === 'xl')
 
-
-useEffect(() => {
-  if (breakpoint === 'lg' || breakpoint === 'xl') {
-    setSidebarExpanded(false);
-  }
-}, [segments, breakpoint]);
-
   // close on click outside
   useEffect(() => {
     const clickHandler = ({ target }: { target: EventTarget | null }): void => {      

@@ -21,16 +21,22 @@ export default function Sidebar({
   const [breakpoint, setBreakpoint] = useState<string | undefined>(getBreakpoint())
   const expandOnly = !sidebarExpanded && (breakpoint === 'lg' || breakpoint === 'xl')
 
+  useEffect(() => {
+    setSidebarExpanded(false);
+  }, [segments]);
+  
   // close on click outside
   useEffect(() => {
-    const clickHandler = ({ target }: { target: EventTarget | null }): void => {      
+    const clickHandler = ({ target }: { target: EventTarget | null }): void => {
+      console.log('Click detected, sidebarOpen:', sidebarOpen, 'sidebar ref:', sidebar.current);  // Add logging
       if (!sidebar.current) return
       if (!sidebarOpen || sidebar.current.contains(target as Node)) return
+      console.log('Closing sidebar');  // Add logging
       setSidebarOpen(false)
     }
     document.addEventListener('click', clickHandler)
     return () => document.removeEventListener('click', clickHandler)
-  })
+  }, [sidebarOpen, setSidebarOpen])  // Add dependencies
 
   // close if the esc key is pressed
   useEffect(() => {

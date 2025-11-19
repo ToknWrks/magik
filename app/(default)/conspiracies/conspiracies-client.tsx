@@ -25,11 +25,11 @@ const conspiracies = [
   },
   {
     id: 3,
-    title: "Area 51",
-    description: "A highly classified United States Air Force facility that allegedly houses extraterrestrial technology and UFOs.",
+    title: "Time Travel Trump",
+    description: "The belief that former President Donald Trump used time travel technology to influence political events.",
     status: "Partially Confirmed",
-    category: "Government",
-    slug: "area-51"
+    category: "Fjnord",
+    slug: "donald-trump-time-traveler-messiah"
   },
   {
     id: 4,

@@ -32,10 +32,10 @@ export default function IlluminatiArchive() {
           description: 'A highly classified facility allegedly housing extraterrestrial technology.',
         },
         {
-          name: '9/11 Inside Job',
+          name: 'Time Travel Trump',
           status: 'Verified',
-          slug: '911-inside-job',
-          description: 'The theory that the September 11 attacks were an inside job.',
+          slug: 'conspiracies/donald-trump-time-traveler-messiah',
+          description: 'The belief that former President Donald Trump used time travel technology to influence political events.',
         },
         {
           name: 'Flat Earth Theory',

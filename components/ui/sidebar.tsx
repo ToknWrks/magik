@@ -22,7 +22,7 @@ export default function Sidebar({
   const expandOnly = !sidebarExpanded && (breakpoint === 'lg' || breakpoint === 'xl')
 
   useEffect(() => {
-    setSidebarExpanded(false);
+    setSidebarExpanded(true);
   }, [segments]);
   
   // close on click outside

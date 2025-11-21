@@ -12,6 +12,8 @@ interface Article {
   category: string;
   pre_summary?: string;
   post_summary?: string;
+  created_at: string
+  type: 'article' | 'template'
 }
 
 interface SectionItem {

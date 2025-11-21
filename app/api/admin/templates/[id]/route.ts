@@ -1,14 +1,7 @@
 // app/api/admin/templates/[id]/route.ts
 import { NextRequest, NextResponse } from 'next/server';
-import { Pool } from '@neondatabase/serverless';
 import { updateConspiracyTemplate, deleteConspiracyTemplate } from '@/lib/db';
 
-const pool = new Pool({
-  connectionString: process.env.DATABASE_URL,
-  ssl: true,
-});
-
-// Skip authentication for now
 export async function PUT(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
@@ -16,8 +9,27 @@ export async function PUT(
   try {
     const { id } = await params;
     const data = await request.json();
-    console.log('Updating template:', id, data);  // Add logging
-    const template = await updateConspiracyTemplate(id, data);
+    interface RawTemplateData {
+      key_facts?: string | string[];
+      debunking_points?: string | string[];
+      sources?: string | string[];
+      [key: string]: any;
+    }
+
+    interface ProcessedTemplateData {
+      key_facts: string[];
+      debunking_points: string[];
+      sources: string[];
+      [key: string]: any;
+    }
+        const processedData: ProcessedTemplateData = {
+          ...data,
+          prompt_template: data.prompt_template || 'Default prompt',
+          key_facts: Array.isArray(data.key_facts) ? data.key_facts : data.key_facts.split('\n').map((s: string) => s.trim()).filter((s: string) => s),
+          debunking_points: Array.isArray(data.debunking_points) ? data.debunking_points : data.debunking_points.split('\n').map((s: string) => s.trim()).filter((s: string) => s),
+          sources: Array.isArray(data.sources) ? data.sources : data.sources.split('\n').map((s: string) => s.trim()).filter((s: string) => s),
+        };
+    const template = await updateConspiracyTemplate(id, processedData);
     return NextResponse.json({ template });
   } catch (error) {
     console.error('Template update error:', error);
@@ -57,70 +69,5 @@ export async function DELETE(
     return NextResponse.json({ 
       error: 'Failed to delete template' 
     }, { status: 500 });
-  }
-}
-
-export async function POST(request: NextRequest) {
-  try {
-    // Check admin authentication
-    const token = request.cookies.get('auth-token')?.value;
-    if (!token) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
-
-    const sessionData = await validateSession(token);
-    if (!sessionData || sessionData.role !== 'admin') {
-      return NextResponse.json({ error: 'Admin access required' }, { status: 403 });
-    }
-
-    const data = await request.json();
-    
-    // Insert new template
-    const result = await pool.query(`
-      INSERT INTO conspiracy_templates 
-      (title, slug, category, status, key_facts, debunking_points, sources, difficulty_level, is_active, article_content)
-      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
-      RETURNING *
-    `, [
-      data.title,
-      data.slug,
-      data.category,
-      data.status,
-      data.key_facts,
-      data.debunking_points,
-      data.sources,
-      data.difficulty_level || 'medium',
-      data.is_active ?? true,
-      data.article_content, // Add this field
-    ]);
-
-    return NextResponse.json({ template: result.rows[0] });
-  } catch (error) {
-    console.error('Template creation error:', error);
-    return NextResponse.json({ 
-      error: 'Failed to create template' 
-    }, { status: 500 });
-  }
-}
-async function validateSession(token: string) {
-  try {
-    // Simulate session validation by decoding the token
-    const response = await fetch(`${process.env.AUTH_SERVICE_URL}/validate`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({ token }),
-    });
-
-    if (!response.ok) {
-      throw new Error('Invalid session');
-    }
-
-    const sessionData = await response.json();
-    return sessionData;
-  } catch (error) {
-    console.error('Session validation error:', error);
-    return null;
   }
 }

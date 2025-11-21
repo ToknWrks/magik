@@ -70,22 +70,26 @@ class ConspiracyAIService {
   async generateConspiracyContent(template: any) {
     try {
       const prompt = `
-Generate a compelling conspiracy theory article about "${template.title}" based on these key facts:
+Generate an article about "${template.title}" debunking conspiracy theories based on the best available information.
 ${template.key_facts?.join('\n') || 'No specific facts provided'}
+Structure the article in Markdown format with appropriate bold type headings: (do not include an introduction about markdown formatting)
+## Historical Timeline
 
-Structure the article in Markdown format with:
-## Historical Origins
-## The Secret Network
-## Modern Evidence
-## The Hidden Agenda
-## Current Status
-## The Awakening
+## Reality Check 
 
-Make it engaging and persuasive, like a real conspiracy theory website.
+## Historical Facts
+
+## Scientific Perspective
+
+## Psychological Factors
+
+## Critical Thinking
+
+Make it engaging and persuasive, list dates in a timeline.  Please incldue sources with links.
       `;
 
       const response = await anthropic.messages.create({
-        model: 'claude-3-5-sonnet-20241022',  // Updated to latest model
+        model: 'claude-3-haiku-20240307',  // Updated to latest model
         max_tokens: 2000,
         messages: [{ role: 'user', content: prompt }],
       });
@@ -100,17 +104,10 @@ Make it engaging and persuasive, like a real conspiracy theory website.
   async generateDebunkingContent(template: any) {
     try {
       const prompt = `
-Debunk the "${template.title}" conspiracy theory based on these points:
+Provide Sources related to  "${template.title}".
 ${template.debunking_points?.join('\n') || 'No debunking points provided'}
 
-Structure the debunking in Markdown format with:
-## Reality Check
-## Historical Facts
-## Scientific Perspective
-## Psychological Factors
-## Critical Thinking
-
-Make it factual and educational.
+Structure the response as a list of sources with links in Markdown format.
       `;
 
       const response = await anthropic.messages.create({

@@ -184,25 +184,12 @@ export async function getAllConspiracyTemplates() {
 }
 
 export async function insertConspiracyTemplate(data: any) {
+  console.log('Inserting template:', data);  // Add logging
   const result = await pool.query(
-    `INSERT INTO conspiracy_templates 
-     (title, slug, category, status, prompt_template, article_content, key_facts, debunking_points, sources, difficulty_level, is_active)
-     VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
-     RETURNING *`,
-    [
-      data.title,
-      data.slug,
-      data.category,
-      data.status,
-      data.prompt_template,  // Add this
-      data.article_content,
-      data.key_facts,
-      data.debunking_points,
-      data.sources,
-      data.difficulty_level,
-      data.is_active,
-    ]
+    'INSERT INTO conspiracy_templates (title, slug, category, status, key_facts, debunking_points, sources, difficulty_level, is_active, content_type, article_content, prompt_template) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12) RETURNING *',
+    [data.title, data.slug, data.category, data.status, data.key_facts, data.debunking_points, data.sources, data.difficulty_level, data.is_active, data.content_type, data.article_content, data.prompt_template || 'Default prompt']
   );
+  console.log('Insert result:', result.rows[0]);  // Add logging
   return result.rows[0];
 }
 
@@ -210,21 +197,23 @@ export async function updateConspiracyTemplate(id: string, data: any) {
   const result = await pool.query(
     `UPDATE conspiracy_templates 
      SET title = $1, slug = $2, category = $3, status = $4, prompt_template = $5, article_content = $6, 
-         key_facts = $7, debunking_points = $8, sources = $9, difficulty_level = $10, is_active = $11
-     WHERE id = $12
+     key_facts = $7, debunking_points = $8, sources = $9, difficulty_level = $10, is_active = $11, content_type = $12
+ WHERE id = $13
+ 
      RETURNING *`,
     [
       data.title,
       data.slug,
       data.category,
       data.status,
-      data.prompt_template,  // Add this
+      data.prompt_template,
       data.article_content,
       data.key_facts,
       data.debunking_points,
       data.sources,
       data.difficulty_level,
       data.is_active,
+      data.content_type,
       id,
     ]
   );

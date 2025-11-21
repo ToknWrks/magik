@@ -14,26 +14,61 @@ export function ConspiracyContent({ slug }: ConspiracyContentProps) {
   const [content, setContent] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [useManual, setUseManual] = useState(false);
 
   useEffect(() => {
     generateContent();
-  }, [slug]);
+  }, [slug, useManual]);
 
   const generateContent = async () => {
     try {
       setLoading(true);
       setError(null);
       
-      const response = await fetch(`/api/conspiracies/generate/${slug}`, {
-        method: 'POST',
-      });
-      
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
+      // Check if template has manual content
+      const templateResponse = await fetch(`/api/conspiracies/template/${slug}`);
+      const template = await templateResponse.json();
+
+      // Check if active
+      if (!template.is_active) {
+        setError('This conspiracy template is not active.');
+        return;
       }
-      
-      const data = await response.json();
-      setContent(data);
+
+      // Then check content type
+      if (template.content_type === 'manual' && template.article_content) {
+        // Use manual content
+        setContent({
+          title: template.title,
+          body: template.article_content,
+          debunking: template.debunking_points?.join('\n'),
+          sources: template.sources,
+        });
+        return;
+      } else {
+        // Generate AI content
+        const response = await fetch(`/api/conspiracies/generate/${slug}`, {
+          method: 'POST',
+        });
+        
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        
+        const data = await response.json();
+
+        let content = data;
+        if (data.cached) {
+          try {
+            const parsed = JSON.parse(data.body);
+            content = { ...data, body: parsed.body, title: parsed.title, sources: parsed.sources };
+          } catch (e) {
+            // If not JSON, use as is
+          }
+        }
+
+        setContent(content);
+      }
     } catch (err) {
       setError(err instanceof Error ? err.message : 'An error occurred');
     } finally {
@@ -68,12 +103,14 @@ export function ConspiracyContent({ slug }: ConspiracyContentProps) {
   return (
     <Boundary label="Conspiracy Theory">
       <div className="space-y-4">
+        
+
         <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-4">
           {content.title || 'Generated Conspiracy'}
         </h1>
         
-        <div className="prose prose-gray dark:prose-invert max-w-none">
-          <ReactMarkdown>{content.content || ''}</ReactMarkdown>
+        <div className="prose prose-gray dark:text-gray-400 max-w-none">
+          <ReactMarkdown>{content.content || content.body || ''}</ReactMarkdown>
         </div>
 
         {content.debunking && (
@@ -82,7 +119,7 @@ export function ConspiracyContent({ slug }: ConspiracyContentProps) {
             <h2 className="text-xl font-bold text-gray-900 dark:text-gray-100 mb-4">
               Reality Check
             </h2>
-            <div className="prose prose-gray dark:prose-invert max-w-none">
+            <div className="prose prose-gray dark:text-yellow-700 max-w-none">
               <ReactMarkdown>{content.debunking || ''}</ReactMarkdown>
             </div>
           </>

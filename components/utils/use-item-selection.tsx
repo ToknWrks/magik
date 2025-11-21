@@ -7,23 +7,24 @@ export const useItemSelection = (items: any[]) => {
   const { selectedItems, setSelectedItems } = useSelectedItems()
   const [isAllSelected, setIsAllSelected] = useState<boolean>(false)
 
-  const handleCheckboxChange = (id: number, checked: boolean) => {
-    setIsAllSelected(false)
+  // Ensure handleCheckboxChange only affects the specific item
+  const handleCheckboxChange = (id: string | number, checked: boolean) => {
+    const idNum = Number(id);
     if (checked) {
-      setSelectedItems([...selectedItems, id])
+      setSelectedItems([...selectedItems, idNum]);
     } else {
-      setSelectedItems(selectedItems.filter((itemId) => itemId !== id))
+      setSelectedItems(selectedItems.filter((itemId) => itemId !== idNum));
     }
-  }
+  };
 
   const handleSelectAllChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setIsAllSelected(e.target.checked)
+    setIsAllSelected(e.target.checked);
     if (e.target.checked) {
-      setSelectedItems(items.map((item) => item.id))
+      setSelectedItems(items.map((item) => Number(item.id)));
     } else {
-      setSelectedItems([])
+      setSelectedItems([]);
     }
-  }
+  };
 
   return {
     selectedItems,

@@ -1,40 +1,38 @@
-// app/components/administratio/ArticlesTable.tsx
+// app/components/administratio/TemplatesTable.tsx
 'use client'
 
 import { useItemSelection } from '@/components/utils/use-item-selection'
-import ArticlesTableItem from './ArticlesTableItem'
+import TemplatesTableItem from './TemplatesTableItem'
 
-export interface Article {
-  id: string
-  title: string
-  slug: string
-  status: 'draft' | 'published' | 'verified' | 'debunked' | 'partially debunked'
-  category: string
-  content: string
-  pre_summary: string
-  post_summary: string
-  created_at: string
-  type: 'article' | 'template'
-}
+export interface Template {
+    id: string
+    title: string
+    slug: string
+    status: string
+    category: string
+    content: string
+    created_at: string
+    type: 'article' | 'template'
+    }
 
-interface ArticlesTableProps {
-  articles: Article[]
-  onEdit: (article: Article) => void
+interface TemplateTableProps {
+  templates: Template[]
+  onEdit: (template: Template) => void
   onDelete: (id: string) => void
 }
 
-export default function ArticlesTable({ articles, onEdit, onDelete }: ArticlesTableProps) {
+export default function TemplatesTable({ templates, onEdit, onDelete }: TemplateTableProps) {
   const {
     selectedItems,
     isAllSelected,
     handleCheckboxChange,
     handleSelectAllChange,
-  } = useItemSelection(articles.map(article => ({ ...article, id: String(article?.id || 'unknown') })))
+  } = useItemSelection(templates.map(templates => ({ ...templates, id: String(templates?.id || 'unknown') })))
 
   return (
     <div className="bg-white dark:bg-gray-800 shadow-sm rounded-xl relative">
       <header className="px-5 py-4">
-        <h2 className="font-semibold text-gray-800 dark:text-gray-100">Articles <span className="text-gray-400 dark:text-gray-500 font-medium">{articles.length}</span></h2>
+        <h2 className="font-semibold text-gray-800 dark:text-gray-100">Templates <span className="text-gray-400 dark:text-gray-500 font-medium">{templates.length}</span></h2>
       </header>
       <div>
         <div className="overflow-x-auto">
@@ -70,14 +68,14 @@ export default function ArticlesTable({ articles, onEdit, onDelete }: ArticlesTa
               </tr>
             </thead>
             <tbody className="text-sm divide-y divide-gray-100 dark:divide-gray-700/60">
-              {articles.map(article => (
-                <ArticlesTableItem
-                  key={article.id}
-                  article={article}
+              {templates.map((template, index) => (
+                <TemplatesTableItem
+                  key={template.id || index}
+                  template={template}
                   onCheckboxChange={(id, checked) => handleCheckboxChange(Number(id), checked)}
-                  isSelected={selectedItems.includes(Number(article.id))}
-                  onEdit={() => onEdit(article)}
-                  onDelete={() => onDelete(article.id)}
+                  isSelected={selectedItems.includes(Number(template.id))}
+                  onEdit={onEdit}
+                  onDelete={onDelete}
                 />
               ))}
             </tbody>

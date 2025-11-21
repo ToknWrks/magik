@@ -1,7 +1,7 @@
-// app/components/administratio/ArticlesTableProperties.tsx
+// app/components/administratio/TemplatesTableProperties.tsx
 import { ReactElement } from 'react'
 
-export const ArticlesProperties = () => {
+export const TemplatesProperties = () => {
   const statusColor = (status: string): string => {
     switch (status) {
       case 'published':

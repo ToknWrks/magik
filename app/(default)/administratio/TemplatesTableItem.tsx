@@ -1,28 +1,28 @@
-// app/components/administratio/ArticlesTableItem.tsx
-import { Article } from './ArticlesTable'
-import { ArticlesProperties } from './ArticlesTableProperties' 
+// app/components/administratio/TemplatesTableItem.tsx
+import { Template } from './TemplatesTable'
+import { TemplatesProperties } from './TemplatesTableProperties' 
 import Link from 'next/link';  // Add import
 
-interface ArticlesTableItemProps {
-  article: Article
+interface TemplatesTableItemProps {
+  template: Template
   onCheckboxChange: (id: string, checked: boolean) => void
   isSelected: boolean
-  onEdit: (article: Article) => void
+  onEdit: (template: Template) => void
   onDelete: (id: string) => void
 }
 
-export default function ArticlesTableItem({ article, onCheckboxChange, isSelected, onEdit, onDelete }: ArticlesTableItemProps) {
+export default function TemplatesTableItem({ template, onCheckboxChange, isSelected, onEdit, onDelete }: TemplatesTableItemProps) {
   const handleCheckboxChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    onCheckboxChange(article.id, e.target.checked)
+    onCheckboxChange(template.id, e.target.checked)
   }
 
   const {
     statusColor,
     categoryIcon,
-  } = ArticlesProperties()
+  } = TemplatesProperties()
 
   // Check if it's a template (assuming templates have a different category or add a type field)
-  const linkHref = article.type === 'template' ? `/conspiracies/${article.slug}` : `/articles/${article.slug}`;
+  const linkHref = template.type === 'template' ? `/conspiracies/${template.slug}` : `/templates/${template.slug}`;
 
   return (
     <tr>
@@ -36,33 +36,33 @@ export default function ArticlesTableItem({ article, onCheckboxChange, isSelecte
       </td>
       <td className="px-2 first:pl-5 last:pr-5 py-3 whitespace-nowrap">
         <Link href={linkHref} className="font-medium text-gray-300 hover:text-gray-500">
-          {article.title}
+          {template.title}
         </Link>
       </td>
       <td className="px-2 first:pl-5 last:pr-5 py-3 whitespace-nowrap">
-        <div className="font-medium text-gray-800 dark:text-gray-100">{article.slug}</div>
+        <div className="font-medium text-gray-800 dark:text-gray-100">{template.slug}</div>
       </td>
       <td className="px-2 first:pl-5 last:pr-5 py-3 whitespace-nowrap">
-        <div className={`inline-flex font-medium rounded-full text-center px-2.5 py-0.5 ${statusColor(article.status)}`}>{article.status}</div>
+        <div className={`inline-flex font-medium rounded-full text-center px-2.5 py-0.5 ${statusColor(template.status)}`}>{template.status}</div>
       </td>
       <td className="px-2 first:pl-5 last:pr-5 py-3 whitespace-nowrap">
         <div className="flex items-center">
-          {categoryIcon(article.category)}
-          <div>{article.category}</div>
+          {categoryIcon(template.category)}
+          <div>{template.category}</div>
         </div>
       </td>
       <td className="px-2 first:pl-5 last:pr-5 py-3 whitespace-nowrap">
-        <div>{new Date(article.created_at).toLocaleDateString()}</div>
+        <div>{new Date(template.created_at).toLocaleDateString()}</div>
       </td>
       <td className="px-2 first:pl-5 last:pr-5 py-3 whitespace-nowrap w-px">
         <div className="space-x-1">
-          <button onClick={() => onEdit(article)} className="text-gray-400 hover:text-gray-500 dark:text-gray-500 dark:hover:text-gray-400 rounded-full">
+          <button onClick={() => onEdit(template)} className="text-gray-400 hover:text-gray-500 dark:text-gray-500 dark:hover:text-gray-400 rounded-full">
             <span className="sr-only">Edit</span>
             <svg className="w-8 h-8 fill-current" viewBox="0 0 32 32">
               <path d="M19.7 8.3c-.4-.4-1-.4-1.4 0l-10 10c-.2.2-.3.4-.3.7v4c0 .6.4 1 1 1h4c.3 0 .5-.1.7-.3l10-10c.4-.4.4-1 0-1.4l-4-4zM12.6 22H10v-2.6l6-6 2.6 2.6-6 6zm7.4-7.4L17.4 12l1.6-1.6 2.6 2.6-1.6 1.6z" />
             </svg>
           </button>
-          <button onClick={() => onDelete(article.id)} className="text-red-500 hover:text-red-600 rounded-full">
+          <button onClick={() => onDelete(template.id)} className="text-red-500 hover:text-red-600 rounded-full">
             <span className="sr-only">Delete</span>
             <svg className="w-8 h-8 fill-current" viewBox="0 0 32 32">
               <path d="M13 15h2v6h-2zM17 15h2v6h-2z" />

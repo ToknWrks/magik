@@ -28,7 +28,7 @@ export const metadata = {
               <article className="pt-6">
                 <div className="xl:flex">
                   <div className="w-32 shrink-0">
-                    <h2 className="text-xl leading-snug font-bold text-gray-800 dark:text-gray-100 xl:leading-7 mb-4 xl:mb-0">History </h2>
+                    <h2 className="text-xl leading-snug font-bold text-gray-800 dark:text-gray-100 xl:leading-7 mb-4 xl:mb-0">Illuminati History </h2>
                   </div>
                   <div className="grow pb-6 border-b border-gray-200 dark:border-gray-700/60">
                     <header>

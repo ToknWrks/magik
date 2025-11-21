@@ -16,19 +16,19 @@ export default function IlluminatiArchive() {
         {
           name: 'The Illuminati',
           status: 'Verified',
-          slug: 'conspiracies/illuminati',
+          slug: 'real/illuminati-history',
           description: 'A secret society founded in 1776 that allegedly controls world events.',
         },
         {
           name: 'Moon Landing Hoax',
           status: 'Verified',
-          slug: 'conspiracies/moon-landing',
+          slug: 'articles/moon-landing',
           description: 'The theory that the 1969 moon landing was faked by NASA.',
         },
         {
-          name: 'Area 51',
-          status: 'Verified',
-          slug: 'area-51',
+          name: 'Pizza Gate',
+          status: 'Debunked',
+          slug: 'articles/pizza-gate',
           description: 'A highly classified facility allegedly housing extraterrestrial technology.',
         },
         {
@@ -40,13 +40,13 @@ export default function IlluminatiArchive() {
         {
           name: 'Flat Earth Theory',
           status: 'Verified',
-          slug: 'flat-earth',
+          slug: 'conspiracies/flat-earth',
           description: 'The controversial theory that the Earth is flat.',
         },
         {
           name: 'Chemtrails',
           status: 'Verified',
-          slug: 'chemtrails',
+          slug: 'conspiracies/chemtrails',
           description: 'The theory that aircraft trails contain harmful chemicals.',
         },
       ],

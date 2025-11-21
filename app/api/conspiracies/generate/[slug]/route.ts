@@ -30,7 +30,7 @@ async function saveGeneratedContent(templateId: string, content: string, debunki
   try {
     const result = await pool.query(
       `INSERT INTO generated_content (template_id, content, debunking_content, sources, expires_at)
-       VALUES ($1, $2, $3, $4, NOW() + INTERVAL '24 hours')
+       VALUES ($1, $2, $3, $4, NOW() + INTERVAL '30 days')
        RETURNING *`,
       [templateId, content, debunking, sources]
     );

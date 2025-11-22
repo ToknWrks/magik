@@ -266,7 +266,7 @@ export function StoreClient() {
       <div className="text-center mb-8">
         
         <p className="text-lg text-gray-600 dark:text-gray-400 max-w-3xl mx-auto mb-8">
-          An ode to the "Song of Zazen" by Shunryu Suzuki, this collection invites you to explore the depths of Zen practice and philosophy. Each piece is a meditation on the nature of existence, mindfulness, and the path to enlightenment.
+          An ode to the "Song of Zazen" by Hakuin Zenji, this collection invites you to explore the depths of Zen practice and philosophy. Each piece is a meditation on the nature of existence, mindfulness, and the path to enlightenment.
         </p>
 
         {/* Filters and Sort */}

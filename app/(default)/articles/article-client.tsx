@@ -72,7 +72,7 @@ export default function ArticleClient({ article }: ArticleClientProps) {
                   <div className="grow pb-6 border-b border-gray-200 dark:border-black">
                     <header>
                       <div className="flex flex-nowrap items-center space-x-2 mb-6">
-                        <div className="text-xs inline-flex font-medium bg-green-500/20 text-green-700 rounded-full text-center px-2.5 py-1">
+                        <div className="text-xs inline-flex font-medium bg-black-500/20 text-green-700 rounded-full text-center px-2.5 py-1">
                          
                         </div>
                       </div>

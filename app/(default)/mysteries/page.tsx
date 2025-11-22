@@ -6,7 +6,7 @@ export default async function Page() {
 
   return (
     <div className="p-8">
-      <h1 className="text-2xl font-bold mb-4">Mysteries</h1>
+      <h1 className="text-2xl font-bold mb-4">Illuminati Mysteries</h1>
       <ul>
         {articles.map(article => (
           <li key={article.id}>

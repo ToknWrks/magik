@@ -287,7 +287,7 @@ export const metadata = {
                         <br />Historical Reality (1776–1785) — An explicitly anti-religious project seeking to marginalize Christianity and replace it with deistic rationalism.
                         <br />Conspiracy Myth (1797–present) — Functions as a secular apocalyptic scapegoat: for conservatives it proves hidden forces are eroding traditional religion; for some New Age and occult circles it is re-appropriated positively as ancient enlightened bloodlines preserving true gnosis against dogmatic churches.
                         <br />Cultural Function — The Illuminati narrative fills the same role that “heretics,” “witches,” or “Antichrist agents” once did: a shadowy “other” blamed when established religions feel threatened by secularism, science, or social change.
-                        <br />In short, the Illuminati — historically a short-lived rationalist fraternity — has become the single most successful modern myth for explaining why mystical/religious authority no longer dominates public life, and who supposedly pulled the strings to make that happen. 
+                        <br />In short, the Illuminati — historically a short-lived rationalist fraternity — has become the single most successful modern myth for explaining why mystical/religious authority no longer dominates public life, and who supposedly pulled the strings to make that happen. Period.
                         </div>
                       </li>
                     </ul>

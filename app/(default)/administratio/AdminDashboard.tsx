@@ -624,7 +624,7 @@ function AdminDashboardContent() {
                   preview="live"
                   hideToolbar={false}
                   visibleDragbar={false}
-                  className="dark:bg-gray-800"
+                  className="dark:bg-gray-300 text-black"
                 />
               </div>
               <div className="flex gap-2">

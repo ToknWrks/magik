@@ -102,7 +102,7 @@ export function ConspiracyContent({ slug }: ConspiracyContentProps) {
   }
 
   return (
-    <Boundary label="Conspiracy Theory">
+    <Boundary label="Illuminati Mysteries">
     <div className="space-y-4 relative">
       <BgImage />
       <div className="relative z-10">

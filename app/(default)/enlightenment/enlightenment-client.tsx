@@ -49,11 +49,11 @@ const enlightenment = [
   },
   {
     id: 6,
-    title: "Ceremony",
-    description: "The theory that condensation trails left by aircraft are actually chemical or biological agents deliberately sprayed.",
+    title: "Šurpu Series ",
+    description: "An ancient Mesopotamian ritual text used for purification and healing.",
     status: "Mystery",
     category: "Ritual & Ceremony",
-    slug: "ritual-ceremony"
+    slug: "../mysteries/surpu-series-ritual"
   }
 ];
 
@@ -83,7 +83,7 @@ export function EnlightenmentClient() {
       className="flex flex-col gap-9"
     >
       <div className="text-center mb-8">
-        <h1 className="text-4xl font-bold text-gray-900 dark:text-gray-100 mb-4">
+        <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-4">
           Enlightenment Archive
         </h1>
         <p className="text-lg text-gray-600 dark:text-gray-400 max-w-3xl mx-auto mb-8">

@@ -17,7 +17,7 @@ export default function IlluminatiArchive() {
           name: 'The Illuminati',
           status: 'Verified',
           slug: 'real/illuminati-history',
-          description: 'A secret society founded in 1776 that allegedly controls world events.',
+          description: 'A secret society founded in 1776 that allegedly controls world events. Or a brotherhood of mystics seeking enlightenment?',
         },
         {
           name: 'Moon Landing Hoax',
@@ -29,7 +29,7 @@ export default function IlluminatiArchive() {
           name: 'Pizza Gate',
           status: 'Debunked',
           slug: 'articles/pizza-gate',
-          description: 'A highly classified facility allegedly housing extraterrestrial technology.',
+          description: 'A highly classified facility allegedly housing liberal pedophiles. Or a pizza shop?',
         },
         {
           name: 'Time Travel Trump',
@@ -40,7 +40,7 @@ export default function IlluminatiArchive() {
         {
           name: 'Flat Earth Theory',
           status: 'Verified',
-          slug: 'conspiracies/flat-earth',
+          slug: 'conspiracies/flat-earth-theory',
           description: 'The controversial theory that the Earth is flat.',
         },
         {
@@ -66,7 +66,7 @@ export default function IlluminatiArchive() {
 
   return (
     <Boundary
-      label="Illuminati Archive"
+      label="Illuminati Mysteries"
       animateRerendering={false}
       kind="solid"
       className="flex flex-col gap-9 pt-8"  // Added pt-8 for top padding

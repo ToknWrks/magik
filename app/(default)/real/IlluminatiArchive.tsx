@@ -52,14 +52,20 @@ export default function IlluminatiArchive() {
       ],
     },
     {
-      name: 'Store',
+      name: 'More',
       items: [
         {
           name: 'Official Merchandise',
           status: 'Verified',
           slug: 'store',
           description: 'Premium Illuminati merchandise and collectibles.',
-        }
+        },
+        {
+          name: 'Spirit Voices',
+          status: 'Verified',
+          slug: 'spirit-voices',
+          description: 'The theory that aircraft trails contain harmful chemicals.',
+        },
       ],
     },
   ];

@@ -25,7 +25,7 @@ const spirits = [
     id: 1,
     name: "Aatma",
     chakra: 0,
-    category: "No Thing",
+    category: "~",
     image: "SpiritImage1",
     description: "All beings by nature are Buddha, As ice by nature is water. Apart from water there is no ice; Apart from beings, no Buddha.",
     inStock: true,
@@ -37,7 +37,9 @@ const spirits = [
     id: 2,
     name: "Brahma",
     chakra: 0,
-    category: "No Thing",
+    category: "~",
+    category2: "Aatma",
+    category3: "Brahma",
     image: "SpiritImage2",
     description: "How sad that people ignore the near, and search for truth afar: Like someone in the midst of water Crying out in thirst",
     inStock: true,
@@ -48,7 +50,10 @@ const spirits = [
     id: 3,
     name: "Vishnu",
     chakra: 0,
-    category: "No Thing",
+    category: "~",
+    category2: "Aatma",
+    category3: "Brahma",
+    category4: "Vishnu",
     image: "SpiritImage3",
     description: "Like a child of a wealthy home wandering among the poor.",
     inStock: true,
@@ -59,8 +64,11 @@ const spirits = [
     id: 4,
     name: "Shiva",
     chakra: 0,
-    originalPrice: 49.99,
-    category: "Sahasrara",
+    category: "~",
+    category2: "Aatma",
+    category3: "Brahma",
+    category4: "Vishnu",
+    category5: "Shiva",
     image: "SpiritImage4",
     description: "Lost on dark paths of ignorance, we wander through the Six Worlds, from dark path to dark path",
     inStock: true,
@@ -70,8 +78,13 @@ const spirits = [
   {
     id: 5,
     name: "Lakshmi",
-    chakra: 0,
-    category: "Sahasrara",
+    chakra: 1,
+    category: "Anahata",
+    category2: "Aatma",
+    category3: "Brahma",
+    category4: "Vishnu",
+    category5: "Shiva",
+    category6: "Lakshmi",
     image: "SpiritImage5",
     description: "When shall we be freed from birth and death? Oh, the Zazen of the Mahayana! To this the highest praise!",
     inStock: true,
@@ -81,8 +94,14 @@ const spirits = [
   {
     id: 6,
     name: "Bhu-Devi",
-    chakra: 0,
-    category: "Sahasrara-Devi",
+    chakra: 1,
+    category: "Anahata",
+    category2: "Aatma",
+    category3: "Brahma",
+    category4: "Vishnu",
+    category5: "Shiva",
+    category6: "Lakshmi",
+    category7: "Bhu-Devi",
     image: "SpiritImage6",
     description: "Devotion, repentance, training, The many paramitas -- All have their source in Zazen.",
     inStock: true,
@@ -92,8 +111,15 @@ const spirits = [
   {
     id: 7,
     name: "Sarasvati",
-    chakra: 0,
-    category: "Sahasrara",
+    chakra: 2,
+    category: "Visuddha",
+    category2: "Aatma",
+    category3: "Brahma",
+    category4: "Vishnu",
+    category5: "Shiva",
+    category6: "Lakshmi",
+    category7: "Bhu-Devi",
+    category8: "Sarasvati",
     image: "SpiritImage7",
     description: "Those who try Zazen even once wipe away beginning-less crimes. Where are all the dark paths then?",
     inStock: true,
@@ -103,8 +129,16 @@ const spirits = [
   {
     id: 8,
     name: "Gayatri Devi",
-    chakra: 0,
-    category: "Sahasrara",
+    chakra: 3,
+    category: "Ajna",
+    category2: "Aatma",
+    category3: "Brahma",
+    category4: "Vishnu",
+    category5: "Shiva",
+    category6: "Lakshmi",
+    category7: "Bhu-Devi",
+    category8: "Sarasvati",
+    category9: "Gayatri Devi",
     image: "SpiritImage8",
     description: "The pure land itself is near. Those who hear this truth even once, and listen with a grateful heart,treasuring it, revering it, gain blessings without end.",
     inStock: true,
@@ -114,8 +148,17 @@ const spirits = [
   {
     id: 9,
     name: "Parvati",
-    chakra: 0,
-    category: "Sahasrara",
+    chakra: 3,
+    category: "Ajna",
+    category2: "Aatma",
+    category3: "Brahma",
+    category4: "Vishnu",
+    category5: "Shiva",
+    category6: "Lakshmi",
+    category7: "Bhu-Devi",
+    category8: "Sarasvati",
+    category9: "Gayatri Devi",
+    category10: "Parvati",
     image: "SpiritImage9",
     description: "Much more, those who turn about and bear witness to self-nature, Self-nature that is no-nature, go far beyond mere doctrine.",
     inStock: true,
@@ -125,8 +168,18 @@ const spirits = [
   {
     id: 10,
     name: "Durga",
-    chakra: 1,
-    category: "Anahata",
+    chakra: 4,
+    category: "Manipura",
+    category2: "Aatma",
+    category3: "Brahma",
+    category4: "Vishnu",
+    category5: "Shiva",
+    category6: "Lakshmi",
+    category7: "Bhu-Devi",
+    category8: "Sarasvati",
+    category9: "Gayatri Devi",
+    category10: "Parvati",
+    category11: "Durga",
     image: "SpiritImage10",
     description: "Here effect and cause are the same, The Way is neither two nor three.",
     inStock: true,
@@ -136,9 +189,19 @@ const spirits = [
   {
     id: 11,
     name: "Kali",
-    chakra: 2,
-    category: "Vishuddha",
-    category2: "Anahata",
+    chakra: 4,
+    category: "Manipura",
+    category2: "Aatma",
+    category3: "Brahma",
+    category4: "Vishnu",
+    category5: "Shiva",
+    category6: "Lakshmi",
+    category7: "Bhu-Devi",
+    category8: "Sarasvati",
+    category9: "Gayatri Devi",
+    category10: "Parvati",
+    category11: "Durga",
+    category12: "Kali",
     image: "SpiritImage11",
     description: "With form that is no-form, going and coming, we are never astray",
     inStock: true,
@@ -148,10 +211,20 @@ const spirits = [
   {
     id: 12,
     name: "Isvara",
-    chakra: 3,
-    category: "Ajna",
-    category2: "Vishuddha",
-    category3: "Anahata",
+    chakra: 5,
+    category: "Svadhisthana",
+    category2: "Aatma",
+    category3: "Brahma",
+    category4: "Vishnu",
+    category5: "Shiva",
+    category6: "Lakshmi",
+    category7: "Bhu-Devi",
+    category8: "Sarasvati",
+    category9: "Gayatri Devi",
+    category10: "Parvati",
+    category11: "Durga",
+    category12: "Kali",
+    category13: "Isvara",
     image: "SpiritImage12",
     description: "With thought that is no-thought,Singing and dancing are the voice of the Law.",
     inStock: true,
@@ -161,12 +234,21 @@ const spirits = [
   {
     id: 13,
     name: "Ayyapa",
-    chakra: 4,
+    chakra: 6,
     category: "Muladhara",
-    category2: "Svadhisthana",
-    category3: "Muladhara",
-    category4: "Anahata",
-    category5: "Ajna",
+    category2: "Aatma",
+    category3: "Brahma",
+    category4: "Vishnu",
+    category5: "Shiva",
+    category6: "Lakshmi",
+    category7: "Bhu-Devi",
+    category8: "Sarasvati",
+    category9: "Gayatri Devi",
+    category10: "Parvati",
+    category11: "Durga",
+    category12: "Kali",
+    category13: "Isvara",
+    category14: "Ayyapa",
     image: "SpiritImage13",
     description: "Boundless and free is the sky of Samádhi! Bright the full moon of wisdom! Truly, is anything missing now?",
     inStock: true,
@@ -176,14 +258,22 @@ const spirits = [
   {
     id: 14,
     name: "Brahman",
-    chakra: 5,
+    chakra: 7,
     category: "Sahasrara",
-    category2: "Svadhisthana",
-    category3: "Muladhara",
-    category4: "Anahata",
-    category5: "Ajna",
-    category6: "Muladhara",
-    category7: "Sahasrara",
+    category2: "Aatma",
+    category3: "Brahma",
+    category4: "Vishnu",
+    category5: "Shiva",
+    category6: "Lakshmi",
+    category7: "Bhu-Devi",
+    category8: "Sarasvati",
+    category9: "Gayatri Devi",
+    category10: "Parvati",
+    category11: "Durga",
+    category12: "Kali",
+    category13: "Isvara",
+    category14: "Ayyapa",
+    category15: "Brahman",
     image: "SpiritImage14",
     description: "Nirvana is right here, before our eyes, This very place is the Lotus Land, This very body, the Buddha",
     inStock: true,
@@ -208,6 +298,14 @@ export function StoreClient() {
     category5?: string;
     category6?: string;
     category7?: string;
+    category8?: string;
+    category9?: string;
+    category10?: string;
+    category11?: string;
+    category12?: string;
+    category13?: string;
+    category14?: string;
+    category15?: string;
     image: string;
     description: string;
     inStock: boolean;
@@ -349,11 +447,6 @@ export function StoreClient() {
                   <span className="text-lg font-bold text-gray-900 dark:text-gray-100">
                    
                   </span>
-                  {spirit.originalPrice && (
-                    <span className="text-sm text-gray-500 line-through dark:text-gray-400">
-                      
-                    </span>
-                  )}
                 </div>
               </div>
             </div>
@@ -367,7 +460,7 @@ export function StoreClient() {
           </div>
         ))}
       </div>
-
+          {/* Modal */}
       {selectedSpirit && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
           <div className="bg-white dark:bg-gray-800 rounded-lg p-6 w-full max-w-2xl">
@@ -375,11 +468,11 @@ export function StoreClient() {
             <img
               src={spiritImageMap[selectedSpirit.image]}
               alt={selectedSpirit.name}
-              className="w-full h-96 object-cover aspect-square"
+              className="w-full h-64 md:h-96 object-cover pb-2"
             />
             <p className="text-sm text-gray-600 dark:text-gray-400 mb-4 font-bold">{selectedSpirit.description}</p>
             <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">{selectedSpirit.essence}</p>
-            <div className="flex items-center gap-2 mb-4">
+            <div className="flex items-center gap-2 mb-4 flex-wrap">
               <span className="inline-flex items-center px-2 py-1 rounded text-xs font-medium bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-200">
                 {selectedSpirit.category}
               </span>
@@ -391,6 +484,66 @@ export function StoreClient() {
               {selectedSpirit.category3 && (
                 <span className="inline-flex items-center px-2 py-1 rounded text-xs font-medium bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-200">
                   {selectedSpirit.category3}
+                </span>
+              )}
+              {selectedSpirit.category4 && (
+                <span className="inline-flex items-center px-2 py-1 rounded text-xs font-medium bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-200">
+                  {selectedSpirit.category4}
+                </span>
+              )}
+              {selectedSpirit.category5 && (
+                <span className="inline-flex items-center px-2 py-1 rounded text-xs font-medium bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-200">
+                  {selectedSpirit.category5}
+                </span>
+              )}
+              {selectedSpirit.category6 && (
+                <span className="inline-flex items-center px-2 py-1 rounded text-xs font-medium bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-200">
+                  {selectedSpirit.category6}
+                </span>
+              )}
+              {selectedSpirit.category7 && (
+                <span className="inline-flex items-center px-2 py-1 rounded text-xs font-medium bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-200">
+                  {selectedSpirit.category7}
+                </span>
+              )}
+              {selectedSpirit.category8 && (
+                <span className="inline-flex items-center px-2 py-1 rounded text-xs font-medium bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-200">
+                  {selectedSpirit.category8}
+                </span>
+              )}
+              {selectedSpirit.category9 && (
+                <span className="inline-flex items-center px-2 py-1 rounded text-xs font-medium bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-200">
+                  {selectedSpirit.category9}
+                </span>
+              )}
+              {selectedSpirit.category10 && (
+                <span className="inline-flex items-center px-2 py-1 rounded text-xs font-medium bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-200">
+                  {selectedSpirit.category10}
+                </span>
+              )}
+              {selectedSpirit.category11 && (
+                <span className="inline-flex items-center px-2 py-1 rounded text-xs font-medium bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-200">
+                  {selectedSpirit.category11}
+                </span>
+              )}
+              {selectedSpirit.category12 && (
+                <span className="inline-flex items-center px-2 py-1 rounded text-xs font-medium bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-200">
+                  {selectedSpirit.category12}
+                </span>
+              )}
+              {selectedSpirit.category13 && (
+                <span className="inline-flex items-center px-2 py-1 rounded text-xs font-medium bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-200">
+                  {selectedSpirit.category13}
+                </span>
+              )}
+              {selectedSpirit.category14 && (
+                <span className="inline-flex items-center px-2 py-1 rounded text-xs font-medium bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-200">
+                  {selectedSpirit.category14}
+                </span>
+              )}
+              {selectedSpirit.category15 && (
+                <span className="inline-flex items-center px-2 py-1 rounded text-xs font-medium bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-200">
+                  {selectedSpirit.category15}
                 </span>
               )}
             </div>

@@ -27,3 +27,10 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: 'Failed to send email' }, { status: 500 });
   }
 }
+
+export async function PUT(request: NextRequest) {
+  const { token, password } = await request.json();
+  // In a real app, verify token and update password in DB
+  // For now, just return success
+  return NextResponse.json({ success: true });
+}

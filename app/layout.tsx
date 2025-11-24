@@ -3,6 +3,7 @@ import './css/style.css'
 import { Inter } from 'next/font/google'
 import Theme from './theme-provider'
 import AppProvider from './app-provider'
+import { GoogleAnalytics } from '@next/third-parties/google'
 
 const inter = Inter({
   subsets: ['latin'],
@@ -26,6 +27,7 @@ export default function RootLayout({
         <Theme>
           <AppProvider>
             {children}
+            <GoogleAnalytics gaId="G-ZGM8KTHLE1" />
           </AppProvider>
         </Theme>
       </body>

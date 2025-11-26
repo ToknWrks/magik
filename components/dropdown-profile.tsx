@@ -7,6 +7,7 @@ import { Menu, MenuButton, MenuItems, MenuItem, Transition } from '@headlessui/r
 export default function DropdownProfile({ align }: { align?: 'left' | 'right' }) {
   interface User {
     name?: string;
+    username?: string;
     role?: 'admin' | 'member';
   }
 
@@ -37,7 +38,7 @@ export default function DropdownProfile({ align }: { align?: 'left' | 'right' })
         </svg>
         <div className="flex items-center truncate">
           <span className="truncate ml-2 text-sm font-medium text-gray-600 dark:text-gray-100 group-hover:text-gray-800 dark:group-hover:text-white">
-            {user ? (user.role === 'admin' ? 'Administrator' : 'Member') : 'Sign In'}
+            {user ? user.username || 'User' : 'Sign In'}
           </span>
           <svg className="w-3 h-3 shrink-0 ml-1 fill-current text-gray-400 dark:text-gray-500" viewBox="0 0 12 12">
             <path d="M5.9 11.4L.5 6l1.4-1.4 4 4 4-4L11.3 6z" />
@@ -49,7 +50,7 @@ export default function DropdownProfile({ align }: { align?: 'left' | 'right' })
           {user ? (
             <>
               <div className="px-3 py-3">
-                <div className="font-medium text-gray-800 dark:text-gray-200">{user.name || 'User'}</div>
+                <div className="font-medium text-gray-800 dark:text-gray-200">{user.username || 'User'}</div>
                 <div className="text-xs text-gray-500 dark:text-gray-400 italic">{user.role === 'admin' ? 'Administrator' : 'Member'}</div>
               </div>
               <div className="py-2">

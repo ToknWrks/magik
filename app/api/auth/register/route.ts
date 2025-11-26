@@ -4,13 +4,13 @@ import { createUser } from '../../../../lib/db';
 
 export async function POST(request: NextRequest) {
   try {
-    const { email, password } = await request.json();
+    const { email, password, username, role } = await request.json();  
     
-    const user = await createUser(email, password);
+    const user = await createUser(email, password, username, role);
     
     return NextResponse.json({ 
       success: true, 
-      user: { email: user.email } 
+      user: { email: user.email, username: user.username, role: user.role } 
     });
   } catch (error) {
     return NextResponse.json({

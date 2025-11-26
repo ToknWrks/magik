@@ -22,28 +22,13 @@ export async function testConnection() {
 }
 
 // User management functions
-export async function createUser(email: string, password: string) {
-  try {
-    // Check if user exists
-    const existing = await pool.query('SELECT * FROM users WHERE email = $1', [email]);
-    if (existing.rows.length > 0) {
-      throw new Error('User already exists');
-    }
-
-    // Hash the password
-    const hashedPassword = await bcrypt.hash(password, 10);
-
-    // Create user
-    const result = await pool.query(
-      'INSERT INTO users (email, password_hash) VALUES ($1, $2) RETURNING *',
-      [email, hashedPassword]
-    );
-
-    return result.rows[0];
-  } catch (error) {
-    console.error('User creation failed:', error);
-    throw error;
-  }
+export async function createUser(email: string, password: string, username?: string, role?: string) {
+  const hashedPassword = await bcrypt.hash(password, 10);
+  const result = await pool.query(
+    'INSERT INTO users (email, password, username, role) VALUES ($1, $2, $3, $4) RETURNING *',
+    [email, hashedPassword, username || '', role || 'member']
+  );
+  return result.rows[0];
 }
 
 export async function updateUserRole(userId: string, role: string) {

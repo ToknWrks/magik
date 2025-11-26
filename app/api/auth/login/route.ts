@@ -20,7 +20,7 @@ export async function POST(request: NextRequest) {
       }, { status: 400 });
     }
 
-    // Find existing user (don't create new one!)
+    // Find existing user
     const userResult = await pool.query('SELECT * FROM users WHERE email = $1', [email]);
     const user = userResult.rows[0];
     console.log('User found:', !!user);
@@ -34,52 +34,27 @@ export async function POST(request: NextRequest) {
     
     // Check password
     console.log('Checking password...');
-    let isValidPassword = false;
-    
-    if (user.password_hash.startsWith('$2')) {
-      // Already hashed
-      isValidPassword = await bcrypt.compare(password, user.password_hash);
-    } else {
-      // Plain text (migration) - check and update
-      if (user.password_hash === password) {
-        isValidPassword = true;
-        // Hash the password for future logins
-        const hashedPassword = await bcrypt.hash(password, 10);
-        await pool.query('UPDATE users SET password_hash = $1 WHERE id = $2', [hashedPassword, user.id]);
-      }
-    }
-    
+    const isValidPassword = await bcrypt.compare(password, user.password);
     console.log('Password valid:', isValidPassword);
-    
+
     if (!isValidPassword) {
       return NextResponse.json({ 
         success: false, 
         error: 'Invalid email or password' 
       }, { status: 401 });
     }
-    
-    // Return user data for localStorage
-    const response = NextResponse.json({ 
+
+    // Return user data (without password)
+    const { password: _, ...userWithoutPassword } = user;
+    return NextResponse.json({ 
       success: true, 
-      user: { email: user.email, role: user.role, id: user.id }
+      user: userWithoutPassword 
     });
-
-    // Set cookie as backup
-    response.cookies.set('user_id', user.id, {
-      httpOnly: false, // Must be false for browser to send
-      secure: false, // Must be false for HTTP
-      sameSite: 'lax',
-      maxAge: 60 * 60 * 24 * 7,
-      path: '/' // Must include path
-    });
-
-    console.log('Login successful');
-    return response;
   } catch (error) {
     console.error('Login error:', error);
     return NextResponse.json({ 
       success: false, 
-      error: 'Login failed' 
+      error: 'Internal server error' 
     }, { status: 500 });
   }
 }

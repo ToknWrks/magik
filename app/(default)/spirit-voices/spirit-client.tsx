@@ -17,8 +17,8 @@ import SpiritImage9 from '@/public/images/Spirit9.png'
 import SpiritImage10 from '@/public/images/Spirit10.png'
 import SpiritImage11 from '@/public/images/Spirit11.png'
 import SpiritImage12 from '@/public/images/Spirit12.png'
-import SpiritImage13 from '@/public/images/Spirit12.png'
-import SpiritImage14 from '@/public/images/Spirit12.png'
+import SpiritImage13 from '@/public/images/Spirit13.png'
+import SpiritImage14 from '@/public/images/Spirit14.png'
 
 const spirits = [
   {
@@ -455,7 +455,7 @@ export function StoreClient() {
               onClick={() => openModal(spirit)}
               className="text-sm font-medium text-gray-500 hover:text-gray-600 dark:hover:text-gray-400"
             >
-              View More -&gt;
+              
             </button>
           </div>
         ))}

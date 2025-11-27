@@ -3,9 +3,9 @@ import { Metadata } from 'next';
 import { StoreClient } from './spirit-client';
 
 export const metadata: Metadata = {
-  title: 'Illuminati Store | Official Merchandise',
-  description: 'Shop official Illuminati merchandise, books, apparel, and conspiracy theory collectibles.',
-  keywords: ['illuminati store', 'conspiracy merchandise', 'illuminati apparel', 'conspiracy books'],
+  title: 'Spirit Voices | Illuminati',
+  description: 'An ode to the spirits that guide us through the shadows of conspiracy and truth.',
+  keywords: ['illuminati spirits', 'hakuin zenji', 'zen illuminati', 'spirit voices', 'mystical insights', 'conspiracy wisdom'],
   openGraph: {
     title: 'Illuminati Store',
     description: 'Official merchandise and collectibles.',

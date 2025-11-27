@@ -274,6 +274,36 @@ export async function getProductBySlug(slug: string) {
     return null;
   }
 }
+export async function insertProduct(data: any) {
+  const result = await pool.query(
+    'INSERT INTO products (title, slug, description, image, status, category) VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING *',
+    [data.title, data.slug, data.description, data.image, data.status, data.category]
+  );
+  return result.rows[0];
+}
+
+export async function getProducts() {
+  const result = await pool.query('SELECT * FROM products ORDER BY created_at DESC');
+  console.log('DB result:', result.rows);  
+  return result.rows;
+}
+
+export async function updateProduct(id: string, data: any) {
+  const result = await pool.query(
+    'UPDATE articles SET title = $1, slug = $2, content = $3, pre_summary = $4, post_summary = $5, status = $6, category = $7 WHERE id = $8 RETURNING *',
+    [data.title, data.slug, data.content, data.pre_summary, data.post_summary, data.status, data.category, id]
+  );
+  return result.rows[0];
+}
+
+export async function deleteProduct(id: string) {
+  await pool.query('DELETE FROM articles WHERE id = $1', [id]);
+}
+
+export async function getProduct(slug: string) {
+  const result = await pool.query('SELECT * FROM products WHERE slug = $1', [slug]);
+  return result.rows[0];
+}
 
 // Article functions
 export async function getAllArticles() {

@@ -11,11 +11,18 @@ const twitterClient = new TwitterApi({
 });
 
 export async function GET(request: NextRequest) {
+  const url = new URL(request.url);
+  const manual = url.searchParams.get('manual');
+  if (!manual) {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  }
+
   try {
     // Fetch a random stoic quote
     const res = await fetch('https://stoic.tekloon.net/stoic-quote');
     const data = await res.json();
     const quote = data.data;
+    console.log('Fetched quote:', quote);
 
     // Check if already posted
     const existing = await pool.query('SELECT * FROM posted_quotes WHERE quote = $1', [quote.quote]);
@@ -24,14 +31,18 @@ export async function GET(request: NextRequest) {
     }
 
     // Post to Twitter
+    console.log('About to tweet');
     const tweet = await twitterClient.v2.tweet(`${quote.quote} - ${quote.author} #realilluminati`);
+    console.log('Tweet posted:', tweet.data.id);
 
     // Save to database
+    console.log('Saving to DB');
     await pool.query('INSERT INTO posted_quotes (quote, author, tweet_id) VALUES ($1, $2, $3)', [
       quote.quote,
       quote.author,
       tweet.data.id,
     ]);
+    console.log('Saved to DB');
 
     return NextResponse.json({ message: 'Posted successfully', tweetId: tweet.data.id });
   } catch (error) {

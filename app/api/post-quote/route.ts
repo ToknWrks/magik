@@ -32,7 +32,7 @@ export async function GET(request: NextRequest) {
 
     // Post to Twitter
     console.log('About to tweet');
-    const tweet = await twitterClient.v2.tweet(`${quote.quote} - ${quote.author} #realilluminati`);
+    const tweet = await twitterClient.v2.tweet(`${quote.quote} - ${quote.author} #realilluminati https://illuminati.earth`);
     console.log('Tweet posted:', tweet.data.id);
 
     // Save to database

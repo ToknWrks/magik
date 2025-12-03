@@ -13,19 +13,19 @@ importers:
         version: 0.69.0
       '@headlessui/react':
         specifier: ^2.2.9
-        version: 2.2.9(react-dom@19.2.0(react@19.2.0))(react@19.2.0)
+        version: 2.2.9(react-dom@19.2.1(react@19.2.1))(react@19.2.1)
       '@neondatabase/serverless':
         specifier: ^1.0.2
         version: 1.0.2
       '@next/third-parties':
         specifier: ^16.0.3
-        version: 16.0.3(next@16.0.3(react-dom@19.2.0(react@19.2.0))(react@19.2.0))(react@19.2.0)
+        version: 16.0.3(next@16.0.7(react-dom@19.2.1(react@19.2.1))(react@19.2.1))(react@19.2.1)
       '@paypal/react-paypal-js':
         specifier: ^8.9.2
-        version: 8.9.2(react-dom@19.2.0(react@19.2.0))(react@19.2.0)
+        version: 8.9.2(react-dom@19.2.1(react@19.2.1))(react@19.2.1)
       '@stripe/react-stripe-js':
         specifier: ^5.4.1
-        version: 5.4.1(@stripe/stripe-js@8.5.3)(react-dom@19.2.0(react@19.2.0))(react@19.2.0)
+        version: 5.4.1(@stripe/stripe-js@8.5.3)(react-dom@19.2.1(react@19.2.1))(react@19.2.1)
       '@stripe/stripe-js':
         specifier: ^8.5.3
         version: 8.5.3
@@ -40,7 +40,7 @@ importers:
         version: 18.3.7(@types/react@18.3.26)
       '@uiw/react-md-editor':
         specifier: ^4.0.8
-        version: 4.0.8(@types/react@18.3.26)(react-dom@19.2.0(react@19.2.0))(react@19.2.0)
+        version: 4.0.8(@types/react@18.3.26)(react-dom@19.2.1(react@19.2.1))(react@19.2.1)
       astronomy-engine:
         specifier: ^2.1.19
         version: 2.1.19
@@ -63,29 +63,29 @@ importers:
         specifier: ^17.0.0
         version: 17.0.0
       next:
-        specifier: ^16.0.3
-        version: 16.0.3(react-dom@19.2.0(react@19.2.0))(react@19.2.0)
+        specifier: ^16.0.7
+        version: 16.0.7(react-dom@19.2.1(react@19.2.1))(react@19.2.1)
       next-themes:
         specifier: ^0.4.0
-        version: 0.4.6(react-dom@19.2.0(react@19.2.0))(react@19.2.0)
+        version: 0.4.6(react-dom@19.2.1(react@19.2.1))(react@19.2.1)
       react:
-        specifier: ^19.2.0
-        version: 19.2.0
+        specifier: ^19.2.1
+        version: 19.2.1
       react-chartjs-2:
         specifier: ^5.3.1
-        version: 5.3.1(chart.js@4.5.1)(react@19.2.0)
+        version: 5.3.1(chart.js@4.5.1)(react@19.2.1)
       react-datepicker:
         specifier: ^8.9.0
-        version: 8.9.0(react-dom@19.2.0(react@19.2.0))(react@19.2.0)
+        version: 8.9.0(react-dom@19.2.1(react@19.2.1))(react@19.2.1)
       react-dom:
-        specifier: ^19.2.0
-        version: 19.2.0(react@19.2.0)
+        specifier: ^19.2.1
+        version: 19.2.1(react@19.2.1)
       react-markdown:
         specifier: ^10.1.0
-        version: 10.1.0(@types/react@18.3.26)(react@19.2.0)
+        version: 10.1.0(@types/react@18.3.26)(react@19.2.1)
       react-simplemde-editor:
         specifier: ^5.2.0
-        version: 5.2.0(easymde@2.20.0)(react-dom@19.2.0(react@19.2.0))(react@19.2.0)
+        version: 5.2.0(easymde@2.20.0)(react-dom@19.2.1(react@19.2.1))(react@19.2.1)
       remark-breaks:
         specifier: ^4.0.0
         version: 4.0.0
@@ -332,53 +332,53 @@ packages:
     resolution: {integrity: sha512-I5sbpSIAHiB+b6UttofhrN/UJXII+4tZPAq1qugzwCwLIL8EZLV7F/JyHUrEIiGgQpEXzpnjlJ+zwcEhheGvCw==}
     engines: {node: '>=19.0.0'}
 
-  '@next/env@16.0.3':
-    resolution: {integrity: sha512-IqgtY5Vwsm14mm/nmQaRMmywCU+yyMIYfk3/MHZ2ZTJvwVbBn3usZnjMi1GacrMVzVcAxJShTCpZlPs26EdEjQ==}
+  '@next/env@16.0.7':
+    resolution: {integrity: sha512-gpaNgUh5nftFKRkRQGnVi5dpcYSKGcZZkQffZ172OrG/XkrnS7UBTQ648YY+8ME92cC4IojpI2LqTC8sTDhAaw==}
 
-  '@next/swc-darwin-arm64@16.0.3':
-    resolution: {integrity: sha512-MOnbd92+OByu0p6QBAzq1ahVWzF6nyfiH07dQDez4/Nku7G249NjxDVyEfVhz8WkLiOEU+KFVnqtgcsfP2nLXg==}
+  '@next/swc-darwin-arm64@16.0.7':
+    resolution: {integrity: sha512-LlDtCYOEj/rfSnEn/Idi+j1QKHxY9BJFmxx7108A6D8K0SB+bNgfYQATPk/4LqOl4C0Wo3LACg2ie6s7xqMpJg==}
     engines: {node: '>= 10'}
     cpu: [arm64]
     os: [darwin]
 
-  '@next/swc-darwin-x64@16.0.3':
-    resolution: {integrity: sha512-i70C4O1VmbTivYdRlk+5lj9xRc2BlK3oUikt3yJeHT1unL4LsNtN7UiOhVanFdc7vDAgZn1tV/9mQwMkWOJvHg==}
+  '@next/swc-darwin-x64@16.0.7':
+    resolution: {integrity: sha512-rtZ7BhnVvO1ICf3QzfW9H3aPz7GhBrnSIMZyr4Qy6boXF0b5E3QLs+cvJmg3PsTCG2M1PBoC+DANUi4wCOKXpA==}
     engines: {node: '>= 10'}
     cpu: [x64]
     os: [darwin]
 
-  '@next/swc-linux-arm64-gnu@16.0.3':
-    resolution: {integrity: sha512-O88gCZ95sScwD00mn/AtalyCoykhhlokxH/wi1huFK+rmiP5LAYVs/i2ruk7xST6SuXN4NI5y4Xf5vepb2jf6A==}
+  '@next/swc-linux-arm64-gnu@16.0.7':
+    resolution: {integrity: sha512-mloD5WcPIeIeeZqAIP5c2kdaTa6StwP4/2EGy1mUw8HiexSHGK/jcM7lFuS3u3i2zn+xH9+wXJs6njO7VrAqww==}
     engines: {node: '>= 10'}
     cpu: [arm64]
     os: [linux]
 
-  '@next/swc-linux-arm64-musl@16.0.3':
-    resolution: {integrity: sha512-CEErFt78S/zYXzFIiv18iQCbRbLgBluS8z1TNDQoyPi8/Jr5qhR3e8XHAIxVxPBjDbEMITprqELVc5KTfFj0gg==}
+  '@next/swc-linux-arm64-musl@16.0.7':
+    resolution: {integrity: sha512-+ksWNrZrthisXuo9gd1XnjHRowCbMtl/YgMpbRvFeDEqEBd523YHPWpBuDjomod88U8Xliw5DHhekBC3EOOd9g==}
     engines: {node: '>= 10'}
     cpu: [arm64]
     os: [linux]
 
-  '@next/swc-linux-x64-gnu@16.0.3':
-    resolution: {integrity: sha512-Tc3i+nwt6mQ+Dwzcri/WNDj56iWdycGVh5YwwklleClzPzz7UpfaMw1ci7bLl6GRYMXhWDBfe707EXNjKtiswQ==}
+  '@next/swc-linux-x64-gnu@16.0.7':
+    resolution: {integrity: sha512-4WtJU5cRDxpEE44Ana2Xro1284hnyVpBb62lIpU5k85D8xXxatT+rXxBgPkc7C1XwkZMWpK5rXLXTh9PFipWsA==}
     engines: {node: '>= 10'}
     cpu: [x64]
     os: [linux]
 
-  '@next/swc-linux-x64-musl@16.0.3':
-    resolution: {integrity: sha512-zTh03Z/5PBBPdTurgEtr6nY0vI9KR9Ifp/jZCcHlODzwVOEKcKRBtQIGrkc7izFgOMuXDEJBmirwpGqdM/ZixA==}
+  '@next/swc-linux-x64-musl@16.0.7':
+    resolution: {integrity: sha512-HYlhqIP6kBPXalW2dbMTSuB4+8fe+j9juyxwfMwCe9kQPPeiyFn7NMjNfoFOfJ2eXkeQsoUGXg+O2SE3m4Qg2w==}
     engines: {node: '>= 10'}
     cpu: [x64]
     os: [linux]
 
-  '@next/swc-win32-arm64-msvc@16.0.3':
-    resolution: {integrity: sha512-Jc1EHxtZovcJcg5zU43X3tuqzl/sS+CmLgjRP28ZT4vk869Ncm2NoF8qSTaL99gh6uOzgM99Shct06pSO6kA6g==}
+  '@next/swc-win32-arm64-msvc@16.0.7':
+    resolution: {integrity: sha512-EviG+43iOoBRZg9deGauXExjRphhuYmIOJ12b9sAPy0eQ6iwcPxfED2asb/s2/yiLYOdm37kPaiZu8uXSYPs0Q==}
     engines: {node: '>= 10'}
     cpu: [arm64]
     os: [win32]
 
-  '@next/swc-win32-x64-msvc@16.0.3':
-    resolution: {integrity: sha512-N7EJ6zbxgIYpI/sWNzpVKRMbfEGgsWuOIvzkML7wxAAZhPk1Msxuo/JDu1PKjWGrAoOLaZcIX5s+/pF5LIbBBg==}
+  '@next/swc-win32-x64-msvc@16.0.7':
+    resolution: {integrity: sha512-gniPjy55zp5Eg0896qSrf3yB1dw4F/3s8VK1ephdsZZ129j2n6e1WqCbE2YgcKhW9hPB9TVZENugquWJD5x0ug==}
     engines: {node: '>= 10'}
     cpu: [x64]
     os: [win32]
@@ -1198,8 +1198,8 @@ packages:
       react: ^16.8 || ^17 || ^18 || ^19 || ^19.0.0-rc
       react-dom: ^16.8 || ^17 || ^18 || ^19 || ^19.0.0-rc
 
-  next@16.0.3:
-    resolution: {integrity: sha512-Ka0/iNBblPFcIubTA1Jjh6gvwqfjrGq1Y2MTI5lbjeLIAfmC+p5bQmojpRZqgHHVu5cG4+qdIiwXiBSm/8lZ3w==}
+  next@16.0.7:
+    resolution: {integrity: sha512-3mBRJyPxT4LOxAJI6IsXeFtKfiJUbjCLgvXO02fV8Wy/lIhPvP94Fe7dGhUgHXcQy4sSuYwQNcOLhIfOm0rL0A==}
     engines: {node: '>=20.9.0'}
     hasBin: true
     peerDependencies:
@@ -1395,10 +1395,10 @@ packages:
       react: ^16.9.0 || ^17 || ^18 || ^19 || ^19.0.0-rc
       react-dom: ^16.9.0 || ^17 || ^18 || ^19 || ^19.0.0-rc
 
-  react-dom@19.2.0:
-    resolution: {integrity: sha512-UlbRu4cAiGaIewkPyiRGJk0imDN2T3JjieT6spoL2UeSf5od4n5LB/mQ4ejmxhCFT1tYe8IvaFulzynWovsEFQ==}
+  react-dom@19.2.1:
+    resolution: {integrity: sha512-ibrK8llX2a4eOskq1mXKu/TGZj9qzomO+sNfO98M6d9zIPOEhlBkMkBUBLd1vgS0gQsLDBzA+8jJBVXDnfHmJg==}
     peerDependencies:
-      react: ^19.2.0
+      react: ^19.2.1
 
   react-is@16.13.1:
     resolution: {integrity: sha512-24e6ynE2H+OKt4kqsOvNd8kBpV65zoxbA4BVsEOB3ARVWQki/DHzaUoC5KuON/BiccDaCCTZBuOcfZs70kR8bQ==}
@@ -1422,8 +1422,8 @@ packages:
       react: '>=16.8.2'
       react-dom: '>=16.8.2'
 
-  react@19.2.0:
-    resolution: {integrity: sha512-tmbWg6W31tQLeB5cdIBOicJDJRR2KzXsV7uSK9iNfLWQ5bIZfxuPEHp7M8wiHyHnn0DD1i7w3Zmin0FtkrwoCQ==}
+  react@19.2.1:
+    resolution: {integrity: sha512-DGrYcCWK7tvYMnWh79yrPHt+vdx9tY+1gPZa7nJQtO/p8bLTDaHp4dzwEhQB7pZ4Xe3ok4XKuEPrVuc+wlpkmw==}
     engines: {node: '>=0.10.0'}
 
   read-cache@1.0.0:
@@ -1770,39 +1770,39 @@ snapshots:
       '@floating-ui/core': 1.7.3
       '@floating-ui/utils': 0.2.10
 
-  '@floating-ui/react-dom@2.1.6(react-dom@19.2.0(react@19.2.0))(react@19.2.0)':
+  '@floating-ui/react-dom@2.1.6(react-dom@19.2.1(react@19.2.1))(react@19.2.1)':
     dependencies:
       '@floating-ui/dom': 1.7.4
-      react: 19.2.0
-      react-dom: 19.2.0(react@19.2.0)
+      react: 19.2.1
+      react-dom: 19.2.1(react@19.2.1)
 
-  '@floating-ui/react@0.26.28(react-dom@19.2.0(react@19.2.0))(react@19.2.0)':
+  '@floating-ui/react@0.26.28(react-dom@19.2.1(react@19.2.1))(react@19.2.1)':
     dependencies:
-      '@floating-ui/react-dom': 2.1.6(react-dom@19.2.0(react@19.2.0))(react@19.2.0)
+      '@floating-ui/react-dom': 2.1.6(react-dom@19.2.1(react@19.2.1))(react@19.2.1)
       '@floating-ui/utils': 0.2.10
-      react: 19.2.0
-      react-dom: 19.2.0(react@19.2.0)
+      react: 19.2.1
+      react-dom: 19.2.1(react@19.2.1)
       tabbable: 6.3.0
 
-  '@floating-ui/react@0.27.16(react-dom@19.2.0(react@19.2.0))(react@19.2.0)':
+  '@floating-ui/react@0.27.16(react-dom@19.2.1(react@19.2.1))(react@19.2.1)':
     dependencies:
-      '@floating-ui/react-dom': 2.1.6(react-dom@19.2.0(react@19.2.0))(react@19.2.0)
+      '@floating-ui/react-dom': 2.1.6(react-dom@19.2.1(react@19.2.1))(react@19.2.1)
       '@floating-ui/utils': 0.2.10
-      react: 19.2.0
-      react-dom: 19.2.0(react@19.2.0)
+      react: 19.2.1
+      react-dom: 19.2.1(react@19.2.1)
       tabbable: 6.3.0
 
   '@floating-ui/utils@0.2.10': {}
 
-  '@headlessui/react@2.2.9(react-dom@19.2.0(react@19.2.0))(react@19.2.0)':
+  '@headlessui/react@2.2.9(react-dom@19.2.1(react@19.2.1))(react@19.2.1)':
     dependencies:
-      '@floating-ui/react': 0.26.28(react-dom@19.2.0(react@19.2.0))(react@19.2.0)
-      '@react-aria/focus': 3.21.2(react-dom@19.2.0(react@19.2.0))(react@19.2.0)
-      '@react-aria/interactions': 3.25.6(react-dom@19.2.0(react@19.2.0))(react@19.2.0)
-      '@tanstack/react-virtual': 3.13.12(react-dom@19.2.0(react@19.2.0))(react@19.2.0)
-      react: 19.2.0
-      react-dom: 19.2.0(react@19.2.0)
-      use-sync-external-store: 1.6.0(react@19.2.0)
+      '@floating-ui/react': 0.26.28(react-dom@19.2.1(react@19.2.1))(react@19.2.1)
+      '@react-aria/focus': 3.21.2(react-dom@19.2.1(react@19.2.1))(react@19.2.1)
+      '@react-aria/interactions': 3.25.6(react-dom@19.2.1(react@19.2.1))(react@19.2.1)
+      '@tanstack/react-virtual': 3.13.12(react-dom@19.2.1(react@19.2.1))(react@19.2.1)
+      react: 19.2.1
+      react-dom: 19.2.1(react@19.2.1)
+      use-sync-external-store: 1.6.0(react@19.2.1)
 
   '@img/colour@1.0.0':
     optional: true
@@ -1931,36 +1931,36 @@ snapshots:
       '@types/node': 22.19.1
       '@types/pg': 8.15.6
 
-  '@next/env@16.0.3': {}
+  '@next/env@16.0.7': {}
 
-  '@next/swc-darwin-arm64@16.0.3':
+  '@next/swc-darwin-arm64@16.0.7':
     optional: true
 
-  '@next/swc-darwin-x64@16.0.3':
+  '@next/swc-darwin-x64@16.0.7':
     optional: true
 
-  '@next/swc-linux-arm64-gnu@16.0.3':
+  '@next/swc-linux-arm64-gnu@16.0.7':
     optional: true
 
-  '@next/swc-linux-arm64-musl@16.0.3':
+  '@next/swc-linux-arm64-musl@16.0.7':
     optional: true
 
-  '@next/swc-linux-x64-gnu@16.0.3':
+  '@next/swc-linux-x64-gnu@16.0.7':
     optional: true
 
-  '@next/swc-linux-x64-musl@16.0.3':
+  '@next/swc-linux-x64-musl@16.0.7':
     optional: true
 
-  '@next/swc-win32-arm64-msvc@16.0.3':
+  '@next/swc-win32-arm64-msvc@16.0.7':
     optional: true
 
-  '@next/swc-win32-x64-msvc@16.0.3':
+  '@next/swc-win32-x64-msvc@16.0.7':
     optional: true
 
-  '@next/third-parties@16.0.3(next@16.0.3(react-dom@19.2.0(react@19.2.0))(react@19.2.0))(react@19.2.0)':
+  '@next/third-parties@16.0.3(next@16.0.7(react-dom@19.2.1(react@19.2.1))(react@19.2.1))(react@19.2.1)':
     dependencies:
-      next: 16.0.3(react-dom@19.2.0(react@19.2.0))(react@19.2.0)
-      react: 19.2.0
+      next: 16.0.7(react-dom@19.2.1(react@19.2.1))(react@19.2.1)
+      react: 19.2.1
       third-party-capital: 1.0.20
 
   '@nodelib/fs.scandir@2.1.5':
@@ -1979,12 +1979,12 @@ snapshots:
     dependencies:
       promise-polyfill: 8.3.0
 
-  '@paypal/react-paypal-js@8.9.2(react-dom@19.2.0(react@19.2.0))(react@19.2.0)':
+  '@paypal/react-paypal-js@8.9.2(react-dom@19.2.1(react@19.2.1))(react@19.2.1)':
     dependencies:
       '@paypal/paypal-js': 9.0.1
       '@paypal/sdk-constants': 1.0.157
-      react: 19.2.0
-      react-dom: 19.2.0(react@19.2.0)
+      react: 19.2.1
+      react-dom: 19.2.1(react@19.2.1)
 
   '@paypal/sdk-constants@1.0.157':
     dependencies:
@@ -1993,63 +1993,63 @@ snapshots:
   '@pkgjs/parseargs@0.11.0':
     optional: true
 
-  '@react-aria/focus@3.21.2(react-dom@19.2.0(react@19.2.0))(react@19.2.0)':
+  '@react-aria/focus@3.21.2(react-dom@19.2.1(react@19.2.1))(react@19.2.1)':
     dependencies:
-      '@react-aria/interactions': 3.25.6(react-dom@19.2.0(react@19.2.0))(react@19.2.0)
-      '@react-aria/utils': 3.31.0(react-dom@19.2.0(react@19.2.0))(react@19.2.0)
-      '@react-types/shared': 3.32.1(react@19.2.0)
+      '@react-aria/interactions': 3.25.6(react-dom@19.2.1(react@19.2.1))(react@19.2.1)
+      '@react-aria/utils': 3.31.0(react-dom@19.2.1(react@19.2.1))(react@19.2.1)
+      '@react-types/shared': 3.32.1(react@19.2.1)
       '@swc/helpers': 0.5.17
       clsx: 2.1.1
-      react: 19.2.0
-      react-dom: 19.2.0(react@19.2.0)
+      react: 19.2.1
+      react-dom: 19.2.1(react@19.2.1)
 
-  '@react-aria/interactions@3.25.6(react-dom@19.2.0(react@19.2.0))(react@19.2.0)':
+  '@react-aria/interactions@3.25.6(react-dom@19.2.1(react@19.2.1))(react@19.2.1)':
     dependencies:
-      '@react-aria/ssr': 3.9.10(react@19.2.0)
-      '@react-aria/utils': 3.31.0(react-dom@19.2.0(react@19.2.0))(react@19.2.0)
+      '@react-aria/ssr': 3.9.10(react@19.2.1)
+      '@react-aria/utils': 3.31.0(react-dom@19.2.1(react@19.2.1))(react@19.2.1)
       '@react-stately/flags': 3.1.2
-      '@react-types/shared': 3.32.1(react@19.2.0)
+      '@react-types/shared': 3.32.1(react@19.2.1)
       '@swc/helpers': 0.5.17
-      react: 19.2.0
-      react-dom: 19.2.0(react@19.2.0)
+      react: 19.2.1
+      react-dom: 19.2.1(react@19.2.1)
 
-  '@react-aria/ssr@3.9.10(react@19.2.0)':
+  '@react-aria/ssr@3.9.10(react@19.2.1)':
     dependencies:
       '@swc/helpers': 0.5.17
-      react: 19.2.0
+      react: 19.2.1
 
-  '@react-aria/utils@3.31.0(react-dom@19.2.0(react@19.2.0))(react@19.2.0)':
+  '@react-aria/utils@3.31.0(react-dom@19.2.1(react@19.2.1))(react@19.2.1)':
     dependencies:
-      '@react-aria/ssr': 3.9.10(react@19.2.0)
+      '@react-aria/ssr': 3.9.10(react@19.2.1)
       '@react-stately/flags': 3.1.2
-      '@react-stately/utils': 3.10.8(react@19.2.0)
-      '@react-types/shared': 3.32.1(react@19.2.0)
+      '@react-stately/utils': 3.10.8(react@19.2.1)
+      '@react-types/shared': 3.32.1(react@19.2.1)
       '@swc/helpers': 0.5.17
       clsx: 2.1.1
-      react: 19.2.0
-      react-dom: 19.2.0(react@19.2.0)
+      react: 19.2.1
+      react-dom: 19.2.1(react@19.2.1)
 
   '@react-stately/flags@3.1.2':
     dependencies:
       '@swc/helpers': 0.5.17
 
-  '@react-stately/utils@3.10.8(react@19.2.0)':
+  '@react-stately/utils@3.10.8(react@19.2.1)':
     dependencies:
       '@swc/helpers': 0.5.17
-      react: 19.2.0
+      react: 19.2.1
 
-  '@react-types/shared@3.32.1(react@19.2.0)':
+  '@react-types/shared@3.32.1(react@19.2.1)':
     dependencies:
-      react: 19.2.0
+      react: 19.2.1
 
   '@stablelib/base64@1.0.1': {}
 
-  '@stripe/react-stripe-js@5.4.1(@stripe/stripe-js@8.5.3)(react-dom@19.2.0(react@19.2.0))(react@19.2.0)':
+  '@stripe/react-stripe-js@5.4.1(@stripe/stripe-js@8.5.3)(react-dom@19.2.1(react@19.2.1))(react@19.2.1)':
     dependencies:
       '@stripe/stripe-js': 8.5.3
       prop-types: 15.8.1
-      react: 19.2.0
-      react-dom: 19.2.0(react@19.2.0)
+      react: 19.2.1
+      react-dom: 19.2.1(react@19.2.1)
 
   '@stripe/stripe-js@8.5.3': {}
 
@@ -2066,11 +2066,11 @@ snapshots:
       mini-svg-data-uri: 1.4.4
       tailwindcss: 3.4.18
 
-  '@tanstack/react-virtual@3.13.12(react-dom@19.2.0(react@19.2.0))(react@19.2.0)':
+  '@tanstack/react-virtual@3.13.12(react-dom@19.2.1(react@19.2.1))(react@19.2.1)':
     dependencies:
       '@tanstack/virtual-core': 3.13.12
-      react: 19.2.0
-      react-dom: 19.2.0(react@19.2.0)
+      react: 19.2.1
+      react-dom: 19.2.1(react@19.2.1)
 
   '@tanstack/virtual-core@3.13.12': {}
 
@@ -2141,13 +2141,13 @@ snapshots:
 
   '@uiw/copy-to-clipboard@1.0.17': {}
 
-  '@uiw/react-markdown-preview@5.1.5(@types/react@18.3.26)(react-dom@19.2.0(react@19.2.0))(react@19.2.0)':
+  '@uiw/react-markdown-preview@5.1.5(@types/react@18.3.26)(react-dom@19.2.1(react@19.2.1))(react@19.2.1)':
     dependencies:
       '@babel/runtime': 7.28.4
       '@uiw/copy-to-clipboard': 1.0.17
-      react: 19.2.0
-      react-dom: 19.2.0(react@19.2.0)
-      react-markdown: 9.0.3(@types/react@18.3.26)(react@19.2.0)
+      react: 19.2.1
+      react-dom: 19.2.1(react@19.2.1)
+      react-markdown: 9.0.3(@types/react@18.3.26)(react@19.2.1)
       rehype-attr: 3.0.3
       rehype-autolink-headings: 7.1.0
       rehype-ignore: 2.0.2
@@ -2162,12 +2162,12 @@ snapshots:
       - '@types/react'
       - supports-color
 
-  '@uiw/react-md-editor@4.0.8(@types/react@18.3.26)(react-dom@19.2.0(react@19.2.0))(react@19.2.0)':
+  '@uiw/react-md-editor@4.0.8(@types/react@18.3.26)(react-dom@19.2.1(react@19.2.1))(react@19.2.1)':
     dependencies:
       '@babel/runtime': 7.28.4
-      '@uiw/react-markdown-preview': 5.1.5(@types/react@18.3.26)(react-dom@19.2.0(react@19.2.0))(react@19.2.0)
-      react: 19.2.0
-      react-dom: 19.2.0(react@19.2.0)
+      '@uiw/react-markdown-preview': 5.1.5(@types/react@18.3.26)(react-dom@19.2.1(react@19.2.1))(react@19.2.1)
+      react: 19.2.1
+      react-dom: 19.2.1(react@19.2.1)
       rehype: 13.0.2
       rehype-prism-plus: 2.0.1
     transitivePeerDependencies:
@@ -3050,29 +3050,29 @@ snapshots:
 
   nanoid@3.3.11: {}
 
-  next-themes@0.4.6(react-dom@19.2.0(react@19.2.0))(react@19.2.0):
+  next-themes@0.4.6(react-dom@19.2.1(react@19.2.1))(react@19.2.1):
     dependencies:
-      react: 19.2.0
-      react-dom: 19.2.0(react@19.2.0)
+      react: 19.2.1
+      react-dom: 19.2.1(react@19.2.1)
 
-  next@16.0.3(react-dom@19.2.0(react@19.2.0))(react@19.2.0):
+  next@16.0.7(react-dom@19.2.1(react@19.2.1))(react@19.2.1):
     dependencies:
-      '@next/env': 16.0.3
+      '@next/env': 16.0.7
       '@swc/helpers': 0.5.15
       caniuse-lite: 1.0.30001754
       postcss: 8.4.31
-      react: 19.2.0
-      react-dom: 19.2.0(react@19.2.0)
-      styled-jsx: 5.1.6(react@19.2.0)
+      react: 19.2.1
+      react-dom: 19.2.1(react@19.2.1)
+      styled-jsx: 5.1.6(react@19.2.1)
     optionalDependencies:
-      '@next/swc-darwin-arm64': 16.0.3
-      '@next/swc-darwin-x64': 16.0.3
-      '@next/swc-linux-arm64-gnu': 16.0.3
-      '@next/swc-linux-arm64-musl': 16.0.3
-      '@next/swc-linux-x64-gnu': 16.0.3
-      '@next/swc-linux-x64-musl': 16.0.3
-      '@next/swc-win32-arm64-msvc': 16.0.3
-      '@next/swc-win32-x64-msvc': 16.0.3
+      '@next/swc-darwin-arm64': 16.0.7
+      '@next/swc-darwin-x64': 16.0.7
+      '@next/swc-linux-arm64-gnu': 16.0.7
+      '@next/swc-linux-arm64-musl': 16.0.7
+      '@next/swc-linux-x64-gnu': 16.0.7
+      '@next/swc-linux-x64-musl': 16.0.7
+      '@next/swc-win32-arm64-msvc': 16.0.7
+      '@next/swc-win32-x64-msvc': 16.0.7
       sharp: 0.34.5
     transitivePeerDependencies:
       - '@babel/core'
@@ -3214,27 +3214,27 @@ snapshots:
 
   queue-microtask@1.2.3: {}
 
-  react-chartjs-2@5.3.1(chart.js@4.5.1)(react@19.2.0):
+  react-chartjs-2@5.3.1(chart.js@4.5.1)(react@19.2.1):
     dependencies:
       chart.js: 4.5.1
-      react: 19.2.0
+      react: 19.2.1
 
-  react-datepicker@8.9.0(react-dom@19.2.0(react@19.2.0))(react@19.2.0):
+  react-datepicker@8.9.0(react-dom@19.2.1(react@19.2.1))(react@19.2.1):
     dependencies:
-      '@floating-ui/react': 0.27.16(react-dom@19.2.0(react@19.2.0))(react@19.2.0)
+      '@floating-ui/react': 0.27.16(react-dom@19.2.1(react@19.2.1))(react@19.2.1)
       clsx: 2.1.1
       date-fns: 4.1.0
-      react: 19.2.0
-      react-dom: 19.2.0(react@19.2.0)
+      react: 19.2.1
+      react-dom: 19.2.1(react@19.2.1)
 
-  react-dom@19.2.0(react@19.2.0):
+  react-dom@19.2.1(react@19.2.1):
     dependencies:
-      react: 19.2.0
+      react: 19.2.1
       scheduler: 0.27.0
 
   react-is@16.13.1: {}
 
-  react-markdown@10.1.0(@types/react@18.3.26)(react@19.2.0):
+  react-markdown@10.1.0(@types/react@18.3.26)(react@19.2.1):
     dependencies:
       '@types/hast': 3.0.4
       '@types/mdast': 4.0.4
@@ -3243,7 +3243,7 @@ snapshots:
       hast-util-to-jsx-runtime: 2.3.6
       html-url-attributes: 3.0.1
       mdast-util-to-hast: 13.2.0
-      react: 19.2.0
+      react: 19.2.1
       remark-parse: 11.0.0
       remark-rehype: 11.1.2
       unified: 11.0.5
@@ -3252,7 +3252,7 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
-  react-markdown@9.0.3(@types/react@18.3.26)(react@19.2.0):
+  react-markdown@9.0.3(@types/react@18.3.26)(react@19.2.1):
     dependencies:
       '@types/hast': 3.0.4
       '@types/react': 18.3.26
@@ -3260,7 +3260,7 @@ snapshots:
       hast-util-to-jsx-runtime: 2.3.6
       html-url-attributes: 3.0.1
       mdast-util-to-hast: 13.2.0
-      react: 19.2.0
+      react: 19.2.1
       remark-parse: 11.0.0
       remark-rehype: 11.1.2
       unified: 11.0.5
@@ -3269,14 +3269,14 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
-  react-simplemde-editor@5.2.0(easymde@2.20.0)(react-dom@19.2.0(react@19.2.0))(react@19.2.0):
+  react-simplemde-editor@5.2.0(easymde@2.20.0)(react-dom@19.2.1(react@19.2.1))(react@19.2.1):
     dependencies:
       '@types/codemirror': 5.60.17
       easymde: 2.20.0
-      react: 19.2.0
-      react-dom: 19.2.0(react@19.2.0)
+      react: 19.2.1
+      react-dom: 19.2.1(react@19.2.1)
 
-  react@19.2.0: {}
+  react@19.2.1: {}
 
   read-cache@1.0.0:
     dependencies:
@@ -3548,10 +3548,10 @@ snapshots:
     dependencies:
       inline-style-parser: 0.2.6
 
-  styled-jsx@5.1.6(react@19.2.0):
+  styled-jsx@5.1.6(react@19.2.1):
     dependencies:
       client-only: 0.0.1
-      react: 19.2.0
+      react: 19.2.1
 
   sucrase@3.35.0:
     dependencies:
@@ -3686,9 +3686,9 @@ snapshots:
       querystringify: 2.2.0
       requires-port: 1.0.0
 
-  use-sync-external-store@1.6.0(react@19.2.0):
+  use-sync-external-store@1.6.0(react@19.2.1):
     dependencies:
-      react: 19.2.0
+      react: 19.2.1
 
   util-deprecate@1.0.2: {}
 

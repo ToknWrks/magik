@@ -10,7 +10,18 @@ export async function POST(request: NextRequest) {
       await destroySession(token);
     }
 
-    return NextResponse.json({ success: true });
+    const response = NextResponse.json({ success: true });
+    
+    // Clear the user_id cookie
+    response.cookies.set('user_id', '', {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'lax',
+      maxAge: 0, // Expire immediately
+      path: '/',
+    });
+    
+    return response;
   } catch (error) {
     console.error('Logout error:', error);
     return NextResponse.json({ 

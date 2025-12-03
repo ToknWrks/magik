@@ -13,6 +13,9 @@
     "@headlessui/react": "^2.2.9",
     "@neondatabase/serverless": "^1.0.2",
     "@next/third-parties": "^16.0.3",
+    "@paypal/react-paypal-js": "^8.9.2",
+    "@stripe/react-stripe-js": "^5.4.1",
+    "@stripe/stripe-js": "^8.5.3",
     "@types/node": "^20.10.4",
     "@types/react": "^18.2.42",
     "@types/react-dom": "^18.2.17",
@@ -34,6 +37,7 @@
     "react-simplemde-editor": "^5.2.0",
     "remark-breaks": "^4.0.0",
     "resend": "^6.5.2",
+    "stripe": "^20.0.0",
     "twitter-api-v2": "^1.28.0",
     "typescript": "^5.3.3"
   },

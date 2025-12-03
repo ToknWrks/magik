@@ -44,12 +44,28 @@ export async function POST(request: NextRequest) {
       }, { status: 401 });
     }
 
-    // Return user data (without password)
-    const { password: _, ...userWithoutPassword } = user;
-    return NextResponse.json({ 
+    // Create response with user data
+    const response = NextResponse.json({ 
       success: true, 
-      user: userWithoutPassword 
+      user: {
+        id: user.id,
+        email: user.email,
+        username: user.username,
+        role: user.role,
+      }
     });
+
+    // Set user_id cookie
+    response.cookies.set('user_id', user.id.toString(), {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'lax',
+      maxAge: 60 * 60 * 24 * 7, // 7 days
+      path: '/',
+    });
+
+    console.log('Login successful, cookie set for user:', user.id);
+    return response;
   } catch (error) {
     console.error('Login error:', error);
     return NextResponse.json({ 

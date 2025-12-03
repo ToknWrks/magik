@@ -4,6 +4,8 @@ import { Inter } from 'next/font/google'
 import Theme from './theme-provider'
 import AppProvider from './app-provider'
 import { GoogleAnalytics } from '@next/third-parties/google'
+import { CartProvider } from '@/context/cart-context';
+
 
 const inter = Inter({
   subsets: ['latin'],
@@ -25,10 +27,12 @@ export default function RootLayout({
     <html lang="en" className={`${inter.variable}`} suppressHydrationWarning>{/* suppressHydrationWarning: https://github.com/vercel/next.js/issues/44343 */}
       <body className="font-inter antialiased bg-white dark:bg-black text-gray-700 dark:text-gray-400">
         <Theme>
+        <CartProvider>
           <AppProvider>
             {children}
             <GoogleAnalytics gaId="G-ZGM8KTHLE1" />
           </AppProvider>
+          </CartProvider>
         </Theme>
       </body>
     </html>

@@ -17,16 +17,27 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ user: null });
     }
     
-    const result = await pool.query('SELECT email, role FROM users WHERE id = $1', [userId]);
+    const result = await pool.query(
+      'SELECT id, email, username, role FROM users WHERE id = $1', 
+      [userId]
+    );
     const user = result.rows[0];
     console.log('User found in database:', !!user);
     
-    return NextResponse.json({ user: user ? { email: user.email, role: user.role } : null });
+    if (!user) {
+      return NextResponse.json({ user: null });
+    }
+    
+    return NextResponse.json({ 
+      user: {
+        id: user.id,
+        email: user.email,
+        username: user.username,
+        role: user.role,
+      }
+    });
   } catch (error) {
     console.error('Auth check error:', error);
-    return NextResponse.json({ 
-      user: null,
-      error: 'Failed to validate session'
-    });
+    return NextResponse.json({ user: null });
   }
 }

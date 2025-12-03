@@ -1,79 +1,75 @@
-// app/store/store-client.tsx
+// app/(default)/store/store-client.tsx
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Boundary } from '@/components/ui/boundary';
 import Link from 'next/link';
+import { useCart } from '@/context/cart-context';
 
-// Mock store data - replace with your actual products
-const products = [
-  {
-    id: 1,
-    name: "Illuminati Hoodie",
-    price: 49.99,
-    originalPrice: 69.99,
-    category: "Apparel",
-    image: "/api/placeholder/300/300",
-    description: "Premium cotton hoodie with subtle Illuminati symbolism",
-    inStock: true,
-    featured: true
-  },
-  {
-    id: 2,
-    name: "Conspiracy Theories: The Complete Guide",
-    price: 24.99,
-    category: "Books",
-    image: "/api/placeholder/300/300",
-    description: "Comprehensive guide to major conspiracy theories throughout history",
-    inStock: true,
-    featured: false
-  },
-  {
-    id: 3,
-    name: "Illuminati Symbol T-Shirt",
-    price: 29.99,
-    category: "Apparel",
-    image: "/api/placeholder/300/300",
-    description: "Classic black t-shirt with gold foil Illuminati pyramid",
-    inStock: true,
-    featured: true
-  },
-  {
-    id: 4,
-    name: "Secret Societies Coffee Table Book",
-    price: 39.99,
-    originalPrice: 49.99,
-    category: "Books",
-    image: "/api/placeholder/300/300",
-    description: "Beautifully illustrated book exploring secret societies worldwide",
-    inStock: false,
-    featured: false
-  },
-  {
-    id: 5,
-    name: "Illuminati Baseball Cap",
-    price: 34.99,
-    category: "Accessories",
-    image: "/api/placeholder/300/300",
-    description: "Adjustable cap with embroidered Illuminati eye symbol",
-    inStock: true,
-    featured: false
-  },
-  {
-    id: 6,
-    name: "Conspiracy Theory Playing Cards",
-    price: 19.99,
-    category: "Games",
-    image: "/api/placeholder/300/300",
-    description: "Deck of cards featuring conspiracy theory illustrations",
-    inStock: true,
-    featured: true
-  }
-];
+interface Product {
+  id: string;
+  name: string;
+  slug: string;
+  description: string;
+  price: number;
+  originalPrice?: number;
+  category: string;
+  image?: string;
+  featured?: boolean;
+  inStock: boolean;
+  sizes: string[];
+  colors: string[];
+  variants: any[];
+}
+
+function ProductSkeleton() {
+  return (
+    <div className="group flex flex-col gap-4 rounded-lg bg-gray-50 dark:bg-gray-900 px-6 py-6 animate-pulse">
+      {/* Image skeleton */}
+      <div className="aspect-square bg-gray-200 dark:bg-gray-700 rounded-lg"></div>
+      
+      {/* Category badge skeleton */}
+      <div className="flex items-center gap-2">
+        <div className="h-6 w-20 bg-gray-200 dark:bg-gray-700 rounded"></div>
+      </div>
+      
+      {/* Title skeleton */}
+      <div className="h-6 w-3/4 bg-gray-200 dark:bg-gray-700 rounded"></div>
+      
+      {/* Description skeleton */}
+      <div className="space-y-2">
+        <div className="h-4 w-full bg-gray-200 dark:bg-gray-700 rounded"></div>
+        <div className="h-4 w-2/3 bg-gray-200 dark:bg-gray-700 rounded"></div>
+      </div>
+      
+      {/* Price skeleton */}
+      <div className="h-6 w-16 bg-gray-200 dark:bg-gray-700 rounded"></div>
+      
+      {/* Button skeleton */}
+      <div className="h-4 w-24 bg-gray-200 dark:bg-gray-700 rounded mx-auto"></div>
+    </div>
+  );
+}
 
 export function StoreClient() {
+  const [products, setProducts] = useState<Product[]>([]);
+  const [loading, setLoading] = useState(true);
   const [selectedCategory, setSelectedCategory] = useState<string>('All');
   const [sortBy, setSortBy] = useState<string>('featured');
+  const { itemCount, total } = useCart();
+
+  useEffect(() => {
+    fetch('/api/printful/products')
+      .then(res => res.json())
+      .then(data => {
+        setProducts(data.products || []);
+        setLoading(false);
+      })
+      .catch(error => {
+        console.error('Error fetching products:', error);
+        setLoading(false);
+      });
+  }, []);
 
   const categories = ['All', ...Array.from(new Set(products.map(p => p.category)))];
 
@@ -109,105 +105,117 @@ export function StoreClient() {
           All proceeds support conspiracy theory research and education.
         </p>
 
-        {/* Filters and Sort */}
-        <div className="flex flex-col sm:flex-row gap-4 justify-center items-center mb-8">
-          <div className="flex gap-2 flex-wrap justify-center">
-            {categories.map(category => (
-              <button
-                key={category}
-                onClick={() => setSelectedCategory(category)}
-                className={`px-3 py-1 rounded text-sm font-medium transition-colors ${
-                  selectedCategory === category
-                    ? 'bg-gray-800 text-white dark:bg-gray-200 dark:text-gray-900'
-                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700'
-                }`}
-              >
-                {category}
-              </button>
-            ))}
-          </div>
-
-          <select
-            value={sortBy}
-            onChange={(e) => setSortBy(e.target.value)}
-            className="px-3 py-1 border border-gray-300 rounded text-sm bg-white dark:bg-gray-800 dark:border-gray-600 dark:text-gray-100"
-          >
-            <option value="featured">Featured</option>
-            <option value="price-low">Price: Low to High</option>
-            <option value="price-high">Price: High to Low</option>
-            <option value="name">Name</option>
-          </select>
-        </div>
-      </div>
-
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {filteredProducts.map((product) => (
-          <div
-            key={product.id}
-            className="group flex flex-col gap-4 rounded-lg bg-gray-50 px-6 py-6 hover:bg-gray-100 dark:bg-gray-900 dark:hover:bg-gray-800 transition-all duration-200 hover:shadow-lg"
-          >
-            <div className="relative">
-              <div className="aspect-square bg-gray-200 dark:bg-gray-700 rounded-lg mb-4 flex items-center justify-center">
-                <span className="text-gray-400 dark:text-gray-500 text-sm">Product Image</span>
-              </div>
-              
-              {product.featured && (
-                <span className="absolute top-2 left-2 inline-flex items-center px-2 py-1 rounded text-xs font-medium bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-200">
-                  Featured
-                </span>
-              )}
-              
-              {!product.inStock && (
-                <span className="absolute top-2 right-2 inline-flex items-center px-2 py-1 rounded text-xs font-medium bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-200">
-                  Out of Stock
-                </span>
-              )}
+        {/* Filters and Sort - Hide while loading */}
+        {!loading && (
+          <div className="flex flex-col sm:flex-row gap-4 justify-center items-center mb-8">
+            <div className="flex gap-2 flex-wrap justify-center">
+              {categories.map(category => (
+                <button
+                  key={category}
+                  onClick={() => setSelectedCategory(category)}
+                  className={`px-3 py-1 rounded text-sm font-medium transition-colors ${
+                    selectedCategory === category
+                      ? 'bg-gray-800 text-white dark:bg-gray-200 dark:text-gray-900'
+                      : 'bg-gray-100 text-gray-700 hover:bg-gray-200 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700'
+                  }`}
+                >
+                  {category}
+                </button>
+              ))}
             </div>
 
-            <div className="flex-1">
-              <div className="flex items-center gap-2 mb-2">
-                <span className="inline-flex items-center px-2 py-1 rounded text-xs font-medium bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-200">
-                  {product.category}
-                </span>
-              </div>
-              
-              <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-2">
-                {product.name}
-              </h3>
-              
-              <p className="text-sm text-gray-600 dark:text-gray-400 mb-4 line-clamp-2">
-                {product.description}
-              </p>
+            <select
+              value={sortBy}
+              onChange={(e) => setSortBy(e.target.value)}
+              className="px-3 py-1 border border-gray-300 rounded text-sm bg-white dark:bg-gray-800 dark:border-gray-600 dark:text-gray-100"
+            >
+              <option value="featured">Featured</option>
+              <option value="price-low">Price: Low to High</option>
+              <option value="price-high">Price: High to Low</option>
+              <option value="name">Name</option>
+            </select>
+          </div>
+        )}
+      </div>
 
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <span className="text-lg font-bold text-gray-900 dark:text-gray-100">
-                    ${product.price}
+      {/* Skeleton Loading State */}
+      {loading && (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {[...Array(6)].map((_, index) => (
+            <ProductSkeleton key={index} />
+          ))}
+        </div>
+      )}
+
+      {/* Products Grid */}
+      {!loading && (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {filteredProducts.map((product) => (
+            <Link
+              href={`/store/product/${product.slug}`}
+              key={product.id}
+              className="group flex flex-col gap-4 rounded-lg bg-gray-50 px-6 py-6 hover:bg-gray-100 dark:bg-gray-900 dark:hover:bg-gray-800 transition-all duration-200 hover:shadow-lg"
+            >
+              <div className="relative">
+                <div className="aspect-square bg-gray-200 dark:bg-gray-700 rounded-lg mb-4 flex items-center justify-center overflow-hidden">
+                  <img
+                    src={product.image || '/api/placeholder/300/300'}
+                    alt={product.name}
+                    className="w-full h-full object-cover rounded-lg"
+                  />
+                </div>
+                
+                {product.featured && (
+                  <span className="absolute top-2 left-2 inline-flex items-center px-2 py-1 rounded text-xs font-medium bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-200">
+                    Featured
                   </span>
-                  {product.originalPrice && (
-                    <span className="text-sm text-gray-500 line-through dark:text-gray-400">
-                      ${product.originalPrice}
+                )}
+                
+                {!product.inStock && (
+                  <span className="absolute top-2 right-2 inline-flex items-center px-2 py-1 rounded text-xs font-medium bg-red-100 text-red-800 dark:bg-red-800 dark:text-red-200">
+                    Out of Stock
+                  </span>
+                )}
+              </div>
+
+              <div className="flex-1">
+                <div className="flex items-center gap-2 mb-2">
+                  <span className="inline-flex items-center px-2 py-1 rounded text-xs font-medium bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-200">
+                    {product.category}
+                  </span>
+                </div>
+                
+                <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-2">
+                  {product.name}
+                </h3>
+                
+                <p className="text-sm text-gray-600 dark:text-gray-400 mb-4 line-clamp-2">
+                  {product.description}
+                </p>
+
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <span className="text-lg font-bold text-gray-900 dark:text-gray-100">
+                      ${product.price.toFixed(2)}
                     </span>
-                  )}
+                    {product.originalPrice && product.originalPrice > product.price && (
+                      <span className="text-sm text-gray-500 line-through dark:text-gray-400">
+                        ${product.originalPrice.toFixed(2)}
+                      </span>
+                    )}
+                  </div>
                 </div>
               </div>
-            </div>
 
-            <button
-              disabled={!product.inStock}
-              className={`w-full py-2 px-4 rounded text-sm font-medium transition-colors ${
-                product.inStock
-                  ? 'bg-gray-800 text-white hover:bg-gray-900 dark:bg-gray-200 dark:text-gray-900 dark:hover:bg-gray-100'
-                  : 'bg-gray-300 text-gray-500 cursor-not-allowed dark:bg-gray-700 dark:text-gray-400'
-              }`}
-            >
-              {product.inStock ? 'Add to Cart' : 'Out of Stock'}
-            </button>
-          </div>
-        ))}
-      </div>
+              <div className="text-center text-sm font-medium text-gray-600 dark:text-gray-400 group-hover:text-gray-900 dark:group-hover:text-gray-100">
+                View Details →
+              </div>
+            </Link>
+          ))}
+        </div>
+      )}
 
-      {filteredProducts.length === 0 && (
+      {!loading && filteredProducts.length === 0 && (
         <div className="text-center py-12">
           <p className="text-gray-500 dark:text-gray-400">
             No products found in this category.
@@ -215,10 +223,32 @@ export function StoreClient() {
         </div>
       )}
 
-      {/* Cart Summary (placeholder) */}
-      <div className="fixed bottom-4 right-4 bg-gray-800 text-white px-4 py-2 rounded-lg shadow-lg dark:bg-gray-200 dark:text-gray-900">
-        Cart: 0 items
-      </div>
+      {/* Floating Cart Summary */}
+      {itemCount > 0 && (
+        <Link
+          href="/cart"
+          className="fixed bottom-4 right-4 bg-gray-800 text-white px-4 py-3 rounded-lg shadow-lg dark:bg-gray-200 dark:text-gray-900 hover:bg-gray-900 dark:hover:bg-gray-100 transition-colors flex items-center gap-3"
+        >
+          <svg
+            className="w-5 h-5"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+            xmlns="http://www.w3.org/2000/svg"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"
+            />
+          </svg>
+          <span className="font-medium">
+            {itemCount} {itemCount === 1 ? 'item' : 'items'}
+          </span>
+          <span className="font-bold">${total.toFixed(2)}</span>
+        </Link>
+      )}
     </Boundary>
   );
 }

@@ -8,7 +8,14 @@ import { Boundary } from '@/components/ui/boundary';
 import Link from 'next/link';
 import { PayPalScriptProvider, PayPalButtons } from '@paypal/react-paypal-js';
 import { loadStripe } from '@stripe/stripe-js';
-import { Elements, PaymentRequestButtonElement, useStripe } from '@stripe/react-stripe-js';
+import { 
+  Elements, 
+  CardNumberElement, 
+  CardExpiryElement, 
+  CardCvcElement, 
+  useStripe, 
+  useElements 
+} from '@stripe/react-stripe-js';
 
 const stripePromise = process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY 
   ? loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY)
@@ -21,64 +28,148 @@ interface User {
   role: string;
 }
 
-function AppleGooglePayButton({ total, onSuccess, formData, items }: {
+// Card input styling
+const cardElementOptions = {
+  style: {
+    base: {
+      fontSize: '16px',
+      color: '#1f2937',
+      fontFamily: 'ui-sans-serif, system-ui, sans-serif',
+      fontSmoothing: 'antialiased',
+      '::placeholder': {
+        color: '#9ca3af',
+      },
+      backgroundColor: 'transparent',
+    },
+    invalid: {
+      color: '#ef4444',
+      iconColor: '#ef4444',
+    },
+  },
+};
+
+// Credit Card Form Component
+function CardPaymentForm({ 
+  total, 
+  onSuccess, 
+  formData, 
+  items, 
+  createAccount, 
+  password,
+  onCancel 
+}: {
   total: number;
   onSuccess: (orderId: string) => void;
   formData: any;
   items: any[];
+  createAccount: boolean;
+  password: string;
+  onCancel: () => void;
 }) {
   const stripe = useStripe();
-  const [paymentRequest, setPaymentRequest] = useState<any>(null);
-  const [canMakePayment, setCanMakePayment] = useState(false);
+  const elements = useElements();
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
+  const [isDarkMode, setIsDarkMode] = useState(false);
+  const [cardComplete, setCardComplete] = useState({
+    cardNumber: false,
+    cardExpiry: false,
+    cardCvc: false,
+  });
 
   useEffect(() => {
-    if (!stripe) return;
+    const checkDarkMode = () => {
+      setIsDarkMode(document.documentElement.classList.contains('dark'));
+    };
+    checkDarkMode();
+    
+    // Watch for changes
+    const observer = new MutationObserver(checkDarkMode);
+    observer.observe(document.documentElement, { attributes: true, attributeFilter: ['class'] });
+    return () => observer.disconnect();
+  }, []);
 
-    const pr = stripe.paymentRequest({
-      country: 'US',
-      currency: 'usd',
-      total: {
-        label: 'Illuminati Store',
-        amount: Math.round(total * 100),
+  const cardElementOptions = {
+    style: {
+      base: {
+        fontSize: '16px',
+        color: isDarkMode ? '#f3f4f6' : '#1f2937',
+        fontFamily: 'ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, sans-serif',
+        fontSmoothing: 'antialiased',
+        '::placeholder': {
+          color: isDarkMode ? '#6b7280' : '#9ca3af',
+        },
       },
-      requestPayerName: true,
-      requestPayerEmail: true,
-    });
+      invalid: {
+        color: '#ef4444',
+        iconColor: '#ef4444',
+      },
+    },
+  };
 
-    pr.canMakePayment().then(result => {
-      if (result) {
-        setPaymentRequest(pr);
-        setCanMakePayment(true);
+  const isCardComplete = cardComplete.cardNumber && cardComplete.cardExpiry && cardComplete.cardCvc;
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    if (!stripe || !elements) {
+      setError('Payment system not ready. Please try again.');
+      return;
+    }
+
+    setLoading(true);
+    setError('');
+
+    try {
+      // Create payment intent
+      const intentRes = await fetch('/api/payments/create-intent', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ amount: total }),
+      });
+
+      const { clientSecret, error: intentError } = await intentRes.json();
+
+      if (intentError) {
+        setError(intentError);
+        setLoading(false);
+        return;
       }
-    });
 
-    pr.on('paymentmethod', async (e) => {
-      try {
-        const intentRes = await fetch('/api/payments/create-intent', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ amount: total }),
-        });
-        const { clientSecret, error: intentError } = await intentRes.json();
+      // Confirm payment with card
+      const cardNumber = elements.getElement(CardNumberElement);
+      if (!cardNumber) {
+        setError('Card information not found');
+        setLoading(false);
+        return;
+      }
 
-        if (intentError) {
-          e.complete('fail');
-          return;
-        }
+      const { error: confirmError, paymentIntent } = await stripe.confirmCardPayment(clientSecret, {
+        payment_method: {
+          card: cardNumber,
+          billing_details: {
+            name: formData.name,
+            email: formData.email,
+            address: {
+              line1: formData.address1,
+              line2: formData.address2 || undefined,
+              city: formData.city,
+              state: formData.state,
+              postal_code: formData.zip,
+              country: formData.country,
+            },
+          },
+        },
+      });
 
-        const { error: confirmError, paymentIntent } = await stripe.confirmCardPayment(
-          clientSecret,
-          { payment_method: e.paymentMethod.id },
-          { handleActions: false }
-        );
+      if (confirmError) {
+        setError(confirmError.message || 'Payment failed');
+        setLoading(false);
+        return;
+      }
 
-        if (confirmError) {
-          e.complete('fail');
-          return;
-        }
-
-        e.complete('success');
-
+      if (paymentIntent?.status === 'succeeded') {
+        // Create order
         const orderRes = await fetch('/api/orders/create', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -86,34 +177,119 @@ function AppleGooglePayButton({ total, onSuccess, formData, items }: {
             ...formData,
             items,
             total,
-            stripePaymentId: paymentIntent?.id,
+            stripePaymentId: paymentIntent.id,
+            createAccount,
+            password: createAccount ? password : undefined,
           }),
         });
 
         const orderData = await orderRes.json();
         if (orderData.success) {
           onSuccess(orderData.orderId);
+        } else {
+          setError(orderData.error || 'Failed to create order');
         }
-      } catch (err) {
-        e.complete('fail');
+      } else {
+        setError('Payment was not completed');
       }
-    });
-  }, [stripe, total, formData, items, onSuccess]);
-
-  if (!canMakePayment || !paymentRequest) {
-    return null;
-  }
+    } catch (err) {
+      console.error('Payment error:', err);
+      setError('An error occurred. Please try again.');
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
-    <div className="mb-4">
-      <PaymentRequestButtonElement
-        options={{ paymentRequest }}
-        className="w-full"
-      />
-      <p className="text-xs text-gray-500 dark:text-gray-400 mt-2 text-center">
-        Apple Pay / Google Pay
+    <form onSubmit={handleSubmit} className="space-y-4">
+      <button
+        type="button"
+        onClick={onCancel}
+        className="text-sm text-gray-600 dark:text-gray-400 hover:underline mb-2"
+      >
+        ← Choose different method
+      </button>
+
+      <h4 className="font-semibold text-gray-900 dark:text-gray-100">
+        Enter Card Details
+      </h4>
+
+      {error && (
+        <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-3">
+          <p className="text-sm text-red-800 dark:text-red-200">{error}</p>
+        </div>
+      )}
+
+      {/* Card Number */}
+      <div>
+        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+          Card Number
+        </label>
+        <div className="p-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-900">
+          <CardNumberElement 
+            options={cardElementOptions}
+            onChange={(e) => setCardComplete(prev => ({ ...prev, cardNumber: e.complete }))}
+          />
+        </div>
+      </div>
+
+      {/* Expiry and CVC */}
+      <div className="grid grid-cols-2 gap-4">
+        <div>
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+            Expiry Date
+          </label>
+          <div className="p-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-900">
+            <CardExpiryElement 
+              options={cardElementOptions}
+              onChange={(e) => setCardComplete(prev => ({ ...prev, cardExpiry: e.complete }))}
+            />
+          </div>
+        </div>
+        <div>
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+            CVC
+          </label>
+          <div className="p-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-900">
+            <CardCvcElement 
+              options={cardElementOptions}
+              onChange={(e) => setCardComplete(prev => ({ ...prev, cardCvc: e.complete }))}
+            />
+          </div>
+        </div>
+      </div>
+
+      {/* Pay Button */}
+      <button
+        type="submit"
+        disabled={!stripe || !isCardComplete || loading}
+        className={`w-full py-3 px-6 rounded-lg text-lg font-medium transition-colors ${
+          loading || !isCardComplete
+            ? 'bg-gray-300 text-gray-500 cursor-not-allowed dark:bg-gray-700'
+            : 'bg-gray-800 text-white hover:bg-gray-900 dark:bg-gray-200 dark:text-gray-900 dark:hover:bg-gray-100'
+        }`}
+      >
+        {loading ? (
+          <span className="flex items-center justify-center gap-2">
+            <svg className="animate-spin h-5 w-5" viewBox="0 0 24 24">
+              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
+              <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+            </svg>
+            Processing...
+          </span>
+        ) : (
+          `Pay $${total.toFixed(2)}`
+        )}
+      </button>
+
+      {/* Security note */}
+      <p className="text-xs text-gray-500 dark:text-gray-400 text-center flex items-center justify-center gap-1">
+        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+        </svg>
+        Secured by Stripe
       </p>
-    </div>
+    </form>
   );
 }
 
@@ -127,15 +303,13 @@ function PaymentOptions({ formData, items, total, onSuccess, createAccount, pass
 }) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
-  const [selectedMethod, setSelectedMethod] = useState<'paypal' | 'crypto' | null>(null);
-  const [showPayPalButtons, setShowPayPalButtons] = useState(false);
+  const [selectedMethod, setSelectedMethod] = useState<'card' | 'paypal' | 'crypto' | null>(null);
 
   const handlePayPalApprove = async (data: any, actions: any) => {
     setLoading(true);
     setError('');
     try {
-      const details = await actions.order.capture();
-      console.log('PayPal payment captured:', details);
+      const details = await actions.order?.capture();
 
       const orderRes = await fetch('/api/orders/create', {
         method: 'POST',
@@ -144,7 +318,7 @@ function PaymentOptions({ formData, items, total, onSuccess, createAccount, pass
           ...formData,
           items,
           total,
-          paypalOrderId: details.id,
+          paypalOrderId: details?.id,
           createAccount,
           password: createAccount ? password : undefined,
         }),
@@ -162,11 +336,6 @@ function PaymentOptions({ formData, items, total, onSuccess, createAccount, pass
     } finally {
       setLoading(false);
     }
-  };
-
-  const handlePayPalError = (err: any) => {
-    console.error('PayPal error:', err);
-    setError('PayPal payment failed. Please try again.');
   };
 
   const handleCryptoPayment = async () => {
@@ -194,7 +363,6 @@ function PaymentOptions({ formData, items, total, onSuccess, createAccount, pass
         setError(orderData.error || 'Failed to create order');
       }
     } catch (err) {
-      console.error('Crypto payment error:', err);
       setError('Payment failed');
     } finally {
       setLoading(false);
@@ -215,41 +383,41 @@ function PaymentOptions({ formData, items, total, onSuccess, createAccount, pass
         </div>
       )}
 
-      {loading && (
+      {loading && !selectedMethod && (
         <div className="text-center py-4">
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900 dark:border-gray-100 mx-auto"></div>
           <p className="text-gray-600 dark:text-gray-400 mt-2">Processing...</p>
         </div>
       )}
 
-      {/* Apple Pay / Google Pay via Stripe */}
-      {stripePromise && (
-        <Elements stripe={stripePromise}>
-          <AppleGooglePayButton
-            total={total}
-            onSuccess={onSuccess}
-            formData={{ ...formData, createAccount, password: createAccount ? password : undefined }}
-            items={items}
-          />
-        </Elements>
-      )}
-
       {/* Payment Method Selection */}
       {!selectedMethod && !loading && (
         <div className="space-y-3">
+          {/* Credit Card Button */}
+          {stripePromise && (
+            <button
+              onClick={() => setSelectedMethod('card')}
+              className="w-full py-3 px-6 bg-gray-800 hover:bg-gray-900 dark:bg-gray-200 dark:hover:bg-gray-100 text-white dark:text-gray-900 font-semibold rounded-lg flex items-center justify-center gap-3 transition-colors"
+            >
+              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
+              </svg>
+              Credit / Debit Card
+            </button>
+          )}
+
           {/* PayPal Button */}
-          <button
-            onClick={() => {
-              setSelectedMethod('paypal');
-              setShowPayPalButtons(true);
-            }}
-            className="w-full py-3 px-6 bg-[#FFC439] hover:bg-[#f0b72e] text-[#003087] font-semibold rounded-lg flex items-center justify-center gap-3 transition-colors"
-          >
-            <svg className="w-6 h-6" viewBox="0 0 24 24" fill="currentColor">
-              <path d="M7.076 21.337H2.47a.641.641 0 0 1-.633-.74L4.944 3.72a.773.773 0 0 1 .763-.642h6.923c2.321 0 4.052.52 5.126 1.545 1.073 1.025 1.457 2.476 1.14 4.311-.408 2.357-1.355 4.136-2.814 5.285-1.459 1.15-3.41 1.733-5.797 1.733h-1.56a.773.773 0 0 0-.764.642l-.939 4.743zm9.273-12.378c-.178 1.029-.592 1.8-1.231 2.292-.639.493-1.509.74-2.585.74h-.663l.663-3.394h.663c.877 0 1.551.154 2.01.461.459.307.688.812.688 1.516l-.045.385z"/>
-            </svg>
-            Pay with PayPal
-          </button>
+          {paypalClientId && (
+            <button
+              onClick={() => setSelectedMethod('paypal')}
+              className="w-full py-3 px-6 bg-[#FFC439] hover:bg-[#f0b72e] text-[#003087] font-semibold rounded-lg flex items-center justify-center gap-3 transition-colors"
+            >
+              <svg className="w-6 h-6" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M7.076 21.337H2.47a.641.641 0 0 1-.633-.74L4.944 3.72a.773.773 0 0 1 .763-.642h6.923c2.321 0 4.052.52 5.126 1.545 1.073 1.025 1.457 2.476 1.14 4.311-.408 2.357-1.355 4.136-2.814 5.285-1.459 1.15-3.41 1.733-5.797 1.733h-1.56a.773.773 0 0 0-.764.642l-.939 4.743zm9.273-12.378c-.178 1.029-.592 1.8-1.231 2.292-.639.493-1.509.74-2.585.74h-.663l.663-3.394h.663c.877 0 1.551.154 2.01.461.459.307.688.812.688 1.516l-.045.385z"/>
+              </svg>
+              Pay with PayPal
+            </button>
+          )}
 
           {/* Crypto Button */}
           <button
@@ -257,183 +425,91 @@ function PaymentOptions({ formData, items, total, onSuccess, createAccount, pass
             className="w-full py-3 px-6 bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white font-semibold rounded-lg flex items-center justify-center gap-3 transition-colors"
           >
             <svg className="w-6 h-6" viewBox="0 0 24 24" fill="currentColor">
-              <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm.31-8.86c-1.77-.45-2.34-.94-2.34-1.67 0-.84.79-1.43 2.1-1.43 1.38 0 1.9.66 1.94 1.64h1.71c-.05-1.34-.87-2.57-2.49-2.97V5H10.9v1.69c-1.51.32-2.72 1.3-2.72 2.81 0 1.79 1.49 2.69 3.66 3.21 1.95.46 2.34 1.15 2.34 1.87 0 .53-.39 1.39-2.1 1.39-1.6 0-2.23-.72-2.32-1.64H8.04c.1 1.7 1.36 2.66 2.86 2.97V19h2.34v-1.67c1.52-.29 2.72-1.16 2.73-2.77-.01-2.2-1.9-2.96-3.66-3.42z"/>
+              <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8z"/>
             </svg>
             Pay with USDC
           </button>
         </div>
       )}
 
+      {/* Credit Card Form */}
+      {selectedMethod === 'card' && stripePromise && (
+        <div className="border border-gray-200 dark:border-gray-700 rounded-lg p-4">
+          <Elements stripe={stripePromise}>
+            <CardPaymentForm
+              total={total}
+              onSuccess={onSuccess}
+              formData={formData}
+              items={items}
+              createAccount={createAccount}
+              password={password}
+              onCancel={() => setSelectedMethod(null)}
+            />
+          </Elements>
+        </div>
+      )}
+
       {/* PayPal Checkout */}
-      {selectedMethod === 'paypal' && (
+      {selectedMethod === 'paypal' && paypalClientId && (
         <div className="border border-gray-200 dark:border-gray-700 rounded-lg p-4">
           <button
-            onClick={() => {
-              setSelectedMethod(null);
-              setShowPayPalButtons(false);
-            }}
+            onClick={() => setSelectedMethod(null)}
             className="text-sm text-gray-600 dark:text-gray-400 hover:underline mb-4"
           >
             ← Choose different method
           </button>
           
-          <p className="text-sm text-gray-600 dark:text-gray-400 mb-4 text-center">
-            Complete your payment with PayPal
-          </p>
-          
-          {process.env.NEXT_PUBLIC_PAYPAL_CLIENT_ID ? (
-            <PayPalScriptProvider 
-              options={{ 
-                clientId: process.env.NEXT_PUBLIC_PAYPAL_CLIENT_ID,
-                currency: 'USD',
-                intent: 'capture',
-                components: 'buttons',
+          <PayPalScriptProvider 
+            options={{ 
+              clientId: paypalClientId,
+              currency: 'USD',
+              intent: 'capture',
+            }}
+          >
+            <PayPalButtons
+              style={{ layout: 'vertical', shape: 'rect', label: 'paypal', height: 50, color: 'gold' }}
+              disabled={loading}
+              forceReRender={[total]}
+              createOrder={(data, actions) => {
+                return actions.order.create({
+                  intent: 'CAPTURE',
+                  purchase_units: [{ amount: { currency_code: 'USD', value: total.toFixed(2) } }],
+                });
               }}
-            >
-              <PayPalButtons
-                style={{ 
-                  layout: 'vertical', 
-                  shape: 'rect', 
-                  label: 'pay',
-                  height: 50,
-                  color: 'gold',
-                  tagline: false,
-                }}
-                disabled={loading}
-                forceReRender={[total, formData]}
-                fundingSource={undefined}
-                createOrder={(data, actions) => {
-                  console.log('Creating PayPal order for total:', total);
-                  return actions.order.create({
-                    intent: 'CAPTURE',
-                    purchase_units: [
-                      {
-                        description: 'Illuminati Store Order',
-                        amount: {
-                          currency_code: 'USD',
-                          value: total.toFixed(2),
-                        },
-                      },
-                    ],
-                    application_context: {
-                      shipping_preference: 'NO_SHIPPING',
-                    },
-                  });
-                }}
-                onApprove={async (data, actions) => {
-                  console.log('PayPal approved, capturing...');
-                  setLoading(true);
-                  setError('');
-                  
-                  try {
-                    // Capture the payment
-                    const details = await actions.order?.capture();
-                    console.log('PayPal payment captured:', details);
-
-                    if (!details) {
-                      throw new Error('No payment details received');
-                    }
-
-                    // Create order in our system
-                    const orderRes = await fetch('/api/orders/create', {
-                      method: 'POST',
-                      headers: { 'Content-Type': 'application/json' },
-                      body: JSON.stringify({
-                        ...formData,
-                        items,
-                        total,
-                        paypalOrderId: details.id,
-                        paypalPayerId: details.payer?.payer_id,
-                        createAccount,
-                        password: createAccount ? password : undefined,
-                      }),
-                    });
-
-                    const orderData = await orderRes.json();
-                    console.log('Order created:', orderData);
-                    
-                    if (orderData.success) {
-                      onSuccess(orderData.orderId);
-                    } else {
-                      setError(orderData.error || 'Failed to create order');
-                    }
-                  } catch (err) {
-                    console.error('PayPal capture error:', err);
-                    setError('Payment failed. Please try again.');
-                  } finally {
-                    setLoading(false);
-                  }
-                }}
-                onError={(err) => {
-                  console.error('PayPal error:', err);
-                  setError('PayPal encountered an error. Please try again.');
-                  setLoading(false);
-                }}
-                onCancel={() => {
-                  console.log('PayPal cancelled');
-                  setError('Payment was cancelled.');
-                }}
-              />
-            </PayPalScriptProvider>
-          ) : (
-            <div className="text-center py-4 text-red-500">
-              PayPal is not configured. Please contact support.
-            </div>
-          )}
+              onApprove={handlePayPalApprove}
+              onError={() => setError('PayPal payment failed')}
+            />
+          </PayPalScriptProvider>
         </div>
       )}
 
-      {/* Crypto Checkout - Simplified */}
+      {/* Crypto Checkout */}
       {selectedMethod === 'crypto' && (
         <div className="border border-gray-200 dark:border-gray-700 rounded-lg p-6">
           <button
             onClick={() => setSelectedMethod(null)}
-            className="text-sm text-gray-600 dark:text-gray-400 hover:underline mb-4 flex items-center"
+            className="text-sm text-gray-600 dark:text-gray-400 hover:underline mb-4"
           >
             ← Choose different method
           </button>
 
           <div className="text-center">
-            <div className="w-16 h-16 bg-blue-100 dark:bg-blue-900/30 rounded-full flex items-center justify-center mx-auto mb-4">
-              <svg className="w-8 h-8 text-blue-600 dark:text-blue-400" viewBox="0 0 24 24" fill="currentColor">
-                <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm.31-8.86c-1.77-.45-2.34-.94-2.34-1.67 0-.84.79-1.43 2.1-1.43 1.38 0 1.9.66 1.94 1.64h1.71c-.05-1.34-.87-2.57-2.49-2.97V5H10.9v1.69c-1.51.32-2.72 1.3-2.72 2.81 0 1.79 1.49 2.69 3.66 3.21 1.95.46 2.34 1.15 2.34 1.87 0 .53-.39 1.39-2.1 1.39-1.6 0-2.23-.72-2.32-1.64H8.04c.1 1.7 1.36 2.66 2.86 2.97V19h2.34v-1.67c1.52-.29 2.72-1.16 2.73-2.77-.01-2.2-1.9-2.96-3.66-3.42z"/>
-              </svg>
-            </div>
-
-            <h4 className="font-semibold text-gray-900 dark:text-gray-100 mb-2">
-              Pay with USDC
-            </h4>
-
-            <p className="text-sm text-gray-600 dark:text-gray-400 mb-6">
-              Instructions for payment will appear on your order confirmation once submitted.
+            <h4 className="font-semibold text-gray-900 dark:text-gray-100 mb-2">Pay with USDC</h4>
+            <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">
+              Payment instructions will appear on your order confirmation.
             </p>
-
-            <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-4 mb-6">
-              <p className="text-sm text-gray-600 dark:text-gray-400">
-                Total: <span className="font-bold text-gray-900 dark:text-gray-100">${total.toFixed(2)} USDC</span>
-              </p>
+            <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-4 mb-4">
+              <p className="text-sm">Total: <strong>${total.toFixed(2)} USDC</strong></p>
             </div>
-
             <button
               onClick={handleCryptoPayment}
               disabled={loading}
-              className="w-full py-3 px-6 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-lg transition-colors disabled:opacity-50"
+              className="w-full py-3 px-6 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-lg disabled:opacity-50"
             >
               {loading ? 'Processing...' : 'Submit Order'}
             </button>
-
-            <p className="text-xs text-gray-500 dark:text-gray-400 mt-4">
-              Your order will be held until payment is confirmed.
-            </p>
           </div>
         </div>
-      )}
-
-      {/* Info */}
-      {!selectedMethod && stripePromise && (
-        <p className="text-xs text-gray-500 dark:text-gray-400 text-center">
-          Apple Pay and Google Pay appear when available on your device/browser.
-        </p>
       )}
     </div>
   );

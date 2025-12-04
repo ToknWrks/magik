@@ -265,56 +265,121 @@ function PaymentOptions({ formData, items, total, onSuccess, createAccount, pass
       )}
 
       {/* PayPal Checkout */}
-      {selectedMethod === 'paypal' && showPayPalButtons && paypalClientId && (
+      {selectedMethod === 'paypal' && (
         <div className="border border-gray-200 dark:border-gray-700 rounded-lg p-4">
           <button
             onClick={() => {
               setSelectedMethod(null);
               setShowPayPalButtons(false);
             }}
-            className="text-sm text-gray-600 dark:text-gray-400 hover:underline mb-4 flex items-center"
+            className="text-sm text-gray-600 dark:text-gray-400 hover:underline mb-4"
           >
             ← Choose different method
           </button>
           
           <p className="text-sm text-gray-600 dark:text-gray-400 mb-4 text-center">
-            Complete payment with PayPal
+            Complete your payment with PayPal
           </p>
           
-          <PayPalScriptProvider 
-            options={{ 
-              clientId: paypalClientId,
-              currency: 'USD',
-              intent: 'capture',
-            }}
-          >
-            <PayPalButtons
-              style={{ 
-                layout: 'vertical', 
-                shape: 'rect', 
-                label: 'paypal',
-                height: 45,
-                color: 'gold',
+          {process.env.NEXT_PUBLIC_PAYPAL_CLIENT_ID ? (
+            <PayPalScriptProvider 
+              options={{ 
+                clientId: process.env.NEXT_PUBLIC_PAYPAL_CLIENT_ID,
+                currency: 'USD',
+                intent: 'capture',
+                components: 'buttons',
               }}
-              disabled={loading}
-              forceReRender={[total]}
-              createOrder={(data, actions) => {
-                return actions.order.create({
-                  intent: 'CAPTURE',
-                  purchase_units: [
-                    {
-                      amount: {
-                        currency_code: 'USD',
-                        value: total.toFixed(2),
+            >
+              <PayPalButtons
+                style={{ 
+                  layout: 'vertical', 
+                  shape: 'rect', 
+                  label: 'pay',
+                  height: 50,
+                  color: 'gold',
+                  tagline: false,
+                }}
+                disabled={loading}
+                forceReRender={[total, formData]}
+                fundingSource={undefined}
+                createOrder={(data, actions) => {
+                  console.log('Creating PayPal order for total:', total);
+                  return actions.order.create({
+                    intent: 'CAPTURE',
+                    purchase_units: [
+                      {
+                        description: 'Illuminati Store Order',
+                        amount: {
+                          currency_code: 'USD',
+                          value: total.toFixed(2),
+                        },
                       },
+                    ],
+                    application_context: {
+                      shipping_preference: 'NO_SHIPPING',
                     },
-                  ],
-                });
-              }}
-              onApprove={handlePayPalApprove}
-              onError={handlePayPalError}
-            />
-          </PayPalScriptProvider>
+                  });
+                }}
+                onApprove={async (data, actions) => {
+                  console.log('PayPal approved, capturing...');
+                  setLoading(true);
+                  setError('');
+                  
+                  try {
+                    // Capture the payment
+                    const details = await actions.order?.capture();
+                    console.log('PayPal payment captured:', details);
+
+                    if (!details) {
+                      throw new Error('No payment details received');
+                    }
+
+                    // Create order in our system
+                    const orderRes = await fetch('/api/orders/create', {
+                      method: 'POST',
+                      headers: { 'Content-Type': 'application/json' },
+                      body: JSON.stringify({
+                        ...formData,
+                        items,
+                        total,
+                        paypalOrderId: details.id,
+                        paypalPayerId: details.payer?.payer_id,
+                        createAccount,
+                        password: createAccount ? password : undefined,
+                      }),
+                    });
+
+                    const orderData = await orderRes.json();
+                    console.log('Order created:', orderData);
+                    
+                    if (orderData.success) {
+                      onSuccess(orderData.orderId);
+                    } else {
+                      setError(orderData.error || 'Failed to create order');
+                    }
+                  } catch (err) {
+                    console.error('PayPal capture error:', err);
+                    setError('Payment failed. Please try again.');
+                  } finally {
+                    setLoading(false);
+                  }
+                }}
+                onError={(err) => {
+                  console.error('PayPal error:', err);
+                  setError('PayPal encountered an error. Please try again.');
+                  setLoading(false);
+                }}
+                onCancel={() => {
+                  console.log('PayPal cancelled');
+                  setError('Payment was cancelled.');
+                }}
+              />
+            </PayPalScriptProvider>
+          ) : (
+            <div className="text-center py-4 text-red-500">
+              PayPal is not configured. Please contact support.
+            </div>
+          )}
         </div>
       )}
 
@@ -641,41 +706,26 @@ export default function CheckoutClient() {
                   </div>
                 </div>
 
-                {/* Shipping Method */}
+                {/* Shipping Method - Standard Only */}
                 <div className="mt-4">
                   <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                    Shipping Method <span className="text-red-500">*</span>
+                    Shipping Method
                   </label>
-                  <div className="space-y-2">
-                    <label className="flex items-center p-3 border border-gray-300 dark:border-gray-600 rounded-lg cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-800">
+                  <div className="p-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-gray-50 dark:bg-gray-800">
+                    <div className="flex items-center">
                       <input
                         type="radio"
                         name="shippingMethod"
                         value="STANDARD"
-                        checked={formData.shippingMethod === 'STANDARD'}
-                        onChange={handleChange}
+                        checked={true}
+                        readOnly
                         className="form-radio h-4 w-4"
                       />
                       <div className="ml-3">
                         <span className="font-medium text-gray-900 dark:text-gray-100">Standard Shipping</span>
                         <p className="text-sm text-gray-500 dark:text-gray-400">5-10 business days</p>
                       </div>
-                    </label>
-                    
-                    <label className="flex items-center p-3 border border-gray-300 dark:border-gray-600 rounded-lg cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-800">
-                      <input
-                        type="radio"
-                        name="shippingMethod"
-                        value="STANDARD_PLUS"
-                        checked={formData.shippingMethod === 'STANDARD_PLUS'}
-                        onChange={handleChange}
-                        className="form-radio h-4 w-4"
-                      />
-                      <div className="ml-3">
-                        <span className="font-medium text-gray-900 dark:text-gray-100">Express Shipping</span>
-                        <p className="text-sm text-gray-500 dark:text-gray-400">3-5 business days</p>
-                      </div>
-                    </label>
+                    </div>
                   </div>
                 </div>
 

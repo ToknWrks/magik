@@ -89,13 +89,13 @@ export const amazonProducts: AmazonProduct[] = [
   // Documentaries/DVDs
   {
     id: 'amazon-dvd-1',
-    name: 'JFK to 9/11: Everything Is a Rich Man\'s Trick',
-    slug: 'jfk-911-documentary',
-    description: 'A comprehensive documentary examining major events through a conspiracy lens.',
-    price: 19.99,
+    name: 'Cloak of The Illuminati',
+    slug: 'cloak-of-the-illuminati',
+    description: 'Illuminati Stargate Secrets of the Anunnaki 2 DVD Set',
+    price: 29.99,
     category: 'Documentaries',
-    image: 'https://m.media-amazon.com/images/I/81H3aWnIHbL._SL1500_.jpg',
-    amazonUrl: 'https://www.amazon.com/dp/B07XXXXXXX?tag=illuminat0005-20',
+    image: 'https://m.media-amazon.com/images/I/41amm8kt0vL.jpg',
+    amazonUrl: 'https://amzn.to/48PqjCB',
   },
 
   // Equipment/Gear

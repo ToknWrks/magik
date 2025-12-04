@@ -272,7 +272,7 @@ export default function ProductDetail({ slug }: { slug: string }) {
               disabled={!selectedVariant || !product.inStock}
               className={`w-full py-4 px-6 rounded-lg text-lg font-medium transition-colors ${
                 addedToCart
-                  ? 'bg-green-600 text-white'
+                  ? 'bg-yellow-700 text-white'
                   : !selectedVariant || !product.inStock
                   ? 'bg-gray-300 text-gray-500 cursor-not-allowed dark:bg-gray-700 dark:text-gray-500'
                   : 'bg-gray-800 text-white hover:bg-gray-900 dark:bg-gray-200 dark:text-gray-900 dark:hover:bg-gray-100'

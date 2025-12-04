@@ -5,8 +5,9 @@ import { useState, useEffect } from 'react';
 import { Boundary } from '@/components/ui/boundary';
 import Link from 'next/link';
 import { useCart } from '@/context/cart-context';
+import { amazonProducts, amazonCategories, AmazonProduct } from '@/lib/amazon-products';
 
-interface Product {
+interface PrintfulProduct {
   id: string;
   name: string;
   slug: string;
@@ -22,39 +23,45 @@ interface Product {
   variants: any[];
 }
 
+interface DisplayProduct {
+  id: string;
+  name: string;
+  slug: string;
+  description: string;
+  price: number;
+  category: string;
+  image: string;
+  featured?: boolean;
+  isAmazon?: boolean;
+  amazonUrl?: string;
+  inStock?: boolean;
+  sizes?: string[];
+  colors?: string[];
+  variants?: any[];
+}
+
 function ProductSkeleton() {
   return (
     <div className="group flex flex-col gap-4 rounded-lg bg-gray-50 dark:bg-gray-900 px-6 py-6 animate-pulse">
-      {/* Image skeleton */}
       <div className="aspect-square bg-gray-200 dark:bg-gray-700 rounded-lg"></div>
-      
-      {/* Category badge skeleton */}
       <div className="flex items-center gap-2">
         <div className="h-6 w-20 bg-gray-200 dark:bg-gray-700 rounded"></div>
       </div>
-      
-      {/* Title skeleton */}
       <div className="h-6 w-3/4 bg-gray-200 dark:bg-gray-700 rounded"></div>
-      
-      {/* Description skeleton */}
       <div className="space-y-2">
         <div className="h-4 w-full bg-gray-200 dark:bg-gray-700 rounded"></div>
         <div className="h-4 w-2/3 bg-gray-200 dark:bg-gray-700 rounded"></div>
       </div>
-      
-      {/* Price skeleton */}
       <div className="h-6 w-16 bg-gray-200 dark:bg-gray-700 rounded"></div>
-      
-      {/* Button skeleton */}
       <div className="h-4 w-24 bg-gray-200 dark:bg-gray-700 rounded mx-auto"></div>
     </div>
   );
 }
 
 export function StoreClient() {
-  const [products, setProducts] = useState<Product[]>([]);
+  const [printfulProducts, setPrintfulProducts] = useState<PrintfulProduct[]>([]);
   const [loading, setLoading] = useState(true);
-  const [selectedCategory, setSelectedCategory] = useState<string>('All');
+  const [selectedCategory, setSelectedCategory] = useState<string>('Clothing');
   const [sortBy, setSortBy] = useState<string>('featured');
   const { itemCount, total } = useCart();
 
@@ -62,7 +69,12 @@ export function StoreClient() {
     fetch('/api/printful/products')
       .then(res => res.json())
       .then(data => {
-        setProducts(data.products || []);
+        // Set all Printful products to "Clothing" category
+        const clothingProducts = (data.products || []).map((p: PrintfulProduct) => ({
+          ...p,
+          category: 'Clothing',
+        }));
+        setPrintfulProducts(clothingProducts);
         setLoading(false);
       })
       .catch(error => {
@@ -71,23 +83,40 @@ export function StoreClient() {
       });
   }, []);
 
-  const categories = ['All', ...Array.from(new Set(products.map(p => p.category)))];
+  // Combine Printful and Amazon products
+  const allProducts: DisplayProduct[] = [
+    ...printfulProducts.map(p => ({
+      ...p,
+      image: p.image || '',
+      isAmazon: false,
+    })),
+    ...amazonProducts.map(p => ({
+      ...p,
+      isAmazon: true,
+      inStock: true,
+    })),
+  ];
 
-  const filteredProducts = products.filter(product => {
-    return selectedCategory === 'All' || product.category === selectedCategory;
-  }).sort((a, b) => {
-    switch (sortBy) {
-      case 'price-low':
-        return a.price - b.price;
-      case 'price-high':
-        return b.price - a.price;
-      case 'name':
-        return a.name.localeCompare(b.name);
-      case 'featured':
-      default:
-        return (b.featured ? 1 : 0) - (a.featured ? 1 : 0);
-    }
-  });
+  // Get unique categories
+  const categories = ['All', 'Clothing', ...amazonCategories];
+
+  const filteredProducts = allProducts
+    .filter(product => {
+      return selectedCategory === 'All' || product.category === selectedCategory;
+    })
+    .sort((a, b) => {
+      switch (sortBy) {
+        case 'price-low':
+          return a.price - b.price;
+        case 'price-high':
+          return b.price - a.price;
+        case 'name':
+          return a.name.localeCompare(b.name);
+        case 'featured':
+        default:
+          return (b.featured ? 1 : 0) - (a.featured ? 1 : 0);
+      }
+    });
 
   return (
     <Boundary
@@ -101,11 +130,11 @@ export function StoreClient() {
           Official Store
         </h1>
         <p className="text-lg text-gray-600 dark:text-gray-400 max-w-3xl mx-auto mb-8">
-          Premium merchandise, books, and collectibles for the enlightened mind.
+          Premium merchandise, books, and gear for the enlightened mind.
           All proceeds support conspiracy theory research and education.
         </p>
 
-        {/* Filters and Sort - Hide while loading */}
+        {/* Filters and Sort */}
         {!loading && (
           <div className="flex flex-col sm:flex-row gap-4 justify-center items-center mb-8">
             <div className="flex gap-2 flex-wrap justify-center">
@@ -138,7 +167,7 @@ export function StoreClient() {
         )}
       </div>
 
-      {/* Skeleton Loading State */}
+      {/* Skeleton Loading */}
       {loading && (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {[...Array(6)].map((_, index) => (
@@ -151,66 +180,121 @@ export function StoreClient() {
       {!loading && (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {filteredProducts.map((product) => (
-            <Link
-              href={`/store/product/${product.slug}`}
-              key={product.id}
-              className="group flex flex-col gap-4 rounded-lg bg-gray-50 px-6 py-6 hover:bg-gray-100 dark:bg-gray-900 dark:hover:bg-gray-800 transition-all duration-200 hover:shadow-lg"
-            >
-              <div className="relative">
-                <div className="aspect-square bg-gray-200 dark:bg-gray-700 rounded-lg mb-4 flex items-center justify-center overflow-hidden">
-                  <img
-                    src={product.image || '/api/placeholder/300/300'}
-                    alt={product.name}
-                    className="w-full h-full object-cover rounded-lg"
-                  />
-                </div>
-                
-                {product.featured && (
-                  <span className="absolute top-2 left-2 inline-flex items-center px-2 py-1 rounded text-xs font-medium bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-200">
-                    Featured
-                  </span>
-                )}
-                
-                {!product.inStock && (
-                  <span className="absolute top-2 right-2 inline-flex items-center px-2 py-1 rounded text-xs font-medium bg-red-100 text-red-800 dark:bg-red-800 dark:text-red-200">
-                    Out of Stock
-                  </span>
-                )}
-              </div>
+            product.isAmazon ? (
+              // Amazon Product - External Link
+              <a
+                href={product.amazonUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                key={product.id}
+                className="group flex flex-col gap-4 rounded-lg bg-gray-50 px-6 py-6 hover:bg-gray-100 dark:bg-gray-900 dark:hover:bg-gray-800 transition-all duration-200 hover:shadow-lg"
+              >
+                <div className="relative">
+                  <div className="aspect-square bg-gray-200 dark:bg-gray-700 rounded-lg mb-4 flex items-center justify-center overflow-hidden">
+                    <img
+                      src={product.image}
+                      alt={product.name}
+                      className="w-full h-full object-contain rounded-lg p-2"
+                    />
+                  </div>
+                  
+                  {product.featured && (
+                    <span className="absolute top-2 left-2 inline-flex items-center px-2 py-1 rounded text-xs font-medium bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-200">
+                      Featured
+                    </span>
+                  )}
 
-              <div className="flex-1">
-                <div className="flex items-center gap-2 mb-2">
-                  <span className="inline-flex items-center px-2 py-1 rounded text-xs font-medium bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-200">
-                    {product.category}
+                  {/* Amazon badge */}
+                  <span className="absolute top-2 right-2 inline-flex items-center px-2 py-1 rounded text-xs font-medium bg-orange-100 text-orange-800 dark:bg-orange-800 dark:text-orange-200">
+                    Amazon
                   </span>
                 </div>
-                
-                <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-2">
-                  {product.name}
-                </h3>
-                
-                <p className="text-sm text-gray-600 dark:text-gray-400 mb-4 line-clamp-2">
-                  {product.description}
-                </p>
 
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2">
+                <div className="flex-1">
+                  <div className="flex items-center gap-2 mb-2">
+                    <span className="inline-flex items-center px-2 py-1 rounded text-xs font-medium bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-200">
+                      {product.category}
+                    </span>
+                  </div>
+                  
+                  <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-2">
+                    {product.name}
+                  </h3>
+                  
+                  <p className="text-sm text-gray-600 dark:text-gray-400 mb-4 line-clamp-2">
+                    {product.description}
+                  </p>
+
+                  <div className="flex items-center justify-between">
                     <span className="text-lg font-bold text-gray-900 dark:text-gray-100">
                       ${product.price.toFixed(2)}
                     </span>
-                    {product.originalPrice && product.originalPrice > product.price && (
-                      <span className="text-sm text-gray-500 line-through dark:text-gray-400">
-                        ${product.originalPrice.toFixed(2)}
-                      </span>
-                    )}
                   </div>
                 </div>
-              </div>
 
-              <div className="text-center text-sm font-medium text-gray-600 dark:text-gray-400 group-hover:text-gray-900 dark:group-hover:text-gray-100">
-                View Details →
-              </div>
-            </Link>
+                <div className="text-center text-sm font-medium text-orange-600 dark:text-orange-400 group-hover:text-orange-700 dark:group-hover:text-orange-300 flex items-center justify-center gap-1">
+                  View on Amazon
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                  </svg>
+                </div>
+              </a>
+            ) : (
+              // Printful Product - Internal Link
+              <Link
+                href={`/store/product/${product.slug}`}
+                key={product.id}
+                className="group flex flex-col gap-4 rounded-lg bg-gray-50 px-6 py-6 hover:bg-gray-100 dark:bg-gray-900 dark:hover:bg-gray-800 transition-all duration-200 hover:shadow-lg"
+              >
+                <div className="relative">
+                  <div className="aspect-square bg-gray-200 dark:bg-gray-700 rounded-lg mb-4 flex items-center justify-center overflow-hidden">
+                    <img
+                      src={product.image || '/api/placeholder/300/300'}
+                      alt={product.name}
+                      className="w-full h-full object-cover rounded-lg"
+                    />
+                  </div>
+                  
+                  {product.featured && (
+                    <span className="absolute top-2 left-2 inline-flex items-center px-2 py-1 rounded text-xs font-medium bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-200">
+                      Featured
+                    </span>
+                  )}
+                  
+                  {product.inStock === false && (
+                    <span className="absolute top-2 right-2 inline-flex items-center px-2 py-1 rounded text-xs font-medium bg-red-100 text-red-800 dark:bg-red-800 dark:text-red-200">
+                      Out of Stock
+                    </span>
+                  )}
+                </div>
+
+                <div className="flex-1">
+                  <div className="flex items-center gap-2 mb-2">
+                    <span className="inline-flex items-center px-2 py-1 rounded text-xs font-medium bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-200">
+                      {product.category}
+                    </span>
+                  </div>
+                  
+                  <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-2">
+                    {product.name}
+                  </h3>
+                  
+                  <p className="text-sm text-gray-600 dark:text-gray-400 mb-4 line-clamp-2">
+                    {product.description}
+                  </p>
+
+                  <div className="flex items-center justify-between">
+                    <span className="text-lg font-bold text-gray-900 dark:text-gray-100">
+                      ${product.price.toFixed(2)}
+                    </span>
+                  </div>
+                </div>
+
+                <div className="text-center text-sm font-medium text-gray-600 dark:text-gray-400 group-hover:text-gray-900 dark:group-hover:text-gray-100">
+                  View Details →
+                </div>
+              </Link>
+            )
           ))}
         </div>
       )}
@@ -234,7 +318,6 @@ export function StoreClient() {
             fill="none"
             stroke="currentColor"
             viewBox="0 0 24 24"
-            xmlns="http://www.w3.org/2000/svg"
           >
             <path
               strokeLinecap="round"

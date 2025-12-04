@@ -27,7 +27,7 @@ export default function IlluminatiArchive() {
         },
         {
           name: 'Pizza Gate',
-          status: 'Debunked',
+          status: 'Fjnord',
           slug: 'articles/pizza-gate',
           description: 'A highly classified facility allegedly housing liberal pedophiles. Or a pizza shop?',
         },

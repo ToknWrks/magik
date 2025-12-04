@@ -21,7 +21,7 @@ const conspiracies = [
     description: "The theory that the 1969 moon landing was faked by NASA and filmed in a studio.",
     status: "Completely Debunked",
     category: "Space Conspiracies",
-    slug: "moon-landing-hoax"
+    slug: "../articles/moon-landing"
   },
   {
     id: 3,
@@ -37,7 +37,7 @@ const conspiracies = [
     description: "The belief that pizzas served at a popular restaurant were part of a child trafficking ring linked to high-profile politicians.",
     status: "Debunked",
     category: "Political Conspiracies",
-    slug: "pizza-gate"
+    slug: "../articles/pizza-gate"
   },
   {
     id: 5,

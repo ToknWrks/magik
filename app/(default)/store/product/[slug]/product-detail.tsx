@@ -32,6 +32,45 @@ interface Product {
   variants: Variant[];
 }
 
+function ProductDetailSkeleton() {
+  return (
+    <div className="max-w-6xl mx-auto animate-pulse">
+      <div className="h-4 w-24 bg-gray-200 dark:bg-gray-700 rounded mb-6"></div>
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+        <div className="aspect-square bg-gray-200 dark:bg-gray-700 rounded-lg"></div>
+        <div className="flex flex-col gap-6">
+          <div className="h-6 w-20 bg-gray-200 dark:bg-gray-700 rounded"></div>
+          <div className="h-10 w-3/4 bg-gray-200 dark:bg-gray-700 rounded"></div>
+          <div className="h-8 w-24 bg-gray-200 dark:bg-gray-700 rounded"></div>
+          <div className="space-y-2">
+            <div className="h-4 w-full bg-gray-200 dark:bg-gray-700 rounded"></div>
+            <div className="h-4 w-full bg-gray-200 dark:bg-gray-700 rounded"></div>
+            <div className="h-4 w-2/3 bg-gray-200 dark:bg-gray-700 rounded"></div>
+          </div>
+          <div>
+            <div className="h-4 w-12 bg-gray-200 dark:bg-gray-700 rounded mb-2"></div>
+            <div className="flex gap-2">
+              {[...Array(5)].map((_, i) => (
+                <div key={i} className="h-10 w-14 bg-gray-200 dark:bg-gray-700 rounded"></div>
+              ))}
+            </div>
+          </div>
+          <div>
+            <div className="h-4 w-12 bg-gray-200 dark:bg-gray-700 rounded mb-2"></div>
+            <div className="flex gap-2">
+              {[...Array(4)].map((_, i) => (
+                <div key={i} className="h-10 w-20 bg-gray-200 dark:bg-gray-700 rounded"></div>
+              ))}
+            </div>
+          </div>
+          <div className="h-14 w-full bg-gray-200 dark:bg-gray-700 rounded"></div>
+          <div className="h-4 w-20 bg-gray-200 dark:bg-gray-700 rounded mx-auto"></div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export default function ProductDetail({ slug }: { slug: string }) {
   const [product, setProduct] = useState<Product | null>(null);
   const [loading, setLoading] = useState(true);
@@ -45,7 +84,7 @@ export default function ProductDetail({ slug }: { slug: string }) {
     fetch('/api/printful/products')
       .then(res => res.json())
       .then(data => {
-        const foundProduct = data.products.find((p: any) => p.slug === slug);
+        const foundProduct = data.products?.find((p: any) => p.slug === slug);
         if (foundProduct) {
           setProduct(foundProduct);
           if (foundProduct.sizes?.length > 0) {
@@ -65,12 +104,17 @@ export default function ProductDetail({ slug }: { slug: string }) {
 
   useEffect(() => {
     if (product && (selectedSize || selectedColor)) {
-      const variant = product.variants.find(v => {
+      const variant = product.variants?.find(v => {
         const sizeMatch = !selectedSize || v.size === selectedSize;
         const colorMatch = !selectedColor || v.color === selectedColor;
         return sizeMatch && colorMatch;
       });
-      setSelectedVariant(variant || product.variants[0] || null);
+      
+      if (variant) {
+        setSelectedVariant(variant);
+      } else if (product.variants?.length > 0) {
+        setSelectedVariant(product.variants[0]);
+      }
     }
   }, [product, selectedSize, selectedColor]);
 
@@ -85,7 +129,7 @@ export default function ProductDetail({ slug }: { slug: string }) {
       color: selectedColor,
       price: selectedVariant.price,
       quantity: 1,
-      image: product.image,
+      image: product.image, // Always use main product image for cart
       variantId: selectedVariant.id,
     });
 
@@ -96,7 +140,7 @@ export default function ProductDetail({ slug }: { slug: string }) {
   if (loading) {
     return (
       <Boundary label="Product Details">
-        <div className="text-center py-8">Loading product...</div>
+        <ProductDetailSkeleton />
       </Boundary>
     );
   }
@@ -104,29 +148,41 @@ export default function ProductDetail({ slug }: { slug: string }) {
   if (!product) {
     return (
       <Boundary label="Product Details">
-        <div className="text-center py-8">Product not found.</div>
+        <div className="text-center py-12">
+          <p className="text-gray-600 dark:text-gray-400 mb-4">Product not found.</p>
+          <Link
+            href="/store"
+            className="text-gray-800 dark:text-gray-200 hover:underline"
+          >
+            ← Back to Store
+          </Link>
+        </div>
       </Boundary>
     );
   }
 
-  const currentPrice = selectedVariant?.price || product.price;
-  const currentImage = product.image;
+  const displayPrice = selectedVariant?.price || product.price;
 
   return (
     <Boundary label="Product Details">
       <div className="max-w-6xl mx-auto">
-        <Link href="/store" className="text-sm text-gray-600 dark:text-gray-400 hover:underline mb-4 inline-block">
-          &larr; Back to Store
+        <Link
+          href="/store"
+          className="text-sm text-gray-600 dark:text-gray-400 hover:underline mb-6 inline-block"
+        >
+          ← Back to Store
         </Link>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mt-4">
-          {/* Product Image */}
-          <div className="aspect-square bg-gray-200 dark:bg-gray-700 rounded-lg overflow-hidden">
-            <img
-              src={currentImage}
-              alt={product.name}
-              className="w-full h-full object-cover"
-            />
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+          {/* Product Image - Always use main product image like store page */}
+          <div className="relative">
+            <div className="aspect-square bg-gray-200 dark:bg-gray-700 rounded-lg overflow-hidden flex items-center justify-center">
+              <img
+                src={product.image || '/api/placeholder/300/300'}
+                alt={product.name}
+                className="w-full h-full object-cover rounded-lg"
+              />
+            </div>
           </div>
 
           {/* Product Info */}
@@ -142,8 +198,13 @@ export default function ProductDetail({ slug }: { slug: string }) {
 
             <div className="flex items-center gap-2">
               <span className="text-2xl font-bold text-gray-900 dark:text-gray-100">
-                ${currentPrice.toFixed(2)}
+                ${displayPrice.toFixed(2)}
               </span>
+              {product.originalPrice && product.originalPrice > displayPrice && (
+                <span className="text-lg text-gray-500 line-through">
+                  ${product.originalPrice.toFixed(2)}
+                </span>
+              )}
             </div>
 
             <p className="text-gray-600 dark:text-gray-400">
@@ -198,13 +259,22 @@ export default function ProductDetail({ slug }: { slug: string }) {
               </div>
             )}
 
+            {/* Stock Status */}
+            {!product.inStock && (
+              <p className="text-red-600 dark:text-red-400 font-medium">
+                Out of Stock
+              </p>
+            )}
+
             {/* Add to Cart Button */}
             <button
               onClick={handleAddToCart}
-              disabled={!selectedVariant}
-              className={`w-full py-3 px-6 rounded text-lg font-medium transition-colors ${
+              disabled={!selectedVariant || !product.inStock}
+              className={`w-full py-4 px-6 rounded-lg text-lg font-medium transition-colors ${
                 addedToCart
                   ? 'bg-green-600 text-white'
+                  : !selectedVariant || !product.inStock
+                  ? 'bg-gray-300 text-gray-500 cursor-not-allowed dark:bg-gray-700 dark:text-gray-500'
                   : 'bg-gray-800 text-white hover:bg-gray-900 dark:bg-gray-200 dark:text-gray-900 dark:hover:bg-gray-100'
               }`}
             >

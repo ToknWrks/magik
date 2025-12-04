@@ -14,7 +14,7 @@ export default function DropdownHelp({ align }: {
             className={`w-8 h-8 flex items-center justify-center hover:bg-gray-100 lg:hover:bg-gray-200 dark:hover:bg-gray-700/50 dark:lg:hover:bg-gray-800 rounded-full ${open && 'bg-gray-200 dark:bg-gray-800'
               }`}
           >
-            <span className="sr-only">Need help?</span>
+            <span className="sr-only">Links</span>
             <svg
               className="fill-current text-gray-500/80 dark:text-gray-400/80"
               width={16}
@@ -40,26 +40,26 @@ export default function DropdownHelp({ align }: {
             leaveFrom="opacity-100"
             leaveTo="opacity-0"
           >
-            <div className="text-xs font-semibold text-gray-400 dark:text-gray-500 uppercase pt-1.5 pb-2 px-3">Need help?</div>
+            <div className="text-xs font-semibold text-gray-400 dark:text-gray-500 uppercase pt-1.5 pb-2 px-3">Links</div>
             <MenuItems as="ul" className="focus:outline-none">
               <MenuItem as="li">
                 {({ active }) => (
-                  <Link className={`font-medium text-sm flex items-center py-1 px-3 ${active ? 'text-gray-700 dark:text-yellow-700' : 'text-yellow-700'}`} href="#0">
+                  <Link className={`font-medium text-sm flex items-center py-1 px-3 ${active ? 'text-gray-700 dark:text-yellow-700' : 'text-yellow-700'}`} href="/cart">
                     <svg className="w-3 h-3 fill-current text-gray-500 shrink-0 mr-2" viewBox="0 0 12 12">
                       <rect y="3" width="12" height="9" rx="1" />
                       <path d="M2 0h8v2H2z" />
                     </svg>
-                    <span>Documentation</span>
+                    <span>Cart</span>
                   </Link>
                 )}
               </MenuItem>
               <MenuItem as="li">
                 {({ active }) => (
-                  <Link className={`font-medium text-sm flex items-center py-1 px-3 ${active ? 'text-gray-600 dark:text-yellow-700' : 'text-yellow-700'}`} href="#0">
+                  <Link className={`font-medium text-sm flex items-center py-1 px-3 ${active ? 'text-gray-600 dark:text-yellow-700' : 'text-yellow-700'}`} href="/spirit-voices">
                     <svg className="w-3 h-3 fill-current text-gray-500 shrink-0 mr-2" viewBox="0 0 12 12">
                       <path d="M10.5 0h-9A1.5 1.5 0 000 1.5v9A1.5 1.5 0 001.5 12h9a1.5 1.5 0 001.5-1.5v-9A1.5 1.5 0 0010.5 0zM10 7L8.207 5.207l-3 3-1.414-1.414 3-3L5 2h5v5z" />
                     </svg>
-                    <span>Request Access</span>
+                    <span>Spirit Voices</span>
                   </Link>
                 )}
               </MenuItem>
@@ -69,7 +69,7 @@ export default function DropdownHelp({ align }: {
                     <svg className="w-3 h-3 fill-current text-gray-500 shrink-0 mr-2" viewBox="0 0 12 12">
                       <path d="M11.854.146a.5.5 0 00-.525-.116l-11 4a.5.5 0 00-.015.934l4.8 1.921 1.921 4.8A.5.5 0 007.5 12h.008a.5.5 0 00.462-.329l4-11a.5.5 0 00-.116-.525z" />
                     </svg>
-                    <span>Want to Help?</span>
+                    <span>Discord</span>
                   </Link>
                 )}
               </MenuItem>

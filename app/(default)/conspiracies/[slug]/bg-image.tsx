@@ -1,6 +1,7 @@
 import Image from 'next/image'
 import AuthBg from '@/public/images/conspiracies-background.jpeg'
 
+
 export default function BgImage() {
   return (
     <div className="hidden md:block absolute top-0 bottom-0 right-0 md:full" aria-hidden="true">

@@ -36,6 +36,39 @@ export const amazonProducts: AmazonProduct[] = [
     featured: false,
   },
   {
+    id: 'illuminatus-trilogy',
+    name: 'The Illuminatus! Trilogy',
+    slug: 'illuminatus-trilogy',
+    description: 'A satirical, postmodern adventure into conspiracy theories by Robert Shea and Robert Anton Wilson.',
+    price: 24.95,
+    category: 'Books',
+    image: 'https://m.media-amazon.com/images/I/71SpV6hWDhL._SL1200_.jpg',
+    amazonUrl: 'https://amzn.to/4rD8s9q',
+    featured: false,
+  },
+
+  {
+    id: 'prometheus-rising',
+    name: 'Prometheus Rising',
+    slug: 'prometheus-rising',
+    description: 'Robert Anton Wilson\'s exploration of human consciousness and the potential for personal transformation.',
+    price: 19.00,
+    category: 'Books',
+    image: 'https://m.media-amazon.com/images/I/71pKT5G3xGL._SL1360_.jpg',
+    amazonUrl: 'https://amzn.to/4azRfYh',
+    featured: false,
+  },
+  {
+    id: 'cosmic-trigger',
+    name: 'Cosmic Trigger: The Final Secret of the Illuminati',
+    slug: 'cosmic-trigger',
+    description: 'Robert Anton Wilson\'s autobiographical account of his experiences with altered states of consciousness and esoteric knowledge.',
+    price: 19.00,
+    category: 'Books',
+    image: 'https://m.media-amazon.com/images/I/71B68Wv2p9L._SL1360_.jpg',
+    amazonUrl: 'https://amzn.to/3Mjn6m6',
+  },
+  {
     id: 'the-perennial-philosophy',
     name: 'The Perennial Philosophy',
     slug: 'the-perennial-philosophy',
@@ -97,6 +130,17 @@ export const amazonProducts: AmazonProduct[] = [
     image: 'https://m.media-amazon.com/images/I/41amm8kt0vL.jpg',
     amazonUrl: 'https://amzn.to/48PqjCB',
   },
+   // Oracles/Divination
+   {
+    id: 'amazon-oracle-1',
+    name: 'The Illuminati Oracle',
+    slug: 'illuminati-oracle',
+    description: 'Dvination Tool for Discerning Truth in Conspiracy by A.J. Blackwood - 70 Card Divination Game to Decode Current Events, Expose Hidden Agendas & Manifest Higher Timelines',
+    price: 19.99,
+    category: 'Divination',
+    image: 'https://m.media-amazon.com/images/I/91rnOp3ESaL._AC_SL1500_.jpg',
+    amazonUrl: 'https://amzn.to/4pQxpfO',
+  },
 
   // Equipment/Gear
   {
@@ -132,4 +176,4 @@ export const amazonProducts: AmazonProduct[] = [
   },
 ];
 
-export const amazonCategories = ['Books', 'Documentaries', 'Gear'];
+export const amazonCategories = ['Books','Divination','Documentaries','Gear'];

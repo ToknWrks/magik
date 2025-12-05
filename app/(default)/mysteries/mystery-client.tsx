@@ -66,13 +66,8 @@ export default function MysteryClient({ articles }: MysteryClientProps) {
     >
       {/* Header Section */}
       <div className="text-center mb-4">
-        <h1 className="text-4xl md:text-5xl font-bold text-gray-900 dark:text-gray-100 mb-4">
-          Mysteries Archive
-        </h1>
-        <p className="text-lg text-gray-600 dark:text-gray-400 max-w-3xl mx-auto mb-8">
-          Explore documented mysteries, unexplained phenomena, and historical enigmas.
-          Each entry includes evidence, analysis, and our current assessment.
-        </p>
+        
+        
 
         {/* Search Box */}
         <div className="mb-6 max-w-md mx-auto">

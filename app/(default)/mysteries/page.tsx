@@ -1,21 +1,14 @@
-import Link from 'next/link';
+// app/(default)/mysteries/page.tsx
 import { getAllConspiracyTemplates } from '@/lib/db';
+import MysteryClient from './mystery-client';
+
+export const metadata = {
+  title: 'Mysteries Archive - Illuminati',
+  description: 'Explore documented mysteries, unexplained phenomena, and historical enigmas.',
+};
 
 export default async function Page() {
   const articles = await getAllConspiracyTemplates();
-
-  return (
-    <div className="p-8">
-      <h1 className="text-2xl font-bold mb-4">Illuminati Mysteries</h1>
-      <ul>
-        {articles.map(article => (
-          <li key={article.id}>
-            <Link href={`/mysteries/${article.slug}`}>
-              {article.title}
-            </Link>
-          </li>
-        ))}
-      </ul>
-    </div>
-  );
+  
+  return <MysteryClient articles={articles} />;
 }

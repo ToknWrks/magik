@@ -204,7 +204,7 @@ export default function Sidebar({
                           <div className="flex items-center">
                           <span className="text-2xl astrology-symbol text-gray-600 transform scale-y-[-1]">{"\⧋"}</span>
                             <span className="text-sm font-medium ml-4 lg:opacity-0 lg:sidebar-expanded:opacity-100 2xl:opacity-100 duration-200">
-                              Conspiracy
+                              Mysteries
                             </span>
                           </div>
                           {/* Icon */}
@@ -306,7 +306,7 @@ export default function Sidebar({
                           <div className="flex items-center">
                           <span className="text-2xl astrology-symbol text-gray-600">{"\⛦"}</span>
                             <span className="text-sm font-medium ml-4 lg:opacity-0 lg:sidebar-expanded:opacity-100 2xl:opacity-100 duration-200">
-                              M3RCH
+                              Store
                             </span>
                           </div>
                           {/* Icon */}
@@ -325,7 +325,7 @@ export default function Sidebar({
                           <li className="mb-1 last:mb-0">
                             <SidebarLink href="/store">
                               <span className="text-sm font-medium lg:opacity-0 lg:sidebar-expanded:opacity-100 2xl:opacity-100 duration-200">
-                                Store
+                                Shop
                               </span>
                             </SidebarLink>
                           </li>

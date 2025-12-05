@@ -102,25 +102,32 @@ export function ConspiracyContent({ slug }: ConspiracyContentProps) {
   }
 
   return (
+    
     <Boundary label="Illuminati Mysteries">
     <div className="space-y-4 relative">
-      <BgImage />
+      
       <div className="relative z-10">
-        <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-4">
-          {content.title || 'Generated Conspiracy'}
+        <h1 className="pl-5 text-2xl font-bold text-gray-900 dark:text-gray-100 mb-4">
+          {content.title || 'Mystery Content'}
         </h1>
         
-        <div className="prose prose-gray dark:text-gray-400 max-w-none">
+        <div className="p-5 prose text-gray-800 dark:text-gray-400 max-w-none
+            prose-p:text-gray-700 dark:prose-p:text-gray-300
+            prose-strong:text-gray-900 dark:prose-strong:text-gray-100
+            prose-a:text-gray-900 dark:prose-a:text-gray-100
+            prose-li:text-gray-700 dark:prose-li:text-gray-300
+            prose-headings:text-gray-900 dark:prose-headings:text-gray-100">
+
           <ReactMarkdown>{content.content || content.body || ''}</ReactMarkdown>
         </div>
 
         {content.debunking && (
           <>
             <hr className="my-8 border-gray-300 dark:border-gray-600" />
-            <h2 className="text-xl font-bold text-gray-900 dark:text-gray-100 mb-4">
+            <h2 className="p-5 text-xl font-bold text-gray-900 dark:text-gray-100 mb-4">
               Reality Check
             </h2>
-            <div className="prose prose-gray dark:text-yellow-700 max-w-none">
+            <div className="p-5 prose text-gray-700 dark:text-yellow-700 max-w-none">
               <ReactMarkdown>{content.debunking || ''}</ReactMarkdown>
             </div>
           </>

@@ -5,7 +5,7 @@ import AuthBg from '@/public/images/conspiracies-background.jpeg'
 export default function BgImage() {
   return (
     <div className="hidden md:block absolute top-0 bottom-0 right-0 md:full" aria-hidden="true">
-      <Image className="object-cover opacity-20 object-center w-full h-full" src={AuthBg} priority width={760} height={1024} alt="Authentication" />
+      <Image className="object-cover opacity-40 object-center w-full h-full" src={AuthBg} priority width={760} height={1024} alt="Authentication" />
     </div>
   )
 }

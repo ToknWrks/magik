@@ -3,7 +3,6 @@
 
 import { useState, useEffect } from 'react';
 import { SelectedItemsProvider } from '@/app/selected-items-context';
-import SearchForm from '@/components/search-form';
 import DeleteButton from '@/components/delete-button';
 import FilterButton from './dropdown-filter';
 import ArticlesTable from './ArticlesTable';
@@ -12,9 +11,11 @@ import MDEditor from '@uiw/react-md-editor';
 import '@uiw/react-md-editor/markdown-editor.css';
 import TemplatesTable from './TemplatesTable';
 import AdminSearchForm from './search-form';
+import ArticleFormModal, { ArticleFormData, Article as ArticleType } from './ArticleFormModal';
+import TemplateFormModal, { TemplateFormData, Template as TemplateType } from './TemplateFormModal';
 
-// Update Article interface to include type
-export interface Article {
+// Rename Article and Template interfaces
+export interface DashboardArticle {
   id: string
   title: string
   slug: string
@@ -27,7 +28,7 @@ export interface Article {
   type: 'article' | 'template' 
 }
 
-interface Template {
+interface DashboardTemplate {
   id: string
   title: string
   slug: string
@@ -35,7 +36,7 @@ interface Template {
   category: string
   content: string
   created_at: string
-  type: 'article' | 'template'  // Allow both
+  type: 'article' | 'template'
   key_facts?: string[]
   debunking_points?: string[]
   sources?: string[]
@@ -46,9 +47,9 @@ interface Template {
 }
 
 function AdminDashboardContent() {
-  const [articles, setArticles] = useState<(Article | Template)[]>([]);
+  const [articles, setArticles] = useState<(DashboardArticle | DashboardTemplate)[]>([]);
   const [showArticleForm, setShowArticleForm] = useState(false);
-  const [templates, setTemplates] = useState<Template[]>([]);
+  const [templates, setTemplates] = useState<DashboardTemplate[]>([]);
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage] = useState(10); // Or make this configurable
 
@@ -98,6 +99,25 @@ function AdminDashboardContent() {
   // Add state for filter
   const [filter, setFilter] = useState<'all' | 'published' | 'draft'>('all');
 
+  // Filter content based on search term
+  const filteredContent = articles.filter(item => 
+    searchTerm === '' ||
+    item.title?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    item.slug?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    item.category?.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
+  // Paginate filtered content
+  const paginatedContent = filteredContent.slice(
+    (currentPage - 1) * itemsPerPage,
+    currentPage * itemsPerPage
+  );
+
+  // Reset to page 1 when search changes
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchTerm, contentType]);
+
   // Functions to manage sections and items
   const addSection = () => {
     setArticleForm(prev => ({
@@ -146,42 +166,75 @@ function AdminDashboardContent() {
   };
 
   // Handle form submit
-  interface ArticleFormData {
-    title: string;
-    slug: string;
-    content: string;
-    status: 'draft' | 'published';
-    category: string;
-  }
-
   interface ArticleResponse {
-    article: Article;
+    article: DashboardArticle;
   }
-  const [editingArticle, setEditingArticle] = useState<Article | null>(null);
-  const [editingTemplate, setEditingTemplate] = useState<Template | null>(null);
+  const [editingArticle, setEditingArticle] = useState<DashboardArticle | null>(null);
+  const [editingTemplate, setEditingTemplate] = useState<DashboardTemplate | null>(null);
   
-  const handleArticleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    const data = {
-      title: articleForm.title,
-      slug: articleForm.slug,
-      content: JSON.stringify(articleForm.sections),
-      pre_summary: articleForm.pre_summary,
-      post_summary: articleForm.post_summary,
-      status: articleForm.status,
-      category: articleForm.category,
-    };
-    const method = editingArticle ? 'PUT' : 'POST';
-    const body = editingArticle ? { ...data, id: editingArticle.id } : data;
-    const apiRoute = articleForm.type === 'template' ? '/api/admin/templates' : '/api/admin/articles';
-    const res = await fetch(apiRoute, { method, headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
-    const result = await res.json();
-    setArticles(prev => editingArticle ? prev.map(a => a.id === result.article.id ? result.article : a) : [...prev, result.article]);
-    setShowArticleForm(false);
-    setEditingArticle(null);
+  const handleArticleSubmit = async (data: ArticleFormData) => {
+    try {
+      const payload = {
+        title: data.title,
+        slug: data.slug,
+        content: JSON.stringify(data.sections),
+        pre_summary: data.pre_summary,
+        post_summary: data.post_summary,
+        status: data.status,
+        category: data.category,
+      };
+      
+      // For updates, include the id in the payload
+      if (editingArticle) {
+        (payload as any).id = editingArticle.id;
+      }
+      
+      const method = editingArticle ? 'PUT' : 'POST';
+      const url = '/api/admin/articles';  // Always use the same URL
+      
+      console.log('Saving article:', method, payload);
+      
+      const res = await fetch(url, {
+        method,
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify(payload),
+      });
+      
+      // Check response
+      const text = await res.text();
+      console.log('Response:', res.status, text);
+      
+      if (!res.ok) {
+        let errorMessage = 'Failed to save article';
+        try {
+          const errorData = JSON.parse(text);
+          errorMessage = errorData.error || errorMessage;
+        } catch (e) {
+          // text wasn't JSON
+        }
+        throw new Error(errorMessage);
+      }
+      
+      // Refresh content
+      const articlesRes = await fetch('/api/admin/articles', { credentials: 'include' });
+      const templatesRes = await fetch('/api/admin/templates', { credentials: 'include' });
+      const articlesData = await articlesRes.json();
+      const templatesData = await templatesRes.json();
+      const combined = [
+        ...(articlesData.articles || []).map((a: ArticleType) => ({ ...a, type: 'article' as const })),
+        ...(templatesData.templates || []).map((t: TemplateType) => ({ ...t, type: 'template' as const }))
+      ];
+      setArticles(combined);
+      setShowArticleForm(false);
+      setEditingArticle(null);
+    } catch (error) {
+      console.error('Article save error:', error);
+      throw error;
+    }
   };
   
-  const handleEditArticle = (article: Article) => {
+  const handleEditArticle = (article: DashboardArticle) => {
     setArticleForm({
       title: article.title,
       slug: article.slug,
@@ -196,14 +249,14 @@ function AdminDashboardContent() {
     setShowArticleForm(true);
   };
 
-  const handleEditTemplate = (template: Template) => {
+  const handleEditTemplate = (template: DashboardTemplate) => {
     setTemplateForm({
       title: template.title,
       slug: template.slug,
       category: template.category,
       status: template.status,
       key_facts: template.key_facts?.join('\n') || '',
-      debunking_points: template.debunking_points?.join('\n') || '',
+      debunking_points: template.key_facts?.join('\n') || '',
       sources: template.sources?.join('\n') || '',
       difficulty_level: template.difficulty_level || 'medium',
       is_active: template.is_active ?? true,
@@ -214,18 +267,48 @@ function AdminDashboardContent() {
     setShowTemplateForm(true);
   };
 
-  const handleDelete = async (id: string) => {
+  // Delete article
+  const handleDeleteArticle = async (id: string) => {
+    if (!confirm('Are you sure you want to delete this article?')) {
+      return;
+    }
+    
+    try {
+      // Use the main route with id in body (matching your existing DELETE handler)
+      const res = await fetch('/api/admin/articles', {
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({ id }),
+      });
+      
+      if (!res.ok) {
+        const data = await res.json();
+        throw new Error(data.error || 'Failed to delete');
+      }
+      
+      // Remove from local state
+      setArticles(articles.filter(a => a.id !== id));
+      
+      console.log('Article deleted successfully');
+    } catch (error) {
+      console.error('Delete error:', error);
+      alert('Failed to delete article: ' + (error instanceof Error ? error.message : 'Unknown error'));
+    }
+  };
+
+  // Delete template
+  const handleDeleteTemplate = async (id: string) => {
     if (!confirm('Are you sure you want to delete this template?')) {
       return;
     }
     
     try {
-      const res = await fetch(`/api/admin/templates/${id}`, {  // Changed from /api/conspiracies/templates/
+      const res = await fetch(`/api/admin/templates/${id}`, {
         method: 'DELETE',
         credentials: 'include',
       });
       
-      // Check if response is JSON
       const contentType = res.headers.get('content-type');
       if (!contentType || !contentType.includes('application/json')) {
         throw new Error('API route not found');
@@ -234,11 +317,11 @@ function AdminDashboardContent() {
       const data = await res.json();
       
       if (!res.ok) {
-        throw new Error(data.error || 'Failed to delete');
+        throw new Error(data.error || data.details || 'Failed to delete');
       }
       
       // Remove from local state
-      setTemplates(templates.filter(t => t.id !== id));
+      setArticles(articles.filter(a => a.id !== id));
       
       console.log('Template deleted successfully');
     } catch (error) {
@@ -248,42 +331,37 @@ function AdminDashboardContent() {
   };
 
   // Add handleTemplateSubmit
-  interface TemplateFormData {
-    title: string;
-    content: string;
-  }
-
-  interface TemplateForm {
-    title: string;
-    slug: string;
-    category: string;
-    status: string;
-    key_facts: string;
-    debunking_points: string;
-    sources: string;
-    difficulty_level: string;
-    is_active: boolean;
-    content_type: string;
-    article_content: string;
-  }
-
-  interface TemplateResponse {
-    template: Template;
-  }
-
-  const handleTemplateSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
+  const handleTemplateSubmit = async (data: TemplateFormData) => {
     const method = editingTemplate ? 'PUT' : 'POST';
-    const body = editingTemplate ? { ...templateForm, id: editingTemplate.id } : templateForm;
-    const res = await fetch(editingTemplate ? `/api/admin/templates/${editingTemplate.id}` : '/api/admin/templates', { method, headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
-    if (res.ok) {
-      const result = await res.json();
-      setArticles(prev => editingTemplate ? prev.map(a => a.id === result.template.id ? result.template : a) : [...prev, result.template]);
-      setShowTemplateForm(false);
-      setEditingTemplate(null);
-    } else {
-      console.error('Template creation failed');
+    const url = editingTemplate 
+      ? `/api/admin/templates/${editingTemplate.id}` 
+      : '/api/admin/templates';
+    
+    // Don't split here - send as-is, let the API handle the conversion
+    const res = await fetch(url, {
+      method,
+      headers: { 'Content-Type': 'application/json' },
+      credentials: 'include',
+      body: JSON.stringify(data),  // Send data directly without splitting
+    });
+    
+    if (!res.ok) {
+      const error = await res.json();
+      throw new Error(error.error || 'Failed to save template');
     }
+    
+    // Refresh content
+    const articlesRes = await fetch('/api/admin/articles', { credentials: 'include' });
+    const templatesRes = await fetch('/api/admin/templates', { credentials: 'include' });
+    const articlesData = await articlesRes.json();
+    const templatesData = await templatesRes.json();
+    const combined = [
+      ...(articlesData.articles || []).map((a: ArticleType) => ({ ...a, type: 'article' as const })),
+      ...(templatesData.templates || []).map((t: TemplateType) => ({ ...t, type: 'template' as const }))
+    ];
+    setArticles(combined);
+    setShowTemplateForm(false);
+    setEditingTemplate(null);
   };
 
   // Update fetch function
@@ -298,14 +376,14 @@ function AdminDashboardContent() {
           const articlesData = await articlesRes.json();
           const templatesData = await templatesRes.json();
             const combined = [
-            ...(articlesData.articles || []).map((a: Article) => ({ ...a, type: 'article' })),
-            ...(templatesData.templates || []).map((t: Template) => ({ ...t, type: 'template' }))
+            ...(articlesData.articles || []).map((a: DashboardArticle) => ({ ...a, type: 'article' })),
+            ...(templatesData.templates || []).map((t: DashboardTemplate) => ({ ...t, type: 'template' }))
             ];
           setArticles(combined);
         } else {
           const res = await fetch(`/api/admin/${contentType}`);
           const data = await res.json();
-          setArticles((data[contentType] || []).map((item: Partial<Article>) => ({ ...item, type: contentType.slice(0, -1) })));
+          setArticles((data[contentType] || []).map((item: Partial<DashboardArticle>) => ({ ...item, type: contentType.slice(0, -1) })));
         }
       } catch (error) {
         console.error('Fetch error:', error);
@@ -326,14 +404,6 @@ function AdminDashboardContent() {
            (article?.slug?.toLowerCase() || '').includes(searchTerm.toLowerCase());
   });
 
-  // Filter content based on search term
-const filteredContent = articles.filter(item => 
-  searchTerm === '' ||
-  item.title?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-  item.slug?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-  item.category?.toLowerCase().includes(searchTerm.toLowerCase())
-);
-
   return (
     <div className="px-4 sm:px-6 lg:px-8 py-8 w-full max-w-[96rem] mx-auto">
       {/* Page header */}
@@ -353,23 +423,29 @@ const filteredContent = articles.filter(item =>
           />
           {/* Create article button */}
           <button 
-            onClick={() => setShowArticleForm(true)}
+            onClick={() => {
+              setEditingArticle(null);
+              setShowArticleForm(true);
+            }}
             className="btn bg-gray-900 text-gray-100 hover:bg-gray-800 dark:bg-gray-100 dark:text-gray-800 dark:hover:bg-white"
           >
             <svg className="fill-current shrink-0 xs:hidden" width="16" height="16" viewBox="0 0 16 16">
-              <path d="M15 7H9V1c0-.6-.4-1-1-1S7 .4 7 1v6H1c-.6 0-1 .4-1 1s.4-1 1-1h6v6c0-.6.4-1 1-1s1 .4 1 1V9h6c.6 0 1-.4 1-1s-.4-1-1-1z" />
+              <path d="M15 7H9V1c0-.6-.4-1-1-1S7 .4 7 1v6H1c-.6 0-1 .4-1 1s.4 1 1 1h6v6c0 .6.4 1 1 1s1-.4 1-1V9h6c.6 0 1-.4 1-1s-.4-1-1-1z" />
             </svg>
-            <span className="max-xs:sr-only">Create Article</span>
+            <span className="max-xs:sr-only ml-2">Create Article</span>
           </button>
-          {/* Create article button */}
+          {/* Create template button */}
           <button 
-            onClick={() => setShowTemplateForm(true)}
+            onClick={() => {
+              setEditingTemplate(null);
+              setShowTemplateForm(true);
+            }}
             className="btn bg-gray-900 text-gray-100 hover:bg-gray-800 dark:bg-gray-100 dark:text-gray-800 dark:hover:bg-white"
           >
             <svg className="fill-current shrink-0 xs:hidden" width="16" height="16" viewBox="0 0 16 16">
-              <path d="M15 7H9V1c0-.6-.4-1-1-1S7 .4 7 1v6H1c-.6 0-1 .4-1 1s.4-1 1-1h6v6c0-.6.4-1 1-1s1 .4 1 1V9h6c.6 0 1-.4 1-1s-.4-1-1-1z" />
+              <path d="M15 7H9V1c0-.6-.4-1-1-1S7 .4 7 1v6H1c-.6 0-1 .4-1 1s.4 1 1 1h6v6c0 .6.4 1 1 1s1-.4 1-1V9h6c.6 0 1-.4 1-1s-.4-1-1-1z" />
             </svg>
-            <span className="max-xs:sr-only">Create Template</span>
+            <span className="max-xs:sr-only ml-2">Create Template</span>
           </button>
         </div>
       </div>
@@ -407,270 +483,78 @@ const filteredContent = articles.filter(item =>
       </div>
 
       {/* Table */}
-      {contentType === 'articles' && <ArticlesTable articles={articles.filter(a => a.type === 'article') as Article[]} onEdit={handleEditArticle} onDelete={handleDelete} />}
-      {contentType === 'templates' && <TemplatesTable templates={articles.filter(a => a.type === 'template') as Template[]} onEdit={handleEditTemplate} onDelete={handleDelete} />}
+      {contentType === 'articles' && (
+        <ArticlesTable 
+          articles={paginatedContent.filter(a => a.type === 'article') as DashboardArticle[]} 
+          onEdit={handleEditArticle} 
+          onDelete={handleDeleteArticle}  // Use article delete
+        />
+      )}
+      {contentType === 'templates' && (
+        <TemplatesTable 
+          templates={paginatedContent.filter(a => a.type === 'template') as DashboardTemplate[]} 
+          onEdit={handleEditTemplate} 
+          onDelete={handleDeleteTemplate}  // Use template delete
+        />
+      )}
       {contentType === 'all' && (
         <>
-          <ArticlesTable articles={filteredContent.filter(a => a.type === 'article') as Article[]} onEdit={handleEditArticle} onDelete={handleDelete} />
-            <br />
-          <TemplatesTable templates={filteredContent.filter(a => a.type === 'template') as Template[]} onEdit={handleEditTemplate} onDelete={handleDelete} />
+          {paginatedContent.filter(a => a.type === 'article').length > 0 && (
+            <ArticlesTable 
+              articles={paginatedContent.filter(a => a.type === 'article') as DashboardArticle[]} 
+              onEdit={handleEditArticle} 
+              onDelete={handleDeleteArticle}
+            />
+          )}
+          
+          {/* Divider between Articles and Templates */}
+          {paginatedContent.filter(a => a.type === 'article').length > 0 && 
+           paginatedContent.filter(a => a.type === 'template').length > 0 && (
+            <div className="my-2 border-t border-gray-900 dark:border-gray-900"></div>
+          )}
+          
+          {paginatedContent.filter(a => a.type === 'template').length > 0 && (
+            <TemplatesTable 
+              templates={paginatedContent.filter(a => a.type === 'template') as DashboardTemplate[]} 
+              onEdit={handleEditTemplate} 
+              onDelete={handleDeleteTemplate}
+            />
+          )}
         </>
       )}
 
       {/* Pagination */}
-      <div className="mt-8">
-        <PaginationClassic />
-      </div>
-
+<div className="mt-8">
+  <PaginationClassic 
+    currentPage={currentPage}
+    totalItems={filteredContent.length}
+    itemsPerPage={itemsPerPage}
+    onPageChange={setCurrentPage}
+  />
+</div>
       {/* Article Form Modal */}
-      {showArticleForm && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-          <div className="bg-white dark:bg-gray-800 rounded-none p-6 w-full max-w-2xl max-h-[90vh] overflow-y-auto">
-            <h2 className="text-xl font-bold mb-6">{editingArticle ? 'Edit Article' : 'Create Article'}</h2>
-            <form onSubmit={handleArticleSubmit}>
-              <div className="mb-4">
-                <label className="block text-sm font-medium mb-1 text-gray-700 dark:text-gray-300">Title</label>
-                <input
-                  type="text"
-                  value={articleForm.title}
-                  onChange={(e) => setArticleForm({ ...articleForm, title: e.target.value })}
-                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
-                  required
-                />
-              </div>
-              <div className="mb-4">
-                <label className="block text-sm font-medium mb-1">Slug</label>
-                <input
-                  type="text"
-                  value={articleForm.slug}
-                  onChange={(e) => setArticleForm({ ...articleForm, slug: e.target.value })}
-                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
-                  required
-                />
-              </div>
-              
-              <div className="mb-4">
-                <label className="block text-sm font-medium mb-1">Pre-Summary</label>
-                <textarea
-                  value={articleForm.pre_summary}
-                  onChange={(e) => setArticleForm({ ...articleForm, pre_summary: e.target.value })}
-                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
-                  rows={3}
-                />
-              </div>
+<ArticleFormModal
+  isOpen={showArticleForm}
+  onClose={() => {
+    setShowArticleForm(false);
+    setEditingArticle(null);
+  }}
+  onSave={handleArticleSubmit}
+  editingArticle={editingArticle}
+/>
 
-              <div className="mb-4">
-                <label className="block text-sm font-medium mb-1 text-gray-700 dark:text-gray-300">Post-Summary</label>
-                <MDEditor
-                  value={articleForm.post_summary}
-                  onChange={(value) => setArticleForm({ ...articleForm, post_summary: value || '' })}
-                  preview="live"
-                  hideToolbar={false}
-                  visibleDragbar={false}
-                  className="dark:bg-gray-400"
-                />
-              </div>
+{/* Template Form Modal */}
+<TemplateFormModal
+  isOpen={showTemplateForm}
+  onClose={() => {
+    setShowTemplateForm(false);
+    setEditingTemplate(null);
+  }}
+  onSave={handleTemplateSubmit}
+  editingTemplate={editingTemplate}
+/>
 
-              {/* Sections */}
-              <div className="mb-4">
-                <label className="block text-sm font-medium mb-1">Sections</label>
-                {articleForm.sections.map((section, sIndex) => (
-                  <div key={sIndex} className="border border-gray-300 rounded p-4 mb-4">
-                    <div className="flex justify-between mb-2">
-                      <input
-                        type="text"
-                        placeholder="Section Title"
-                        value={section.title}
-                        onChange={(e) => updateSection(sIndex, 'title', e.target.value)}
-                        className="flex-1 px-3 py-2 border border-gray-300 rounded mr-2 dark:bg-gray-700 dark:text-gray-100"
-                      />
-                      <button type="button" onClick={() => removeSection(sIndex)} className="px-2 py-1 bg-red-600 text-white rounded">Remove Section</button>
-                    </div>
-                    {section.items.map((item, iIndex) => (
-                      <div key={iIndex} className="mb-2">
-                        <div className="flex gap-2">
-                          <input
-                            type="text"
-                            placeholder="Date"
-                            value={item.date}
-                            onChange={(e) => updateItem(sIndex, iIndex, 'date', e.target.value)}
-                            className="flex-1 px-3 py-2 border border-gray-300 rounded mr-2 dark:bg-gray-700 dark:text-gray-100"
-                          />
-                          <textarea
-                            placeholder="Content"
-                            value={item.content}
-                            onChange={(e) => updateItem(sIndex, iIndex, 'content', e.target.value)}
-                            className="flex-1 px-3 py-2 border border-gray-300 rounded mr-2 dark:bg-gray-700 dark:text-gray-100"
-                            rows={3}
-                          />
-                          <button type="button" onClick={() => removeItem(sIndex, iIndex)} className="px-2 py-1 bg-red-600 text-white rounded">Remove</button>
-                        </div>
-                      </div>
-                    ))}
-                    <button type="button" onClick={() => addItem(sIndex)} className="px-4 py-2 bg-gray-700 text-white rounded">Add Item</button>
-                  </div>
-                ))}
-                <button type="button" onClick={addSection} className="px-4 py-2 bg-gray-600 text-white rounded">Add Section</button>
-              </div>
-
-              <div className="mb-4">
-                <label className="block text-sm font-medium mb-1">Status</label>
-                <select
-                  value={articleForm.status}
-                  onChange={(e) => setArticleForm({ ...articleForm, status: e.target.value as any })}
-                  className="flex-1 px-3 py-2 border border-gray-300 rounded mr-2 dark:bg-gray-700 dark:text-gray-100"
-                >
-                  <option value="draft">Draft</option>
-                  <option value="published">Published</option>
-                  <option value="verified">Verified</option>
-                  <option value="debunked">Debunked</option>
-                  <option value="partially debunked">Partially Debunked</option>
-                </select>
-              </div>
-              <div className="mb-4">
-                <label className="block text-sm font-medium mb-1">Category</label>
-                <input
-                  type="text"
-                  value={articleForm.category}
-                  onChange={(e) => setArticleForm({ ...articleForm, category: e.target.value })}
-                  className="flex-1 px-3 py-2 border border-gray-300 rounded mr-2 dark:bg-gray-700 dark:text-gray-100"
-                />
-              </div>
-              <div className="flex gap-2">
-                <button type="submit" className="px-4 py-2 bg-green-600 text-white rounded">Save</button>
-                <button type="button" onClick={() => setShowArticleForm(false)} className="px-4 py-2 bg-gray-600 text-white rounded">Cancel</button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
-
-      {/* Template Form Modal */}
-      {showTemplateForm && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-          <div className="bg-white dark:bg-gray-800 rounded-none p-6 w-full max-w-2xl max-h-[90vh] overflow-y-auto">
-            <h2 className="text-xl font-bold mb-6">{editingArticle ? 'Edit Template' : 'Create Template'}</h2>
-            <form onSubmit={handleTemplateSubmit}>
-              <div className="mb-4">
-                <label className="block text-sm font-medium mb-1">Title</label>
-                <input
-                  type="text"
-                  value={templateForm.title}
-                  onChange={(e) => setTemplateForm({ ...templateForm, title: e.target.value })}
-                  className="w-full px-3 py-2 border border-gray-300 rounded"
-                  required
-                />
-              </div>
-              <div className="mb-4">
-                <label className="block text-sm font-medium mb-1">Slug</label>
-                <input
-                  type="text"
-                  value={templateForm.slug}
-                  onChange={(e) => setTemplateForm({ ...templateForm, slug: e.target.value })}
-                  className="w-full px-3 py-2 border border-gray-300 rounded"
-                  required
-                />
-              </div>
-              <div className="mb-4">
-                <label className="block text-sm font-medium mb-1">Category</label>
-                <input
-                  type="text"
-                  value={templateForm.category}
-                  onChange={(e) => setTemplateForm({ ...templateForm, category: e.target.value })}
-                  className="w-full px-3 py-2 border border-gray-300 rounded"
-                />
-              </div>
-              <div className="mb-4">
-                <label className="block text-sm font-medium mb-1">Status</label>
-                <select
-                  value={templateForm.status}
-                  onChange={(e) => setTemplateForm({ ...templateForm, status: e.target.value })}
-                  className="w-full px-3 py-2 border border-gray-300 rounded"
-                >
-                  <option value="draft">Draft</option>
-                  <option value="published">Published</option>
-                </select>
-              </div>
-              <div className="mb-4">
-                <label className="block text-sm font-medium mb-1">Key Facts</label>
-                <textarea
-                  value={templateForm.key_facts}
-                  onChange={(e) => setTemplateForm({ ...templateForm, key_facts: e.target.value })}
-                  className="w-full px-3 py-2 border border-gray-300 rounded"
-                  rows={3}
-                />
-              </div>
-              <div className="mb-4">
-                <label className="block text-sm font-medium mb-1">Debunking Points</label>
-                <textarea
-                  value={templateForm.debunking_points}
-                  onChange={(e) => setTemplateForm({ ...templateForm, debunking_points: e.target.value })}
-                  className="w-full px-3 py-2 border border-gray-300 rounded"
-                  rows={3}
-                />
-              </div>
-              <div className="mb-4">
-                <label className="block text-sm font-medium mb-1">Sources</label>
-                <textarea
-                  value={templateForm.sources}
-                  onChange={(e) => setTemplateForm({ ...templateForm, sources: e.target.value })}
-                  className="w-full px-3 py-2 border border-gray-300 rounded"
-                  rows={3}
-                />
-              </div>
-              <div className="mb-4">
-                <label className="block text-sm font-medium mb-1">Difficulty Level</label>
-                <select
-                  value={templateForm.difficulty_level}
-                  onChange={(e) => setTemplateForm({ ...templateForm, difficulty_level: e.target.value })}
-                  className="w-full px-3 py-2 border border-gray-300 rounded"
-                >
-                  <option value="easy">Easy</option>
-                  <option value="medium">Medium</option>
-                  <option value="hard">Hard</option>
-                </select>
-              </div>
-              <div className="mb-4">
-                <label className="inline-flex items-center">
-                  <input
-                    type="checkbox"
-                    checked={templateForm.is_active}
-                    onChange={(e) => setTemplateForm({ ...templateForm, is_active: e.target.checked })}
-                    className="form-checkbox"
-                  />
-                  <span className="ml-2">Is Active</span>
-                </label>
-              </div>
-              <div className="mb-4">
-                <label className="block text-sm font-medium mb-1">Content Type</label>
-                <select
-                  value={templateForm.content_type}
-                  onChange={(e) => setTemplateForm({ ...templateForm, content_type: e.target.value })}
-                  className="w-full px-3 py-2 border border-gray-300 rounded"
-                >
-                  <option value="ai">AI Generated</option>
-                  <option value="manual">Manual</option>
-                </select>
-              </div>
-              <div className="mb-4">
-                <label className="block text-sm font-medium mb-1">Article Content</label>
-                <MDEditor
-                  value={templateForm.article_content}
-                  onChange={(value) => setTemplateForm({ ...templateForm, article_content: value || '' })}
-                  preview="live"
-                  hideToolbar={false}
-                  visibleDragbar={false}
-                  className="dark:bg-gray-300 text-black"
-                />
-              </div>
-              <div className="flex gap-2">
-                <button type="submit" className="px-4 py-2 bg-green-600 text-white rounded">Save</button>
-                <button type="button" onClick={() => setShowTemplateForm(false)} className="px-4 py-2 bg-gray-600 text-white rounded">Cancel</button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
+      
     </div>
   )
 }

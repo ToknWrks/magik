@@ -12,7 +12,7 @@ export async function POST(request: NextRequest) {
     const prompt = `Please provide an interpretation of: "${transitInfo}". Use the Archetypal Astrology framework. Keep it concise, under 200 words.`;
     
     const response = await anthropic.messages.create({
-      model: 'claude-3-haiku-20240307',
+      model: 'claude-haiku-4-5-20251001',
       max_tokens: 300,
       messages: [{ role: 'user', content: prompt }],
     });

@@ -91,7 +91,7 @@ Make it engaging and persuasive, list dates in a timeline.  P
       `;
 
       const response = await anthropic.messages.create({
-        model: 'claude-3-haiku-20240307',  // Updated to latest model
+        model: 'claude-haiku-4-5-20251001',  // Updated to latest model
         max_tokens: 2000,
         messages: [{ role: 'user', content: prompt }],
       });
@@ -113,7 +113,7 @@ Structure the response as a list of sources with links in Markdown format. Verif
       `;
 
       const response = await anthropic.messages.create({
-        model: 'claude-3-haiku-20240307',  // Updated to latest model
+        model: 'claude-haiku-4-5-20251001',  // Updated to latest model
         max_tokens: 1500,
         messages: [{ role: 'user', content: prompt }],
       });

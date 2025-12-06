@@ -1,19 +1,19 @@
 // app/components/administratio/TemplatesTable.tsx
 'use client'
 
-import { useItemSelection } from '@/components/utils/use-item-selection'
+import { useState } from 'react'
 import TemplatesTableItem from './TemplatesTableItem'
 
 export interface Template {
-    id: string
-    title: string
-    slug: string
-    status: string
-    category: string
-    content: string
-    created_at: string
-    type: 'article' | 'template'
-    }
+  id: string
+  title: string
+  slug: string
+  status: string
+  category: string
+  content: string
+  created_at: string
+  type: 'article' | 'template'
+}
 
 interface TemplateTableProps {
   templates: Template[]
@@ -22,17 +22,51 @@ interface TemplateTableProps {
 }
 
 export default function TemplatesTable({ templates, onEdit, onDelete }: TemplateTableProps) {
-  const {
-    selectedItems,
-    isAllSelected,
-    handleCheckboxChange,
-    handleSelectAllChange,
-  } = useItemSelection(templates.map(templates => ({ ...templates, id: String(templates?.id || 'unknown') })))
+  const [selectedItems, setSelectedItems] = useState<string[]>([])
+
+  const handleCheckboxChange = (id: string, checked: boolean) => {
+    setSelectedItems(prev => {
+      if (checked) {
+        return [...prev, id]
+      } else {
+        return prev.filter(item => item !== id)
+      }
+    })
+  }
+
+  const handleSelectAllChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.checked) {
+      setSelectedItems(templates.map(t => t.id))
+    } else {
+      setSelectedItems([])
+    }
+  }
+
+  const isAllSelected = templates.length > 0 && selectedItems.length === templates.length
+
+  const handleDeleteSelected = async () => {
+    if (!confirm(`Delete ${selectedItems.length} selected items?`)) return
+    
+    for (const id of selectedItems) {
+      await onDelete(id)
+    }
+    setSelectedItems([])
+  }
 
   return (
     <div className="bg-white dark:bg-gray-800 shadow-sm rounded-xl relative">
-      <header className="px-5 py-4">
-        <h2 className="font-semibold text-gray-800 dark:text-gray-100">Templates <span className="text-gray-400 dark:text-gray-500 font-medium">{templates.length}</span></h2>
+      <header className="px-5 py-4 flex justify-between items-center">
+        <h2 className="font-semibold text-gray-800 dark:text-gray-100">
+          Templates <span className="text-gray-400 dark:text-gray-500 font-medium">{templates.length}</span>
+        </h2>
+        {selectedItems.length > 0 && (
+          <button
+            onClick={handleDeleteSelected}
+            className="btn-xs bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded"
+          >
+            Delete Selected ({selectedItems.length})
+          </button>
+        )}
       </header>
       <div>
         <div className="overflow-x-auto">
@@ -43,7 +77,12 @@ export default function TemplatesTable({ templates, onEdit, onDelete }: Template
                   <div className="flex items-center">
                     <label className="inline-flex">
                       <span className="sr-only">Select all</span>
-                      <input className="form-checkbox" type="checkbox" onChange={handleSelectAllChange} checked={isAllSelected} />
+                      <input 
+                        className="form-checkbox" 
+                        type="checkbox" 
+                        onChange={handleSelectAllChange} 
+                        checked={isAllSelected} 
+                      />
                     </label>
                   </div>
                 </th>
@@ -68,12 +107,12 @@ export default function TemplatesTable({ templates, onEdit, onDelete }: Template
               </tr>
             </thead>
             <tbody className="text-sm divide-y divide-gray-100 dark:divide-gray-700/60">
-              {templates.map((template, index) => (
+              {templates.map((template) => (
                 <TemplatesTableItem
-                  key={template.id || index}
+                  key={template.id}
                   template={template}
-                  onCheckboxChange={(id, checked) => handleCheckboxChange(Number(id), checked)}
-                  isSelected={selectedItems.includes(Number(template.id))}
+                  onCheckboxChange={handleCheckboxChange}
+                  isSelected={selectedItems.includes(template.id)}
                   onEdit={onEdit}
                   onDelete={onDelete}
                 />

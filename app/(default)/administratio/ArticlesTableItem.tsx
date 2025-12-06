@@ -1,7 +1,7 @@
 // app/components/administratio/ArticlesTableItem.tsx
 import { Article } from './ArticlesTable'
 import { ArticlesProperties } from './ArticlesTableProperties' 
-import Link from 'next/link';  // Add import
+import Link from 'next/link'
 
 interface ArticlesTableItemProps {
   article: Article
@@ -11,62 +11,100 @@ interface ArticlesTableItemProps {
   onDelete: (id: string) => void
 }
 
-export default function ArticlesTableItem({ article, onCheckboxChange, isSelected, onEdit, onDelete }: ArticlesTableItemProps) {
+export default function ArticlesTableItem({ 
+  article, 
+  onCheckboxChange, 
+  isSelected, 
+  onEdit, 
+  onDelete 
+}: ArticlesTableItemProps) {
+  
   const handleCheckboxChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    e.stopPropagation()
     onCheckboxChange(article.id, e.target.checked)
   }
 
-  const {
-    statusColor,
-    categoryIcon,
-  } = ArticlesProperties()
+  const handleEdit = (e: React.MouseEvent) => {
+    e.preventDefault()
+    e.stopPropagation()
+    onEdit(article)
+  }
 
-  // Check if it's a template (assuming templates have a different category or add a type field)
-  const linkHref = article.type === 'template' ? `/conspiracies/${article.slug}` : `/articles/${article.slug}`;
+  const handleDelete = (e: React.MouseEvent) => {
+    e.preventDefault()
+    e.stopPropagation()
+    if (confirm('Are you sure you want to delete this article?')) {
+      onDelete(article.id)
+    }
+  }
+
+  const { statusColor, categoryIcon } = ArticlesProperties()
+
+  const linkHref = article.type === 'template' 
+    ? `/conspiracies/${article.slug}` 
+    : `/articles/${article.slug}`
 
   return (
-    <tr>
+    <tr className="hover:bg-gray-50 dark:hover:bg-gray-700/25">
       <td className="px-2 first:pl-5 last:pr-5 py-3 whitespace-nowrap w-px">
         <div className="flex items-center">
           <label className="inline-flex">
             <span className="sr-only">Select</span>
-            <input className="form-checkbox" type="checkbox" onChange={handleCheckboxChange} checked={isSelected} />
+            <input 
+              className="form-checkbox" 
+              type="checkbox" 
+              onChange={handleCheckboxChange} 
+              checked={isSelected}
+              onClick={(e) => e.stopPropagation()}
+            />
           </label>
         </div>
       </td>
       <td className="px-2 first:pl-5 last:pr-5 py-3 whitespace-nowrap">
-        <Link href={linkHref} className="font-medium text-gray-300 hover:text-gray-500">
+        <Link 
+          href={linkHref} 
+          className="font-medium text-sky-600 hover:text-sky-700 dark:text-sky-400 dark:hover:text-sky-300"
+        >
           {article.title}
         </Link>
       </td>
       <td className="px-2 first:pl-5 last:pr-5 py-3 whitespace-nowrap">
-        <div className="font-medium text-gray-800 dark:text-gray-100">{article.slug}</div>
+        <div className="text-gray-600 dark:text-gray-400 font-mono text-xs">{article.slug}</div>
       </td>
       <td className="px-2 first:pl-5 last:pr-5 py-3 whitespace-nowrap">
-        <div className={`inline-flex font-medium rounded-full text-center px-2.5 py-0.5 ${statusColor(article.status)}`}>{article.status}</div>
+        <div className={`inline-flex font-medium rounded-full text-center px-2.5 py-0.5 ${statusColor(article.status)}`}>
+          {article.status}
+        </div>
       </td>
       <td className="px-2 first:pl-5 last:pr-5 py-3 whitespace-nowrap">
         <div className="flex items-center">
           {categoryIcon(article.category)}
-          <div>{article.category}</div>
+          <span className="ml-1">{article.category}</span>
         </div>
       </td>
       <td className="px-2 first:pl-5 last:pr-5 py-3 whitespace-nowrap">
-        <div>{new Date(article.created_at).toLocaleDateString()}</div>
+        <div className="text-gray-500 text-sm">
+          {new Date(article.created_at).toLocaleDateString()}
+        </div>
       </td>
       <td className="px-2 first:pl-5 last:pr-5 py-3 whitespace-nowrap w-px">
-        <div className="space-x-1">
-          <button onClick={() => onEdit(article)} className="text-gray-400 hover:text-gray-500 dark:text-gray-500 dark:hover:text-gray-400 rounded-full">
-            <span className="sr-only">Edit</span>
-            <svg className="w-8 h-8 fill-current" viewBox="0 0 32 32">
-              <path d="M19.7 8.3c-.4-.4-1-.4-1.4 0l-10 10c-.2.2-.3.4-.3.7v4c0 .6.4 1 1 1h4c.3 0 .5-.1.7-.3l10-10c.4-.4.4-1 0-1.4l-4-4zM12.6 22H10v-2.6l6-6 2.6 2.6-6 6zm7.4-7.4L17.4 12l1.6-1.6 2.6 2.6-1.6 1.6z" />
+        <div className="flex items-center space-x-2">
+          <button 
+            onClick={handleEdit} 
+            className="text-gray-400 hover:text-blue-500 dark:text-gray-500 dark:hover:text-blue-400 p-1 rounded hover:bg-gray-100 dark:hover:bg-gray-700"
+            title="Edit"
+          >
+            <svg className="w-4 h-4 fill-current" viewBox="0 0 16 16">
+              <path d="M11.7 1.3c-.4-.4-1-.4-1.4 0l-8 8c-.2.2-.3.4-.3.7v2c0 .6.4 1 1 1h2c.3 0 .5-.1.7-.3l8-8c.4-.4.4-1 0-1.4l-2-2zM4 12H3v-1l6-6 1 1-6 6z" />
             </svg>
           </button>
-          <button onClick={() => onDelete(article.id)} className="text-red-500 hover:text-red-600 rounded-full">
-            <span className="sr-only">Delete</span>
-            <svg className="w-8 h-8 fill-current" viewBox="0 0 32 32">
-              <path d="M13 15h2v6h-2zM17 15h2v6h-2z" />
-              <path d="M20 9c0-.6-.4-1-1-1h-6c-.6 0-1 .4-1 1v2H8v2h1v10c0 .6.4 1 1 1h12c.6 0 1-.4 1-1V13h1v-2h-4V9zm-6 1h4v1h-4v-1zm7 3v9H11v-9h10z" />
+          <button 
+            onClick={handleDelete} 
+            className="text-gray-400 hover:text-red-500 dark:text-gray-500 dark:hover:text-red-400 p-1 rounded hover:bg-red-50 dark:hover:bg-red-900/20"
+            title="Delete"
+          >
+            <svg className="w-4 h-4 fill-current" viewBox="0 0 16 16">
+              <path d="M5 7h2v6H5zM9 7h2v6H9zM10 3V2H6v1H2v2h1v9c0 .6.4 1 1 1h8c.6 0 1-.4 1-1V5h1V3h-4zM4 14V5h8v9H4z" />
             </svg>
           </button>
         </div>

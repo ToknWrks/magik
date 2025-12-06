@@ -1,6 +1,12 @@
 // app/api/admin/templates/[id]/route.ts
 import { NextRequest, NextResponse } from 'next/server';
-import { updateConspiracyTemplate, deleteConspiracyTemplate } from '@/lib/db';
+import { updateConspiracyTemplate } from '@/lib/db';
+import { Pool } from '@neondatabase/serverless';
+
+const pool = new Pool({
+  connectionString: process.env.DATABASE_URL,
+  ssl: true,
+});
 
 export async function PUT(
   request: NextRequest,
@@ -62,12 +68,63 @@ export async function DELETE(
 ) {
   try {
     const { id } = await params;
-    await deleteConspiracyTemplate(id);
-    return NextResponse.json({ success: true });
-  } catch (error) {
-    console.error('Template delete error:', error);
+    console.log('=== DELETE TEMPLATE ===');
+    console.log('Template ID:', id);
+
+    // Verify admin
+    const userId = request.cookies.get('user_id')?.value;
+    
+    if (!userId) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
+    const userResult = await pool.query(
+      'SELECT role FROM users WHERE id = $1',
+      [userId]
+    );
+
+    if (userResult.rows.length === 0 || userResult.rows[0].role !== 'admin') {
+      return NextResponse.json({ error: 'Admin access required' }, { status: 403 });
+    }
+
+    // Check if template exists
+    const checkResult = await pool.query(
+      'SELECT id, title FROM conspiracy_templates WHERE id = $1',
+      [id]
+    );
+    
+    if (checkResult.rows.length === 0) {
+      return NextResponse.json({ error: 'Template not found' }, { status: 404 });
+    }
+
+    // First, delete related generated_content
+    console.log('Deleting related generated content...');
+    const deleteContentResult = await pool.query(
+      'DELETE FROM generated_content WHERE template_id = $1',
+      [id]
+    );
+    console.log('Deleted generated content rows:', deleteContentResult.rowCount);
+
+    // Now delete the template
+    console.log('Deleting template...');
+    const result = await pool.query(
+      'DELETE FROM conspiracy_templates WHERE id = $1 RETURNING id',
+      [id]
+    );
+
+    console.log('Delete result rowCount:', result.rowCount);
+
     return NextResponse.json({ 
-      error: 'Failed to delete template' 
+      success: true,
+      deletedContentRows: deleteContentResult.rowCount,
+    });
+  } catch (error) {
+    console.error('=== DELETE ERROR ===');
+    console.error('Error:', error);
+    
+    return NextResponse.json({ 
+      error: 'Failed to delete template',
+      details: error instanceof Error ? error.message : 'Unknown error'
     }, { status: 500 });
   }
 }

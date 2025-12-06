@@ -7,10 +7,11 @@ import SearchForm from '@/components/search-form';
 import DeleteButton from '@/components/delete-button';
 import FilterButton from './dropdown-filter';
 import ArticlesTable from './ArticlesTable';
-import PaginationClassic from '@/components/pagination-classic';
+import PaginationClassic from './pagination';
 import MDEditor from '@uiw/react-md-editor';
 import '@uiw/react-md-editor/markdown-editor.css';
 import TemplatesTable from './TemplatesTable';
+import AdminSearchForm from './search-form';
 
 // Update Article interface to include type
 export interface Article {
@@ -47,7 +48,9 @@ interface Template {
 function AdminDashboardContent() {
   const [articles, setArticles] = useState<(Article | Template)[]>([]);
   const [showArticleForm, setShowArticleForm] = useState(false);
-  const [templates, setTemplatess] = useState<Template[]>([]);
+  const [templates, setTemplates] = useState<Template[]>([]);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage] = useState(10); // Or make this configurable
 
   // Add state for the form
   const [articleForm, setArticleForm] = useState<{
@@ -212,10 +215,36 @@ function AdminDashboardContent() {
   };
 
   const handleDelete = async (id: string) => {
-    const item = articles.find(a => a.id === id);
-    const apiRoute = item?.type === 'template' ? '/api/admin/templates' : '/api/admin/articles';
-    await fetch(`${apiRoute}/${id}`, { method: 'DELETE' });
-    setArticles(prev => prev.filter(a => a.id !== id));
+    if (!confirm('Are you sure you want to delete this template?')) {
+      return;
+    }
+    
+    try {
+      const res = await fetch(`/api/admin/templates/${id}`, {  // Changed from /api/conspiracies/templates/
+        method: 'DELETE',
+        credentials: 'include',
+      });
+      
+      // Check if response is JSON
+      const contentType = res.headers.get('content-type');
+      if (!contentType || !contentType.includes('application/json')) {
+        throw new Error('API route not found');
+      }
+      
+      const data = await res.json();
+      
+      if (!res.ok) {
+        throw new Error(data.error || 'Failed to delete');
+      }
+      
+      // Remove from local state
+      setTemplates(templates.filter(t => t.id !== id));
+      
+      console.log('Template deleted successfully');
+    } catch (error) {
+      console.error('Delete error:', error);
+      alert('Failed to delete template: ' + (error instanceof Error ? error.message : 'Unknown error'));
+    }
   };
 
   // Add handleTemplateSubmit
@@ -297,6 +326,14 @@ function AdminDashboardContent() {
            (article?.slug?.toLowerCase() || '').includes(searchTerm.toLowerCase());
   });
 
+  // Filter content based on search term
+const filteredContent = articles.filter(item => 
+  searchTerm === '' ||
+  item.title?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+  item.slug?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+  item.category?.toLowerCase().includes(searchTerm.toLowerCase())
+);
+
   return (
     <div className="px-4 sm:px-6 lg:px-8 py-8 w-full max-w-[96rem] mx-auto">
       {/* Page header */}
@@ -309,12 +346,10 @@ function AdminDashboardContent() {
         {/* Right: Actions */}
         <div className="grid grid-flow-col sm:auto-cols-max justify-start sm:justify-end gap-2">
           {/* Search form */}
-          <input
-            type="text"
-            placeholder="Search articles…"
+          <AdminSearchForm 
+            placeholder="Search content..."
             value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="px-3 py-2 border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
+            onChange={setSearchTerm}
           />
           {/* Create article button */}
           <button 
@@ -376,8 +411,9 @@ function AdminDashboardContent() {
       {contentType === 'templates' && <TemplatesTable templates={articles.filter(a => a.type === 'template') as Template[]} onEdit={handleEditTemplate} onDelete={handleDelete} />}
       {contentType === 'all' && (
         <>
-          <ArticlesTable articles={articles.filter(a => a.type === 'article') as Article[]} onEdit={handleEditArticle} onDelete={handleDelete} />
-          <TemplatesTable templates={articles.filter(a => a.type === 'template') as Template[]} onEdit={handleEditTemplate} onDelete={handleDelete} />
+          <ArticlesTable articles={filteredContent.filter(a => a.type === 'article') as Article[]} onEdit={handleEditArticle} onDelete={handleDelete} />
+            <br />
+          <TemplatesTable templates={filteredContent.filter(a => a.type === 'template') as Template[]} onEdit={handleEditTemplate} onDelete={handleDelete} />
         </>
       )}
 

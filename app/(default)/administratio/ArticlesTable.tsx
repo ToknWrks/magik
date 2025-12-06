@@ -1,7 +1,7 @@
 // app/components/administratio/ArticlesTable.tsx
 'use client'
 
-import { useItemSelection } from '@/components/utils/use-item-selection'
+import { useState } from 'react'
 import ArticlesTableItem from './ArticlesTableItem'
 
 export interface Article {
@@ -24,17 +24,49 @@ interface ArticlesTableProps {
 }
 
 export default function ArticlesTable({ articles, onEdit, onDelete }: ArticlesTableProps) {
-  const {
-    selectedItems,
-    isAllSelected,
-    handleCheckboxChange,
-    handleSelectAllChange,
-  } = useItemSelection(articles.map(article => ({ ...article, id: String(article?.id || 'unknown') })))
+  const [selectedItems, setSelectedItems] = useState<string[]>([])
+
+  const handleCheckboxChange = (id: string, checked: boolean) => {
+    if (checked) {
+      setSelectedItems([...selectedItems, id])
+    } else {
+      setSelectedItems(selectedItems.filter(item => item !== id))
+    }
+  }
+
+  const handleSelectAllChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.checked) {
+      setSelectedItems(articles.map(a => a.id))
+    } else {
+      setSelectedItems([])
+    }
+  }
+
+  const isAllSelected = articles.length > 0 && selectedItems.length === articles.length
+
+  const handleDeleteSelected = async () => {
+    if (!confirm(`Delete ${selectedItems.length} selected items?`)) return
+    
+    for (const id of selectedItems) {
+      await onDelete(id)
+    }
+    setSelectedItems([])
+  }
 
   return (
     <div className="bg-white dark:bg-gray-800 shadow-sm rounded-xl relative">
-      <header className="px-5 py-4">
-        <h2 className="font-semibold text-gray-800 dark:text-gray-100">Articles <span className="text-gray-400 dark:text-gray-500 font-medium">{articles.length}</span></h2>
+      <header className="px-5 py-4 flex justify-between items-center">
+        <h2 className="font-semibold text-gray-800 dark:text-gray-100">
+          Articles <span className="text-gray-400 dark:text-gray-500 font-medium">{articles.length}</span>
+        </h2>
+        {selectedItems.length > 0 && (
+          <button
+            onClick={handleDeleteSelected}
+            className="btn-xs bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded"
+          >
+            Delete Selected ({selectedItems.length})
+          </button>
+        )}
       </header>
       <div>
         <div className="overflow-x-auto">
@@ -45,7 +77,12 @@ export default function ArticlesTable({ articles, onEdit, onDelete }: ArticlesTa
                   <div className="flex items-center">
                     <label className="inline-flex">
                       <span className="sr-only">Select all</span>
-                      <input className="form-checkbox" type="checkbox" onChange={handleSelectAllChange} checked={isAllSelected} />
+                      <input 
+                        className="form-checkbox" 
+                        type="checkbox" 
+                        onChange={handleSelectAllChange} 
+                        checked={isAllSelected} 
+                      />
                     </label>
                   </div>
                 </th>
@@ -74,10 +111,10 @@ export default function ArticlesTable({ articles, onEdit, onDelete }: ArticlesTa
                 <ArticlesTableItem
                   key={article.id}
                   article={article}
-                  onCheckboxChange={(id, checked) => handleCheckboxChange(Number(id), checked)}
-                  isSelected={selectedItems.includes(Number(article.id))}
-                  onEdit={() => onEdit(article)}
-                  onDelete={() => onDelete(article.id)}
+                  onCheckboxChange={handleCheckboxChange}
+                  isSelected={selectedItems.includes(article.id)}
+                  onEdit={onEdit}
+                  onDelete={onDelete}
                 />
               ))}
             </tbody>

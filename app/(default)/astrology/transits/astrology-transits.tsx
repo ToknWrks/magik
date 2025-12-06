@@ -35,11 +35,11 @@ export default function AstrologyTransits() {
     try {
       const planets = ['Sun', 'Moon', 'Mercury', 'Venus', 'Mars', 'Jupiter', 'Saturn', 'Uranus', 'Neptune', 'Pluto'];
       const aspects = [
-        { name: 'Conjunction', angle: 0 },
+        { name: 'Conjunct', angle: 0 },
         { name: 'Sextile', angle: 60 },
         { name: 'Square', angle: 90 },
         { name: 'Trine', angle: 120 },
-        { name: 'Opposition', angle: 180 },
+        { name: 'Opposite', angle: 180 },
       ];
 
       const positions: { [key: string]: number } = {};
@@ -71,7 +71,7 @@ export default function AstrologyTransits() {
                 aspect: asp.name,
                 angle: diff,
                 orb: orb,
-                description: `The ${planets[i]} is in ${asp.name} aspect with ${planets[j]}, creating a ${diff.toFixed(1)}° angle with ${orb.toFixed(1)}° orb.`,
+                description: `The ${planets[i]} is ${asp.name} ${planets[j]}, creating a ${diff.toFixed(1)}° angle with ${orb.toFixed(1)}° orb.`,
               });
             }
           }
@@ -120,7 +120,7 @@ export default function AstrologyTransits() {
     setChartData({ labels, data: chartData });
     
     try {
-      const transitInfo = `The ${transit.planet1} is in ${transit.aspect} aspect with ${transit.planet2}, creating a ${transit.angle.toFixed(1)}° angle with ${transit.orb.toFixed(1)}° orb`;
+      const transitInfo = `The ${transit.planet1} is in ${transit.aspect} with ${transit.planet2}, creating a ${transit.angle.toFixed(1)}° angle with ${transit.orb.toFixed(1)}° orb`;
       const response = await fetch('/api/astrology/interpretations', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },

@@ -121,31 +121,7 @@ export function ConspiracyContent({ slug }: ConspiracyContentProps) {
           <ReactMarkdown>{content.content || content.body || ''}</ReactMarkdown>
         </div>
 
-        {content.debunking && (
-          <>
-            <hr className="my-8 border-gray-300 dark:border-gray-600" />
-            <h2 className="p-5 text-xl font-bold text-gray-900 dark:text-gray-100 mb-4">
-              Reality Check
-            </h2>
-            <div className="p-5 prose text-gray-700 dark:text-yellow-700 max-w-none">
-              <ReactMarkdown>{content.debunking || ''}</ReactMarkdown>
-            </div>
-          </>
-        )}
-
-        {content.sources && content.sources.length > 0 && (
-          <>
-            <hr className="my-8 border-gray-300 dark:border-gray-600" />
-            <h2 className="text-xl font-bold text-gray-900 dark:text-gray-100 mb-4">
-              Sources
-            </h2>
-            <ul className="list-disc list-inside space-y-1 text-gray-700 dark:text-gray-300">
-              {content.sources.map((source: string, index: number) => (
-                <li key={index}>{source}</li>
-              ))}
-            </ul>
-          </>
-        )}
+       
       </div>
     </div>
   </Boundary>

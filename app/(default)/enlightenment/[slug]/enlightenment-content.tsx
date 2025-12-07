@@ -3,10 +3,9 @@
 
 import { useEffect, useState } from 'react';
 import { Boundary } from '@/components/ui/boundary';
-import ReactMarkdown from 'react-markdown';
-import remarkGfm from 'remark-gfm';
 import Link from 'next/link';
 import ShareToX from '@/components/ShareToX';
+import AutoLinkMarkdown from '@/components/AutoLinkMarkdown';
 
 interface EnlightenmentContentProps {
   slug: string;
@@ -26,7 +25,6 @@ export function EnlightenmentContent({ slug }: EnlightenmentContentProps) {
       setLoading(true);
       setError(null);
       
-      // Check if template has manual content
       const templateResponse = await fetch(`/api/enlightenment/template/${slug}`);
       
       if (!templateResponse.ok) {
@@ -51,7 +49,6 @@ export function EnlightenmentContent({ slug }: EnlightenmentContentProps) {
         return;
       }
 
-      // Generate AI content
       const response = await fetch(`/api/enlightenment/generate/${slug}`, {
         method: 'POST',
       });
@@ -155,96 +152,9 @@ export function EnlightenmentContent({ slug }: EnlightenmentContentProps) {
           </div>
         )}
 
-        {/* Main Content */}
+        {/* Main Content with Auto-Links */}
         <article className="prose-article">
-          <ReactMarkdown
-            remarkPlugins={[remarkGfm]}
-            components={{
-              h1: ({ children }) => (
-                <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100 mt-8 mb-4">
-                  {children}
-                </h1>
-              ),
-              h2: ({ children }) => (
-                <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-100 mt-10 mb-4 pb-2 border-b border-gray-200 dark:border-gray-700">
-                  {children}
-                </h2>
-              ),
-              h3: ({ children }) => (
-                <h3 className="text-xl font-semibold text-gray-800 dark:text-gray-200 mt-6 mb-3">
-                  {children}
-                </h3>
-              ),
-              h4: ({ children }) => (
-                <h4 className="text-lg font-semibold text-gray-800 dark:text-gray-200 mt-4 mb-2">
-                  {children}
-                </h4>
-              ),
-              p: ({ children }) => (
-                <p className="text-gray-700 dark:text-gray-300 leading-relaxed mb-4">
-                  {children}
-                </p>
-              ),
-              strong: ({ children }) => (
-                <strong className="font-semibold text-gray-900 dark:text-gray-100">
-                  {children}
-                </strong>
-              ),
-              em: ({ children }) => (
-                <em className="italic text-gray-700 dark:text-gray-300">
-                  {children}
-                </em>
-              ),
-              a: ({ href, children }) => (
-                <a 
-                  href={href} 
-                  className="text-amber-600 dark:text-amber-400 hover:underline"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                >
-                  {children}
-                </a>
-              ),
-              ul: ({ children }) => (
-                <ul className="my-4 ml-4 space-y-2">
-                  {children}
-                </ul>
-              ),
-              ol: ({ children }) => (
-                <ol className="my-4 ml-4 space-y-2 list-decimal">
-                  {children}
-                </ol>
-              ),
-              li: ({ children }) => (
-                <li className="text-gray-700 dark:text-gray-300 flex items-start gap-2">
-                  <span className="text-amber-500 mt-1.5">•</span>
-                  <span>{children}</span>
-                </li>
-              ),
-              blockquote: ({ children }) => (
-                <blockquote className="my-6 pl-4 border-l-4 border-amber-500 bg-gray-50 dark:bg-gray-800/50 py-3 pr-4 rounded-r-lg">
-                  <div className="italic text-gray-600 dark:text-gray-400">
-                    {children}
-                  </div>
-                </blockquote>
-              ),
-              hr: () => (
-                <hr className="my-8 border-gray-200 dark:border-gray-700" />
-              ),
-              code: ({ children }) => (
-                <code className="bg-gray-100 dark:bg-gray-800 px-1.5 py-0.5 rounded text-sm text-gray-800 dark:text-gray-200">
-                  {children}
-                </code>
-              ),
-              pre: ({ children }) => (
-                <pre className="my-4 p-4 bg-gray-100 dark:bg-gray-800 rounded-lg overflow-x-auto">
-                  {children}
-                </pre>
-              ),
-            }}
-          >
-            {content.body || ''}
-          </ReactMarkdown>
+          <AutoLinkMarkdown content={content.body || ''} currentSlug={slug} />
         </article>
 
         {/* Spiritual Practices */}

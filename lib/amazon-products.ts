@@ -16,7 +16,7 @@ export const amazonProducts: AmazonProduct[] = [
   {
     id: 'cosmos-psyche',
     name: 'Cosmos and Psyche',
-    slug: 'book/cosmos-and-psyche/richard-tarnas',
+    slug: 'book-cosmos-and-psyche-richard-tarnas',
     description: 'Richard Tarnas explores the connection between planetary movements and human events.',
     price: 19.99,
     category: 'Books',
@@ -27,7 +27,7 @@ export const amazonProducts: AmazonProduct[] = [
   {
     id: 'Way-of-the-psychonaut',
     name: 'Way of the Psychonaut',
-    slug: 'book/way-of-the-psychonaut/stanislav-grof',
+    slug: 'book-way-of-the-psychonaut-stanislav-grof',
     description: 'A comprehensive guide to the use of psychoactive plants for spiritual growth and exploration.',
     price: 24.95,
     category: 'Books',
@@ -38,7 +38,7 @@ export const amazonProducts: AmazonProduct[] = [
   {
     id: 'illuminatus-trilogy',
     name: 'The Illuminatus! Trilogy',
-    slug: 'book/illuminatus-trilogy/robert-shea-robert-anton-wilson',
+    slug: 'book-illuminatus-trilogy-robert-shea-robert-anton-wilson',
     description: 'A satirical, postmodern adventure into conspiracy theories by Robert Shea and Robert Anton Wilson.',
     price: 24.95,
     category: 'Books',
@@ -50,7 +50,7 @@ export const amazonProducts: AmazonProduct[] = [
   {
     id: 'prometheus-rising',
     name: 'Prometheus Rising',
-    slug: 'book/prometheus-rising/robert-anton-wilson',
+    slug: 'book-prometheus-rising-robert-anton-wilson',
     description: 'Robert Anton Wilson\'s exploration of human consciousness and the potential for personal transformation.',
     price: 19.00,
     category: 'Books',
@@ -61,17 +61,18 @@ export const amazonProducts: AmazonProduct[] = [
   {
     id: 'cosmic-trigger',
     name: 'Cosmic Trigger: The Final Secret of the Illuminati',
-    slug: 'book/cosmic-trigger/robert-anton-wilson',
+    slug: 'book-cosmic-trigger-robert-anton-wilson',
     description: 'Robert Anton Wilson\'s autobiographical account of his experiences with altered states of consciousness and esoteric knowledge.',
     price: 19.00,
     category: 'Books',
     image: 'https://m.media-amazon.com/images/I/71B68Wv2p9L._SL1360_.jpg',
     amazonUrl: 'https://amzn.to/3Mjn6m6',
+    featured: true,
   },
   {
     id: 'the-perennial-philosophy',
     name: 'The Perennial Philosophy',
-    slug: 'book/the-perennial-philosophy/aldous-huxley',
+    slug: 'book-the-perennial-philosophy-aldous-huxley',
     description: 'Aldous Huxley\'s classic work on the universal truths found in all spiritual traditions.',
     price: 12.99,
     category: 'Books',
@@ -81,7 +82,7 @@ export const amazonProducts: AmazonProduct[] = [
   {
     id: 'the-coming-world-nation',
     name: 'The coming world nation',
-    slug: 'the-coming-world-nation',
+    slug: 'book-the-coming-world-nation',
     description: 'Why world government is inevitable by Alexander Sachon.',
     price: 22.95,
     category: 'Books',

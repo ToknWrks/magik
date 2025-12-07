@@ -209,6 +209,120 @@ export async function deleteConspiracyTemplate(id: string) {
   await pool.query('DELETE FROM conspiracy_templates WHERE id = $1', [id]);
 }
 
+// Enlightenment Templates
+export async function getAllEnlightenmentTemplates() {
+  const result = await pool.query(
+    `SELECT id, slug, title, description, category, status, is_active, difficulty_level, created_at
+     FROM enlightenment_templates 
+     WHERE is_active = true 
+     ORDER BY title ASC`
+  );
+  return result.rows;
+}
+
+export async function getEnlightenmentTemplate(slug: string) {
+  const result = await pool.query(
+    `SELECT * FROM enlightenment_templates WHERE slug = $1`,
+    [slug]
+  );
+  return result.rows[0];
+}
+
+export async function getEnlightenmentTemplateById(id: string) {
+  const result = await pool.query(
+    `SELECT * FROM enlightenment_templates WHERE id = $1`,
+    [id]
+  );
+  return result.rows[0];
+}
+
+export async function createEnlightenmentTemplate(data: {
+  title: string;
+  slug: string;
+  description?: string;
+  category?: string;
+  status?: string;
+  key_teachings?: string[];
+  spiritual_practices?: string[];
+  sources?: string[];
+  difficulty_level?: string;
+  is_active?: boolean;
+  content_type?: string;
+  article_content?: string;
+}) {
+  const result = await pool.query(
+    `INSERT INTO enlightenment_templates 
+      (title, slug, description, category, status, key_teachings, spiritual_practices, 
+       sources, difficulty_level, is_active, content_type, article_content)
+     VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)
+     RETURNING *`,
+    [
+      data.title,
+      data.slug,
+      data.description || '',
+      data.category || '',
+      data.status || 'Draft',
+      data.key_teachings || [],
+      data.spiritual_practices || [],
+      data.sources || [],
+      data.difficulty_level || 'beginner',
+      data.is_active ?? true,
+      data.content_type || 'ai',
+      data.article_content || '',
+    ]
+  );
+  return result.rows[0];
+}
+
+export async function updateEnlightenmentTemplate(id: string, data: Partial<{
+  title: string;
+  slug: string;
+  description: string;
+  category: string;
+  status: string;
+  key_teachings: string[];
+  spiritual_practices: string[];
+  sources: string[];
+  difficulty_level: string;
+  is_active: boolean;
+  content_type: string;
+  article_content: string;
+}>) {
+  const fields: string[] = [];
+  const values: any[] = [];
+  let paramCount = 1;
+
+  Object.entries(data).forEach(([key, value]) => {
+    if (value !== undefined) {
+      fields.push(`${key} = $${paramCount}`);
+      values.push(value);
+      paramCount++;
+    }
+  });
+
+  if (fields.length === 0) return null;
+
+  fields.push(`updated_at = NOW()`);
+  values.push(id);
+
+  const result = await pool.query(
+    `UPDATE enlightenment_templates 
+     SET ${fields.join(', ')}
+     WHERE id = $${paramCount}
+     RETURNING *`,
+    values
+  );
+  return result.rows[0];
+}
+
+export async function deleteEnlightenmentTemplate(id: string) {
+  const result = await pool.query(
+    `DELETE FROM enlightenment_templates WHERE id = $1 RETURNING id`,
+    [id]
+  );
+  return result.rowCount !== null && result.rowCount > 0;
+}
+
 // Generated content functions
 export async function saveGeneratedContent(templateId: string, content: string, debunking: string, sources: string[]) {
   try {

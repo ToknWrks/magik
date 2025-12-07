@@ -69,30 +69,49 @@ async function incrementViewCount(templateId: string) {
 class ConspiracyAIService {
   async generateConspiracyContent(template: any) {
     try {
-      const prompt = `
-Generate an article about "${template.title}" debunking conspiracy theories based on the best available information.
-${template.key_facts?.join('\n') || 'No specific facts provided'}
-Structure the article in Markdown format with appropriate bold type headings: (do not include an introduction about markdown formatting). Please incldue sources with links.
+      const prompt = `You are an investigative journalist researching "${template.title}".
+
+${template.key_facts?.length ? `Key facts to explore:
+${template.key_facts.map((f: string) => `- ${f}`).join('\n')}` : ''}
+
+Write a well-researched article that examines this topic objectively.
+
+IMPORTANT FORMATTING RULES:
+- Use ## for main section headings (not #)
+- Use ### for sub-headings
+- Use **bold text** for emphasis on key terms
+- Leave a blank line between paragraphs
+- Use > for notable quotes or important statements
+- Use bullet points with - for lists
+- Do NOT include any meta-commentary about formatting
+- Do NOT start with "Here is" or similar phrases
+- Start directly with the content
+
+Structure the article with these sections:
+
 ## Historical Timeline
+(Key dates and events in chronological order)
 
-## Reality Check 
+## The Official Story
+(What mainstream sources say)
 
-## Historical Facts
+## Alternative Perspectives
+(Other viewpoints and theories)
 
-## Scientific Perspective
-
-## Psychological Factors
+## Evidence Analysis
+(Examining the available evidence)
 
 ## Critical Thinking
+(Questions to consider)
 
-## Sources
+## Conclusion
+(A balanced summary)
 
-Make it engaging and persuasive, list dates in a timeline.  P
-      `;
+Make it engaging, factual, and encourage critical thinking.`;
 
       const response = await anthropic.messages.create({
-        model: 'claude-haiku-4-5-20251001',  // Updated to latest model
-        max_tokens: 2000,
+        model: 'claude-haiku-4-5-20251001',
+        max_tokens: 3000,
         messages: [{ role: 'user', content: prompt }],
       });
 
@@ -105,15 +124,25 @@ Make it engaging and persuasive, list dates in a timeline.  P
 
   async generateDebunkingContent(template: any) {
     try {
-      const prompt = `
-Provide Sources related to  "${template.title}".
-${template.debunking_points?.join('\n') || 'No debunking points provided'}
+      const prompt = `Provide a critical analysis and fact-check for "${template.title}".
 
-Structure the response as a list of sources with links in Markdown format. Verify source links are working.
-      `;
+${template.debunking_points?.length ? `Points to address:
+${template.debunking_points.map((p: string) => `- ${p}`).join('\n')}` : ''}
+
+FORMATTING RULES:
+- Use bullet points with - for each point
+- Use **bold** for key terms
+- Include source links where possible
+- Be objective and factual
+
+Structure as:
+- Key claims examined
+- Evidence for and against
+- Expert opinions
+- Reliable sources with links`;
 
       const response = await anthropic.messages.create({
-        model: 'claude-haiku-4-5-20251001',  // Updated to latest model
+        model: 'claude-sonnet-4-20250514',
         max_tokens: 1500,
         messages: [{ role: 'user', content: prompt }],
       });

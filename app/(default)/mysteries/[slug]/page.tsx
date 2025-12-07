@@ -1,7 +1,7 @@
 // app/conspiracies/[slug]/page.tsx
 import { Metadata } from 'next';
 import { Suspense } from 'react';
-import { ConspiracyContent } from './mystery-content';
+import { MysteryContent } from './mystery-content';
 import { getConspiracyTemplate } from '@/lib/db';
 
 interface PageProps {
@@ -30,7 +30,7 @@ export default async function ConspiracyPage({ params }: PageProps) {
         <div className="h-32 bg-gray-200 dark:bg-gray-700 rounded"></div>
       </div>
     }>
-      <ConspiracyContent slug={slug} />
+      <MysteryContent slug={slug} />
     </Suspense>
   );
 }

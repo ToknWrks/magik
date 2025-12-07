@@ -13,6 +13,8 @@ import TemplatesTable from './TemplatesTable';
 import AdminSearchForm from './search-form';
 import ArticleFormModal, { ArticleFormData, Article as ArticleType } from './ArticleFormModal';
 import TemplateFormModal, { TemplateFormData, Template as TemplateType } from './TemplateFormModal';
+import EnlightenmentFormModal, { EnlightenmentFormData, EnlightenmentTemplate } from './EnlightenmentFormModal';
+import EnlightenmentTable from './EnlightenmentTable';
 
 // Rename Article and Template interfaces
 export interface DashboardArticle {
@@ -75,7 +77,7 @@ function AdminDashboardContent() {
   });
 
   // Update contentType to distinguish
-  const [contentType, setContentType] = useState<'all' | 'articles' | 'templates'>('all');
+  const [contentType, setContentType] = useState<'all' | 'articles' | 'templates' | 'enlightenment'>('all');
 
   // Add search state and logic
   const [searchTerm, setSearchTerm] = useState('');
@@ -96,11 +98,17 @@ function AdminDashboardContent() {
     article_content: '',
   });
 
+  // Add state for enlightenment form
+  const [showEnlightenmentForm, setShowEnlightenmentForm] = useState(false);
+  const [editingEnlightenment, setEditingEnlightenment] = useState<EnlightenmentTemplate | null>(null);
+  const [enlightenmentTemplates, setEnlightenmentTemplates] = useState<EnlightenmentTemplate[]>([]);
+
   // Add state for filter
   const [filter, setFilter] = useState<'all' | 'published' | 'draft'>('all');
 
   // Filter content based on search term
-  const filteredContent = articles.filter(item => 
+  const filteredContent = (contentType === 'enlightenment' ? enlightenmentTemplates : articles)
+  .filter(item => 
     searchTerm === '' ||
     item.title?.toLowerCase().includes(searchTerm.toLowerCase()) ||
     item.slug?.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -267,6 +275,11 @@ function AdminDashboardContent() {
     setShowTemplateForm(true);
   };
 
+  const handleEditEnlightenment = (template: EnlightenmentTemplate) => {
+    setEditingEnlightenment(template);
+    setShowEnlightenmentForm(true);
+  };
+
   // Delete article
   const handleDeleteArticle = async (id: string) => {
     if (!confirm('Are you sure you want to delete this article?')) {
@@ -330,6 +343,24 @@ function AdminDashboardContent() {
     }
   };
 
+  const handleDeleteEnlightenment = async (id: string) => {
+    if (!confirm('Are you sure you want to delete this teaching?')) return;
+    
+    try {
+      const res = await fetch(`/api/admin/enlightenment/${id}`, {
+        method: 'DELETE',
+        credentials: 'include',
+      });
+      
+      if (!res.ok) throw new Error('Failed to delete');
+      
+      setEnlightenmentTemplates(prev => prev.filter(t => t.id !== id));
+    } catch (error) {
+      console.error('Delete error:', error);
+      alert('Failed to delete teaching');
+    }
+  };
+
   // Add handleTemplateSubmit
   const handleTemplateSubmit = async (data: TemplateFormData) => {
     const method = editingTemplate ? 'PUT' : 'POST';
@@ -364,27 +395,58 @@ function AdminDashboardContent() {
     setEditingTemplate(null);
   };
 
+  const handleEnlightenmentSubmit = async (data: EnlightenmentFormData) => {
+    const method = editingEnlightenment ? 'PUT' : 'POST';
+    const url = editingEnlightenment 
+      ? `/api/admin/enlightenment/${editingEnlightenment.id}` 
+      : '/api/admin/enlightenment';
+    
+    const res = await fetch(url, {
+      method,
+      headers: { 'Content-Type': 'application/json' },
+      credentials: 'include',
+      body: JSON.stringify(data),
+    });
+    
+    if (!res.ok) {
+      const error = await res.json();
+      throw new Error(error.error || 'Failed to save teaching');
+    }
+    
+    // Refresh
+    const enlightenmentRes = await fetch('/api/admin/enlightenment', { credentials: 'include' });
+    const enlightenmentData = await enlightenmentRes.json();
+    setEnlightenmentTemplates(
+      (enlightenmentData.templates || []).map((e: EnlightenmentTemplate) => ({ ...e, type: 'enlightenment' }))
+    );
+    
+    setShowEnlightenmentForm(false);
+    setEditingEnlightenment(null);
+  };
+
   // Update fetch function
   useEffect(() => {
     const fetchContent = async () => {
       try {
-        if (contentType === 'all') {
-          const [articlesRes, templatesRes] = await Promise.all([
-            fetch('/api/admin/articles'),
-            fetch('/api/admin/templates')
-          ]);
-          const articlesData = await articlesRes.json();
-          const templatesData = await templatesRes.json();
-            const combined = [
-            ...(articlesData.articles || []).map((a: DashboardArticle) => ({ ...a, type: 'article' })),
-            ...(templatesData.templates || []).map((t: DashboardTemplate) => ({ ...t, type: 'template' }))
-            ];
-          setArticles(combined);
-        } else {
-          const res = await fetch(`/api/admin/${contentType}`);
-          const data = await res.json();
-          setArticles((data[contentType] || []).map((item: Partial<DashboardArticle>) => ({ ...item, type: contentType.slice(0, -1) })));
-        }
+        const [articlesRes, templatesRes, enlightenmentRes] = await Promise.all([
+          fetch('/api/admin/articles', { credentials: 'include' }),
+          fetch('/api/admin/templates', { credentials: 'include' }),
+          fetch('/api/admin/enlightenment', { credentials: 'include' }),
+        ]);
+        
+        const articlesData = await articlesRes.json();
+        const templatesData = await templatesRes.json();
+        const enlightenmentData = await enlightenmentRes.json();
+        
+        const combined = [
+          ...(articlesData.articles || []).map((a: DashboardArticle) => ({ ...a, type: 'article' })),
+          ...(templatesData.templates || []).map((t: DashboardTemplate) => ({ ...t, type: 'template' })),
+          ...(enlightenmentData.templates || []).map((e: EnlightenmentTemplate) => ({ ...e, type: 'enlightenment' })),
+        ];
+        setArticles(combined);
+        setEnlightenmentTemplates(
+          (enlightenmentData.templates || []).map((e: EnlightenmentTemplate) => ({ ...e, type: 'enlightenment' }))
+        );
       } catch (error) {
         console.error('Fetch error:', error);
       }
@@ -447,6 +509,19 @@ function AdminDashboardContent() {
             </svg>
             <span className="max-xs:sr-only ml-2">Create Template</span>
           </button>
+          {/* Create enlightenment button */}
+          <button 
+            onClick={() => {
+              setEditingEnlightenment(null);
+              setShowEnlightenmentForm(true);
+            }}
+            className="btn bg-purple-600 text-white hover:bg-purple-700"
+          >
+            <svg className="fill-current shrink-0 xs:hidden" width="16" height="16" viewBox="0 0 16 16">
+              <path d="M15 7H9V1c0-.6-.4-1-1-1S7 .4 7 1v6H1c-.6 0-1 .4-1 1s.4 1 1 1h6v6c0 .6.4 1 1 1s1-.4 1-1V9h6c.6 0 1-.4 1-1s-.4-1-1-1z" />
+            </svg>
+            <span className="max-xs:sr-only ml-2">Create Teaching</span>
+          </button>
         </div>
       </div>
 
@@ -463,6 +538,9 @@ function AdminDashboardContent() {
             </li>
             <li className="m-1">
               <button onClick={() => setContentType('templates')} className={`inline-flex items-center justify-center text-sm font-medium leading-5 rounded-full px-3 py-1 border border-gray-200 dark:border-gray-700/60 hover:border-gray-300 dark:hover:border-gray-600 shadow-sm ${contentType === 'templates' ? 'bg-gray-900 dark:bg-gray-100 text-white dark:text-gray-800' : 'bg-white dark:bg-gray-800 text-gray-500 dark:text-gray-400'} transition`}>Templates</button>
+            </li>
+            <li className="m-1">
+              <button onClick={() => setContentType('enlightenment')} className={`inline-flex items-center justify-center text-sm font-medium leading-5 rounded-full px-3 py-1 border border-gray-200 dark:border-gray-700/60 hover:border-gray-300 dark:hover:border-gray-600 shadow-sm ${contentType === 'enlightenment' ? 'bg-purple-600 text-white' : 'bg-white dark:bg-gray-800 text-gray-500 dark:text-gray-400'} transition`}>Enlightenment</button>
             </li>
             <li className="m-1">
               <button onClick={() => setFilter('published')} className={`inline-flex items-center justify-center text-sm font-medium leading-5 rounded-full px-3 py-1 border border-gray-200 dark:border-gray-700/60 hover:border-gray-300 dark:hover:border-gray-600 shadow-sm ${filter === 'published' ? 'bg-gray-900 dark:bg-gray-100 text-white dark:text-gray-800' : 'bg-white dark:bg-gray-800 text-gray-500 dark:text-gray-400'} transition`}>Published <span className="ml-1 text-gray-400 dark:text-gray-500">{articles.filter(a => a?.status === 'published').length}</span></button>
@@ -495,6 +573,13 @@ function AdminDashboardContent() {
           templates={paginatedContent.filter(a => a.type === 'template') as DashboardTemplate[]} 
           onEdit={handleEditTemplate} 
           onDelete={handleDeleteTemplate}  // Use template delete
+        />
+      )}
+      {contentType === 'enlightenment' && (
+        <EnlightenmentTable 
+          templates={paginatedContent as EnlightenmentTemplate[]}
+          onEdit={handleEditEnlightenment}
+          onDelete={handleDeleteEnlightenment}
         />
       )}
       {contentType === 'all' && (
@@ -552,6 +637,17 @@ function AdminDashboardContent() {
   }}
   onSave={handleTemplateSubmit}
   editingTemplate={editingTemplate}
+/>
+
+{/* Enlightenment Form Modal */}
+<EnlightenmentFormModal
+  isOpen={showEnlightenmentForm}
+  onClose={() => {
+    setShowEnlightenmentForm(false);
+    setEditingEnlightenment(null);
+  }}
+  onSave={handleEnlightenmentSubmit}
+  editingTemplate={editingEnlightenment}
 />
 
       

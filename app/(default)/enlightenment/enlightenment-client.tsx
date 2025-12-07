@@ -1,115 +1,121 @@
-// app/enlightenment/enlightenment-client.tsx
+// app/(default)/enlightenment/enlightenment-client.tsx
 'use client';
 
 import { useState } from 'react';
 import { Boundary } from '@/components/ui/boundary';
 import Link from 'next/link';
 
-// Mock enlightenment data - replace with your actual data
-const enlightenment = [
-  {
-    id: 1,
-    title: "Mantra Chanting",
-    description: "A secret society founded in 1776 that allegedly controls world events through a network of influential members.",
-    status: "Popular",
-    category: "Yoga & Meditation",
-    slug: "yoga-meditation/mantra-chanting"
-  },
-  {
-    id: 2,
-    title: "Sound Healing",
-    description: "The theory that the 1969 moon landing was faked by NASA and filmed in a studio.",
-    status: "Popular",
-    category: "Sound Therapy",
-    slug: "sound-therapy/sound-healing"
-  },
-  {
-    id: 3,
-    title: "Breathwork",
-    description: "A highly classified United States Air Force facility that allegedly houses extraterrestrial technology and UFOs.",
-    status: "Popular",
-    category: "Breathwork",
-    slug: "breathwork"
-  },
-  {
-    id: 4,
-    title: "Toning",
-    description: "The belief that the September 11 attacks were orchestrated by elements within the US government.",
-    status: "Esoteric",
-    category: "Singing",
-    slug: "singing/toning"
-  },
-  {
-    id: 5,
-    title: "Whirling",
-    description: "The modern conspiracy theory that the Earth is flat rather than spherical.",
-    status: "Esoteric",
-    category: "Dance & Movement",
-    slug: "dance-movement/whirling"
-  },
-  {
-    id: 6,
-    title: "Šurpu Series ",
-    description: "An ancient Mesopotamian ritual text used for purification and healing.",
-    status: "Mystery",
-    category: "Ritual & Ceremony",
-    slug: "../mysteries/surpu-series-ritual"
-  }
-];
+interface Teaching {
+  id: string;
+  slug: string;
+  title: string;
+  description?: string;
+  category?: string;
+  status?: string;
+  difficulty_level?: string;
+  is_active?: boolean;
+}
 
-export function EnlightenmentClient() {
+interface EnlightenmentClientProps {
+  teachings: Teaching[];
+}
+
+function StatusBadge({ status }: { status: string }) {
+  const getColor = () => {
+    switch (status?.toLowerCase()) {
+      case 'published':
+        return 'text-green-600 dark:text-green-400';
+      case 'draft':
+        return 'text-yellow-600 dark:text-yellow-400';
+      case 'under review':
+        return 'text-blue-600 dark:text-blue-400';
+      default:
+        return 'text-gray-600 dark:text-gray-400';
+    }
+  };
+
+  return <span className={`text-xs font-medium ${getColor()}`}>{status}</span>;
+}
+
+function DifficultyBadge({ level }: { level: string }) {
+  const getColor = () => {
+    switch (level?.toLowerCase()) {
+      case 'beginner':
+        return 'text-green-600 dark:text-green-400';
+      case 'intermediate':
+        return 'text-yellow-600 dark:text-yellow-400';
+      case 'advanced':
+        return 'text-purple-600 dark:text-purple-400';
+      default:
+        return 'text-gray-600 dark:text-gray-400';
+    }
+  };
+
+  return <span className={`text-xs font-medium ${getColor()}`}>{level || 'All Levels'}</span>;
+}
+
+export default function EnlightenmentClient({ teachings }: EnlightenmentClientProps) {
   const [selectedCategory, setSelectedCategory] = useState<string>('All');
   const [searchTerm, setSearchTerm] = useState('');
 
-  const categories = ['All', ...Array.from(new Set(enlightenment.map(c => c.category)))];
+  // Filter active teachings only
+  const activeTeachings = teachings.filter(t => t.is_active !== false);
 
-  const filteredenlightenment = enlightenment.filter(enlightenment => {
-    const matchesCategory = selectedCategory === 'All' || enlightenment.category === selectedCategory;
-    const matchesSearch = enlightenment.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    enlightenment.description.toLowerCase().includes(searchTerm.toLowerCase());
+  // Get unique categories
+  const categories = ['All', ...Array.from(new Set(activeTeachings.map(t => t.category).filter(Boolean)))];
+
+  const filteredTeachings = activeTeachings.filter(teaching => {
+    const matchesCategory = selectedCategory === 'All' || teaching.category === selectedCategory;
+    const matchesSearch = 
+      teaching.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      (teaching.description?.toLowerCase().includes(searchTerm.toLowerCase()) ?? false);
     return matchesCategory && matchesSearch;
   });
 
-  const getStatusColor = (status: string) => {
-    // Use neutral gray colors for all statuses
-    return 'bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-200';
-  };
-
   return (
     <Boundary
-      label="Enlightenment Theories Archive"
+      label="Enlightenment Archive"
       animateRerendering={false}
       kind="solid"
       className="flex flex-col gap-9"
     >
-      <div className="text-center mb-8">
-        <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-4">
-          Enlightenment Archive
-        </h1>
-        <p className="text-lg text-gray-600 dark:text-gray-400 max-w-3xl mx-auto mb-8">
-          Explore enlightenment theories, practices, and historical enlightenment teachings.
-        </p>
-
+      {/* Header Section */}
+      <div className="text-center mb-4">
         {/* Search Box */}
-        <div className="mb-6">
-          <input
-            type="text"
-            placeholder="Search Enlightenments..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gray-500 focus:border-transparent dark:bg-gray-800 dark:border-gray-600 dark:text-gray-100 w-full max-w-md mx-auto block"
-          />
+        <div className="mb-6 max-w-md mx-auto">
+          <div className="relative">
+            <input
+              type="text"
+              placeholder="Search teachings..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="w-full px-4 py-3 pl-10 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gray-500 focus:border-transparent dark:bg-gray-800 dark:border-gray-600 dark:text-gray-100"
+            />
+            <svg
+              className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+              />
+            </svg>
+          </div>
         </div>
 
-        {/* Filter Tabs */}
-        <div className="flex gap-2 flex-wrap justify-center mb-1">
+        {/* Category Filter */}
+        <div className="flex gap-2 flex-wrap justify-center">
           {categories.map(category => (
             <button
               key={category}
-              onClick={() => setSelectedCategory(category)}
-              className={`px-3 py-1 rounded text-sm font-medium transition-colors ${
+              onClick={() => setSelectedCategory(category as string)}
+              className={`px-4 py-2 rounded-full text-sm font-medium transition-colors ${
                 selectedCategory === category
-                  ? 'bg-gray-800 text-white dark:bg-gray-200 dark:text-gray-900'
+                  ? 'bg-gray-900 text-white dark:bg-gray-100 dark:text-gray-900'
                   : 'bg-gray-100 text-gray-700 hover:bg-gray-200 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700'
               }`}
             >
@@ -119,44 +125,74 @@ export function EnlightenmentClient() {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {filteredenlightenment.map((enlightenment) => (
+      {/* Results Count */}
+      <div className="font-mono text-xs font-semibold tracking-wider text-gray-700 uppercase dark:text-gray-300">
+        {filteredTeachings.length} {filteredTeachings.length === 1 ? 'Teaching' : 'Teachings'}
+      </div>
+
+      {/* Teachings Grid */}
+      <div className="grid grid-cols-1 gap-5 lg:grid-cols-2">
+        {filteredTeachings.map((teaching) => (
           <Link
-            key={enlightenment.id}
-            href={`/enlightenment/${enlightenment.slug}`}
-            className="group flex flex-col gap-4 rounded-lg bg-gray-50 px-6 py-6 hover:bg-gray-100 dark:bg-gray-950 dark:hover:bg-gray-800 transition-all duration-200 hover:shadow-lg"
+            key={teaching.id}
+            href={`/enlightenment/${teaching.slug}`}
+            className="group flex flex-col gap-1 rounded-lg bg-gray-50 px-5 py-3 hover:bg-gray-100 dark:bg-gray-800 dark:hover:bg-gray-950 transition-colors"
           >
-            <div className="flex items-start justify-between">
-              <div className="flex-1">
-                <div className="flex items-center gap-2 mb-2">
-                  <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getStatusColor(enlightenment.status)}`}>
-                    {enlightenment.status}
-                  </span>
-                  <span className="text-sm text-gray-500 dark:text-gray-400">
-                    {enlightenment.category}
-                  </span>
-                </div>
-                <h3 className="text-lg font-semibold text-gray-900 group-hover:text-gray-700 dark:text-gray-100 dark:group-hover:text-gray-300 mb-2">
-                  {enlightenment.title}
-                </h3>
-                <p className="text-sm text-gray-600 group-hover:text-gray-800 dark:text-gray-400 dark:group-hover:text-gray-300 line-clamp-3">
-                  {enlightenment.description}
-                </p>
+            <div className="flex items-center justify-between font-medium text-gray-900 group-hover:text-gray-700 dark:text-gray-200 dark:group-hover:text-gray-50">
+              {teaching.title}
+              <DifficultyBadge level={teaching.difficulty_level || ''} />
+            </div>
+
+            {teaching.description && (
+              <div className="line-clamp-3 text-[13px] text-gray-600 group-hover:text-gray-800 dark:text-gray-500 dark:group-hover:text-gray-300">
+                {teaching.description}
               </div>
-            </div>
-            
-            <div className="flex items-center justify-between text-xs text-gray-500 dark:text-gray-400">
-              <span>Learn more →</span>
-            </div>
+            )}
+
+            {teaching.category && (
+              <div className="mt-1">
+                <span className="text-xs text-gray-400 dark:text-gray-500">
+                  {teaching.category}
+                </span>
+              </div>
+            )}
           </Link>
         ))}
       </div>
 
-      {filteredenlightenment.length === 0 && (
+      {/* Empty State */}
+      {filteredTeachings.length === 0 && (
         <div className="text-center py-12">
+          <div className="w-16 h-16 mx-auto mb-4 bg-gray-100 dark:bg-gray-800 rounded-full flex items-center justify-center">
+            <svg
+              className="w-8 h-8 text-gray-400"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"
+              />
+            </svg>
+          </div>
+          <h3 className="text-lg font-medium text-gray-900 dark:text-gray-100 mb-2">
+            No teachings found
+          </h3>
           <p className="text-gray-500 dark:text-gray-400">
-            No enlightenment found matching your search.
+            Try adjusting your search or filter criteria.
           </p>
+          <button
+            onClick={() => {
+              setSearchTerm('');
+              setSelectedCategory('All');
+            }}
+            className="mt-4 text-sm text-gray-600 dark:text-gray-400 hover:underline"
+          >
+            Clear filters
+          </button>
         </div>
       )}
     </Boundary>

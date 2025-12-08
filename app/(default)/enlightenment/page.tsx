@@ -2,6 +2,8 @@
 import { getAllEnlightenmentTemplates } from '@/lib/db';
 import EnlightenmentClient from './enlightenment-client';
 
+export const dynamic = 'force-dynamic';
+
 export const metadata = {
   title: 'Enlightenment - Spiritual Teachings',
   description: 'Explore spiritual teachings, wisdom traditions, and practices for inner growth.',

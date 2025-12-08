@@ -11,13 +11,13 @@ export default function IlluminatiArchive() {
   // Use static data - NO database calls in server components
   const sections = [
     {
-      name: 'Conspiracies',
+      name: 'Mysteries',
       items: [
         {
           name: 'The Illuminati',
           status: 'Verified',
-          slug: 'real/illuminati-history',
-          description: 'A secret society founded in 1776 that allegedly controls world events. Or a brotherhood of mystics seeking enlightenment?',
+          slug: 'mysteries/illuminati-history',
+          description: 'A secret society founded in 1776 that allegedly controls world events. Or an ancient brotherhood of mystics seeking enlightenment?',
         },
         {
           name: 'Moon Landing Hoax',

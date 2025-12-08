@@ -15,6 +15,15 @@ export async function GET(request: NextRequest) {
   }
 }
 
+// Update POST and PUT to handle keywords
+
+// In the processArray helper, add handling for keywords:
+const processArray = (value: string | string[] | undefined): string[] => {
+  if (!value) return [];
+  if (Array.isArray(value)) return value.filter(s => s && s.trim());
+  return value.split('\n').map(s => s.trim()).filter(s => s);
+};
+
 export async function POST(request: NextRequest) {
   try {
     // Process arrays
@@ -24,14 +33,16 @@ export async function POST(request: NextRequest) {
       key_facts: string[];
       debunking_points: string[];
       sources: string[];
+      keywords: string[];  // Add this
       [key: string]: any;
     }
 
     const processedData: ConspiracyTemplateProcessed = {
       ...data,
-      key_facts: data.key_facts.split('\n').map((s: string) => s.trim()).filter((s: string) => s),
-      debunking_points: data.debunking_points.split('\n').map((s: string) => s.trim()).filter((s: string) => s),
-      sources: data.sources.split('\n').map((s: string) => s.trim()).filter((s: string) => s),
+      key_facts: processArray(data.key_facts),
+      debunking_points: processArray(data.debunking_points),
+      sources: processArray(data.sources),
+      keywords: processArray(data.keywords),  // Add this
     };
     console.log('Processed data:', processedData);
     

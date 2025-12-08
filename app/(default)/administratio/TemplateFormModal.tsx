@@ -13,6 +13,7 @@ export interface TemplateFormData {
   key_facts: string
   debunking_points: string
   sources: string
+  keywords: string 
   difficulty_level: string
   is_active: boolean
   content_type: 'ai' | 'manual'
@@ -31,6 +32,7 @@ export interface Template {
   key_facts?: string[]
   debunking_points?: string[]
   sources?: string[]
+  keywords?: string[] 
   difficulty_level?: string
   is_active?: boolean
   content_type?: string
@@ -52,6 +54,7 @@ const initialFormData: TemplateFormData = {
   key_facts: '',
   debunking_points: '',
   sources: '',
+  keywords: '', // Add this
   difficulty_level: 'medium',
   is_active: true,
   content_type: 'ai',
@@ -79,6 +82,7 @@ export default function TemplateFormModal({
         key_facts: editingTemplate.key_facts?.join('\n') || '',
         debunking_points: editingTemplate.debunking_points?.join('\n') || '',
         sources: editingTemplate.sources?.join('\n') || '',
+        keywords: editingTemplate.keywords?.join('\n') || '', // Add this
         difficulty_level: editingTemplate.difficulty_level || 'medium',
         is_active: editingTemplate.is_active ?? true,
         content_type: (editingTemplate.content_type as 'ai' | 'manual') || 'ai',
@@ -302,6 +306,26 @@ export default function TemplateFormModal({
                 rows={3}
                 placeholder="Enter sources, one per line..."
               />
+            </div>
+
+            {/* Keywords */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                Auto-Link Keywords <span className="text-xs text-gray-500">(one per line)</span>
+              </label>
+              <textarea
+                value={formData.keywords}
+                onChange={(e) => setFormData({ ...formData, keywords: e.target.value })}
+                className="form-textarea w-full"
+                rows={3}
+                placeholder="Illuminati
+secret society
+NWO
+New World Order"
+              />
+              <p className="text-xs text-gray-500 mt-1">
+                These terms will automatically link to this article when found in other content.
+              </p>
             </div>
 
             {/* Manual Content (only shown when content_type is 'manual') */}

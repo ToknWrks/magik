@@ -90,9 +90,7 @@ export function useAutoLinks(): {
 
             if (part.toLowerCase() === keyword.toLowerCase()) {
               linksCreated++;
-              const href = type === 'enlightenment'
-                ? `/enlightenment/${slug}`
-                : `/mysteries/${slug}`;
+              const href = slug;
 
               newResult.push(
                 <Link

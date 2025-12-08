@@ -9,8 +9,14 @@ const pool = new Pool({
 
 export async function GET() {
   try {
-    // Get all active templates
-    const [mysteries, enlightenment] = await Promise.all([
+    // Get manual keyword mappings
+    const mappings = await pool.query(`
+      SELECT keyword, target_slug, target_type 
+      FROM keyword_mappings
+    `);
+
+    // Get all active templates for title matching
+    const [mysteries, enlightenment, conspiracies] = await Promise.all([
       pool.query(`
         SELECT title, slug, 'mystery' as type 
         FROM conspiracy_templates 
@@ -21,70 +27,43 @@ export async function GET() {
         FROM enlightenment_templates 
         WHERE is_active = true
       `),
+      pool.query(`
+        SELECT title, slug, 'conspiracy' as type 
+        FROM conspiracy_templates 
+        WHERE is_active = true
+      `),
     ]);
 
-    const keywords: { keyword: string; slug: string; type: 'mystery' | 'enlightenment' }[] = [];
+    const keywordsList: { keyword: string; slug: string; type: 'mystery' | 'enlightenment' | 'conspiracy' }[] = [];
 
-    // Add mystery keywords
-    mysteries.rows.forEach((r) => {
-      // Add full title
-      keywords.push({
-        keyword: r.title,
-        slug: r.slug,
-        type: 'mystery',
-      });
-      
-      // Extract key terms from title (words with 6+ characters, excluding common words)
-      const commonWords = ['the', 'and', 'that', 'with', 'from', 'they', 'are', 'was', 'were', 'have', 'has', 'been', 'being', 'through', 'about', 'into', 'over', 'after', 'before'];
-      const words = r.title.split(/\s+/);
-      words.forEach((word: string) => {
-        const cleanWord = word.replace(/[^a-zA-Z]/g, '');
-        if (cleanWord.length >= 6 && !commonWords.includes(cleanWord.toLowerCase())) {
-          // Avoid duplicates
-          if (!keywords.find(k => k.keyword.toLowerCase() === cleanWord.toLowerCase())) {
-            keywords.push({
-              keyword: cleanWord,
-              slug: r.slug,
-              type: 'mystery',
-            });
-          }
-        }
+    // Add manual mappings first (highest priority)
+    mappings.rows.forEach((r) => {
+      keywordsList.push({
+        keyword: r.keyword,
+        slug: r.target_slug,
+        type: r.target_type as 'mystery' | 'enlightenment' | 'conspiracy',
       });
     });
 
-    // Add enlightenment keywords
-    enlightenment.rows.forEach((r) => {
-      // Add full title
-      keywords.push({
-        keyword: r.title,
-        slug: r.slug,
-        type: 'enlightenment',
-      });
+    // Add template titles (lower priority, only if not already mapped)
+    [...mysteries.rows, ...enlightenment.rows, ...conspiracies.rows].forEach((r) => {
+      const path = r.type === 'enlightenment' ? '/enlightenment/' : '/mysteries/';
+      const fullSlug = path + r.slug;
       
-      // Extract key terms
-      const commonWords = ['the', 'and', 'that', 'with', 'from', 'they', 'are', 'was', 'were', 'have', 'has', 'been', 'being', 'through', 'about', 'into', 'over', 'after', 'before', 'teachings', 'concepts', 'benefits', 'core'];
-      const words = r.title.split(/\s+/);
-      words.forEach((word: string) => {
-        const cleanWord = word.replace(/[^a-zA-Z]/g, '');
-        if (cleanWord.length >= 5 && !commonWords.includes(cleanWord.toLowerCase())) {
-          if (!keywords.find(k => k.keyword.toLowerCase() === cleanWord.toLowerCase())) {
-            keywords.push({
-              keyword: cleanWord,
-              slug: r.slug,
-              type: 'enlightenment',
-            });
-          }
-        }
-      });
+      // Only add title if not already mapped to this slug
+      if (!keywordsList.find(k => k.slug === fullSlug)) {
+        keywordsList.push({
+          keyword: r.title,
+          slug: fullSlug,
+          type: r.type as 'mystery' | 'enlightenment' | 'conspiracy',
+        });
+      }
     });
 
-    // Sort by keyword length (longest first) to prioritize full matches
-    keywords.sort((a, b) => b.keyword.length - a.keyword.length);
+    // Sort by keyword length (longest first) to prioritize longer matches
+    keywordsList.sort((a, b) => b.keyword.length - a.keyword.length);
 
-    console.log('Keywords count:', keywords.length);
-    console.log('Sample keywords:', keywords.slice(0, 10).map(k => k.keyword));
-
-    return NextResponse.json({ keywords });
+    return NextResponse.json({ keywords: keywordsList });
   } catch (error) {
     console.error('Keywords fetch error:', error);
     return NextResponse.json({ keywords: [] });

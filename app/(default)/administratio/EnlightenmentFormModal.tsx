@@ -14,6 +14,7 @@ export interface EnlightenmentFormData {
   key_teachings: string
   spiritual_practices: string
   sources: string
+  keywords: string  // Add this
   difficulty_level: string
   is_active: boolean
   content_type: 'ai' | 'manual'
@@ -30,6 +31,7 @@ export interface EnlightenmentTemplate {
   key_teachings?: string[]
   spiritual_practices?: string[]
   sources?: string[]
+  keywords?: string[]  // Add this
   difficulty_level?: string
   is_active?: boolean
   content_type?: string
@@ -54,6 +56,7 @@ const initialFormData: EnlightenmentFormData = {
   key_teachings: '',
   spiritual_practices: '',
   sources: '',
+  keywords: '',  // Add this
   difficulty_level: 'beginner',
   is_active: true,
   content_type: 'ai',
@@ -99,6 +102,7 @@ export default function EnlightenmentFormModal({
         key_teachings: editingTemplate.key_teachings?.join('\n') || '',
         spiritual_practices: editingTemplate.spiritual_practices?.join('\n') || '',
         sources: editingTemplate.sources?.join('\n') || '',
+        keywords: editingTemplate.keywords?.join('\n') || '',  // Add this
         difficulty_level: editingTemplate.difficulty_level || 'beginner',
         is_active: editingTemplate.is_active ?? true,
         content_type: (editingTemplate.content_type as 'ai' | 'manual') || 'ai',
@@ -258,6 +262,7 @@ export default function EnlightenmentFormModal({
                   <option value="beginner">Beginner - New to spiritual practice</option>
                   <option value="intermediate">Intermediate - Some experience</option>
                   <option value="advanced">Advanced - Experienced practitioners</option>
+                  <option value="All Levels"></option>
                 </select>
               </div>
               <div className="flex items-center pt-6">
@@ -358,6 +363,26 @@ Walking meditation"
 Tao Te Ching - Lao Tzu
 Autobiography of a Yogi - Paramahansa Yogananda"
               />
+            </div>
+
+            {/* Keywords */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                Auto-Link Keywords <span className="text-xs text-gray-500">(one per line)</span>
+              </label>
+              <textarea
+                value={formData.keywords}
+                onChange={(e) => setFormData({ ...formData, keywords: e.target.value })}
+                className="form-textarea w-full"
+                rows={3}
+                placeholder="meditation
+mindfulness
+inner peace
+meditate"
+              />
+              <p className="text-xs text-gray-500 mt-1">
+                These terms will automatically link to this teaching when found in other content.
+              </p>
             </div>
 
             {/* Manual Content (only shown when content_type is 'manual') */}

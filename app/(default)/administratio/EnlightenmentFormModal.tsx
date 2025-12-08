@@ -11,10 +11,10 @@ export interface EnlightenmentFormData {
   description: string
   status: string
   category: string
-  key_teachings: string
-  spiritual_practices: string
-  sources: string
-  keywords: string  // Add this
+  key_teachings: string | string[]
+  spiritual_practices: string | string[]
+  sources: string | string[]
+  keywords: string | string[]  // Add this
   difficulty_level: string
   is_active: boolean
   content_type: 'ai' | 'manual'
@@ -77,6 +77,8 @@ const categories = [
   'Energy Work',
   'Sacred Texts',
   'Philosophy',
+  "Tree of Life",
+  "Ritual",
   'Other',
 ]
 
@@ -128,7 +130,25 @@ export default function EnlightenmentFormModal({
     setSaving(true)
 
     try {
-      await onSave(formData)
+      // Convert textarea strings to arrays for submission
+      const submitData = {
+        ...formData,
+        key_teachings: Array.isArray(formData.key_teachings) 
+          ? formData.key_teachings 
+          : formData.key_teachings.split('\n').filter(s => s.trim()),
+        spiritual_practices: Array.isArray(formData.spiritual_practices) 
+          ? formData.spiritual_practices 
+          : formData.spiritual_practices.split('\n').filter(s => s.trim()),
+        sources: Array.isArray(formData.sources) 
+          ? formData.sources 
+          : formData.sources.split('\n').filter(s => s.trim()),
+        keywords: Array.isArray(formData.keywords) 
+          ? formData.keywords 
+          : formData.keywords.split('\n').filter(s => s.trim()),
+      };
+
+      console.log('Submitting data:', submitData);
+      await onSave(submitData)
       onClose()
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to save teaching')

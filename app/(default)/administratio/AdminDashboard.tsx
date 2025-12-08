@@ -396,32 +396,39 @@ function AdminDashboardContent() {
   };
 
   const handleEnlightenmentSubmit = async (data: EnlightenmentFormData) => {
-    const method = editingEnlightenment ? 'PUT' : 'POST';
-    const url = editingEnlightenment 
-      ? `/api/admin/enlightenment/${editingEnlightenment.id}` 
-      : '/api/admin/enlightenment';
-    
-    const res = await fetch(url, {
-      method,
-      headers: { 'Content-Type': 'application/json' },
-      credentials: 'include',
-      body: JSON.stringify(data),
-    });
-    
-    if (!res.ok) {
-      const error = await res.json();
-      throw new Error(error.error || 'Failed to save teaching');
+    try {
+      console.log('Enlightenment submit data:', data); // Add logging
+      
+      const method = editingEnlightenment ? 'PUT' : 'POST';
+      const url = editingEnlightenment 
+        ? `/api/admin/enlightenment/${editingEnlightenment.id}` 
+        : '/api/admin/enlightenment';
+      
+      const res = await fetch(url, {
+        method,
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify(data),
+      });
+      
+      if (!res.ok) {
+        const errorData = await res.json();
+        throw new Error(errorData.error || 'Failed to save teaching');
+      }
+      
+      // Refresh content
+      const enlightenmentRes = await fetch('/api/admin/enlightenment', { credentials: 'include' });
+      const enlightenmentData = await enlightenmentRes.json();
+      setEnlightenmentTemplates(
+        (enlightenmentData.templates || []).map((e: EnlightenmentTemplate) => ({ ...e, type: 'enlightenment' }))
+      );
+      
+      setShowEnlightenmentForm(false);
+      setEditingEnlightenment(null);
+    } catch (error) {
+      console.error('Enlightenment save error:', error);
+      throw error;
     }
-    
-    // Refresh
-    const enlightenmentRes = await fetch('/api/admin/enlightenment', { credentials: 'include' });
-    const enlightenmentData = await enlightenmentRes.json();
-    setEnlightenmentTemplates(
-      (enlightenmentData.templates || []).map((e: EnlightenmentTemplate) => ({ ...e, type: 'enlightenment' }))
-    );
-    
-    setShowEnlightenmentForm(false);
-    setEditingEnlightenment(null);
   };
 
   // Update fetch function

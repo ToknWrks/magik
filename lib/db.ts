@@ -242,33 +242,58 @@ export async function createEnlightenmentTemplate(data: {
   description?: string;
   category?: string;
   status?: string;
-  key_teachings?: string[];
-  spiritual_practices?: string[];
-  sources?: string[];
+  key_teachings?: string | string[];
+  spiritual_practices?: string | string[];
+  sources?: string | string[];
+  keywords?: string | string[];
   difficulty_level?: string;
   is_active?: boolean;
   content_type?: string;
   article_content?: string;
 }) {
+  // Process array fields
+  const processedData = { ...data };
+  
+  // Ensure array fields are arrays
+  if (processedData.key_teachings && typeof processedData.key_teachings === 'string') {
+    processedData.key_teachings = processedData.key_teachings === '' ? [] : 
+      processedData.key_teachings.split('\n').map(s => s.trim()).filter(s => s);
+  }
+  if (processedData.spiritual_practices && typeof processedData.spiritual_practices === 'string') {
+    processedData.spiritual_practices = processedData.spiritual_practices === '' ? [] : 
+      processedData.spiritual_practices.split('\n').map(s => s.trim()).filter(s => s);
+  }
+  if (processedData.sources && typeof processedData.sources === 'string') {
+    processedData.sources = processedData.sources === '' ? [] : 
+      processedData.sources.split('\n').map((s: string) => s.trim()).filter((s: string) => s);
+  }
+  if (processedData.keywords && typeof processedData.keywords === 'string') {
+    processedData.keywords = processedData.keywords === '' ? [] : 
+      processedData.keywords.split('\n').map((s: string) => s.trim()).filter((s: string) => s);
+  }
+
+  console.log('Creating template with processed data:', processedData);
+
   const result = await pool.query(
     `INSERT INTO enlightenment_templates 
       (title, slug, description, category, status, key_teachings, spiritual_practices, 
-       sources, difficulty_level, is_active, content_type, article_content)
-     VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)
+       sources, keywords, difficulty_level, is_active, content_type, article_content)
+     VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13)
      RETURNING *`,
     [
-      data.title,
-      data.slug,
-      data.description || '',
-      data.category || '',
-      data.status || 'Draft',
-      data.key_teachings || [],
-      data.spiritual_practices || [],
-      data.sources || [],
-      data.difficulty_level || 'beginner',
-      data.is_active ?? true,
-      data.content_type || 'ai',
-      data.article_content || '',
+      processedData.title,
+      processedData.slug,
+      processedData.description || '',
+      processedData.category || '',
+      processedData.status || 'Draft',
+      processedData.key_teachings || [],
+      processedData.spiritual_practices || [],
+      processedData.sources || [],
+      processedData.keywords || [],
+      processedData.difficulty_level || 'beginner',
+      processedData.is_active ?? true,
+      processedData.content_type || 'ai',
+      processedData.article_content || '',
     ]
   );
   return result.rows[0];
@@ -280,9 +305,10 @@ export async function updateEnlightenmentTemplate(id: string, data: Partial<{
   description: string;
   category: string;
   status: string;
-  key_teachings: string[];
-  spiritual_practices: string[];
-  sources: string[];
+  key_teachings: string | string[];
+  spiritual_practices: string | string[];
+  sources: string | string[];
+  keywords: string | string[];
   difficulty_level: string;
   is_active: boolean;
   content_type: string;
@@ -292,7 +318,28 @@ export async function updateEnlightenmentTemplate(id: string, data: Partial<{
   const values: any[] = [];
   let paramCount = 1;
 
-  Object.entries(data).forEach(([key, value]) => {
+  // Process array fields to ensure they're proper arrays
+  const processedData = { ...data };
+  
+  // Ensure array fields are arrays, not strings
+  if (processedData.key_teachings && typeof processedData.key_teachings === 'string') {
+    processedData.key_teachings = processedData.key_teachings === '' ? [] : 
+      processedData.key_teachings.split('\n').map(s => s.trim()).filter(s => s);
+  }
+  if (processedData.spiritual_practices && typeof processedData.spiritual_practices === 'string') {
+    processedData.spiritual_practices = processedData.spiritual_practices === '' ? [] : 
+      processedData.spiritual_practices.split('\n').map(s => s.trim()).filter(s => s);
+  }
+  if (processedData.sources && typeof processedData.sources === 'string') {
+    processedData.sources = processedData.sources === '' ? [] : 
+      processedData.sources.split('\n').map(s => s.trim()).filter(s => s);
+  }
+  if (processedData.keywords && typeof processedData.keywords === 'string') {
+    processedData.keywords = processedData.keywords === '' ? [] : 
+      processedData.keywords.split('\n').map((s: string) => s.trim()).filter((s: string) => s);
+  }
+
+  Object.entries(processedData).forEach(([key, value]) => {
     if (value !== undefined) {
       fields.push(`${key} = $${paramCount}`);
       values.push(value);
@@ -304,6 +351,9 @@ export async function updateEnlightenmentTemplate(id: string, data: Partial<{
 
   fields.push(`updated_at = NOW()`);
   values.push(id);
+
+  console.log('Update query fields:', fields);
+  console.log('Update query values:', values.map((v, i) => `${i}: ${Array.isArray(v) ? `[${v.join(', ')}]` : v}`));
 
   const result = await pool.query(
     `UPDATE enlightenment_templates 

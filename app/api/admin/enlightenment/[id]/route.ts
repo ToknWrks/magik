@@ -15,6 +15,7 @@ export async function PUT(
   try {
     const { id } = await params;
     const data = await request.json();
+    console.log('PUT data received:', data);
 
     // Verify admin
     const userId = request.cookies.get('user_id')?.value;
@@ -31,21 +32,8 @@ export async function PUT(
       return NextResponse.json({ error: 'Admin access required' }, { status: 403 });
     }
 
-    // Process arrays
-    const processArray = (value: string | string[] | undefined): string[] => {
-      if (!value) return [];
-      if (Array.isArray(value)) return value.filter(s => s && s.trim());
-      return value.split('\n').map(s => s.trim()).filter(s => s);
-    };
-
-    const processedData = {
-      ...data,
-      key_teachings: processArray(data.key_teachings),
-      spiritual_practices: processArray(data.spiritual_practices),
-      sources: processArray(data.sources),
-    };
-
-    const template = await updateEnlightenmentTemplate(id, processedData);
+    // The database function will handle array processing
+    const template = await updateEnlightenmentTemplate(id, data);
 
     if (!template) {
       return NextResponse.json({ error: 'Template not found' }, { status: 404 });

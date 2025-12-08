@@ -43,6 +43,7 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   try {
     const data = await request.json();
+    console.log('POST data received:', data);
 
     // Verify admin
     const userId = request.cookies.get('user_id')?.value;
@@ -59,21 +60,8 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Admin access required' }, { status: 403 });
     }
 
-    // Process arrays
-    const processArray = (value: string | string[] | undefined): string[] => {
-      if (!value) return [];
-      if (Array.isArray(value)) return value.filter(s => s && s.trim());
-      return value.split('\n').map(s => s.trim()).filter(s => s);
-    };
-
-    const processedData = {
-      ...data,
-      key_teachings: processArray(data.key_teachings),
-      spiritual_practices: processArray(data.spiritual_practices),
-      sources: processArray(data.sources),
-    };
-
-    const template = await createEnlightenmentTemplate(processedData);
+    // The database function will handle array processing
+    const template = await createEnlightenmentTemplate(data);
 
     return NextResponse.json({ template });
   } catch (error) {

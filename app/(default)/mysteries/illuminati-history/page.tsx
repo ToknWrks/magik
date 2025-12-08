@@ -384,9 +384,9 @@ export const metadata = {
                         Three distinct historical layers that constantly bleed into each other:<br /> 
 
                       <b>Pre-modern mystical “illuminés” </b> (Alumbrados, Hesychasts, etc.) — genuine contemplatives accused of heresy for direct experience over hierarchy.
-                      <br />
+                      <br /> <br />
                       <b>1776–1785 Bavarian Illuminati </b> — a short-lived, anti-mystical, hyper-rationalist secret society that ironically adopts a name already tainted by centuries of anti-heretical rhetoric.
-                      <br />
+                      <br /> <br />
                       <b>Post-1797 conspiracy myth </b> — fuses (1) and (2) into a single immortal anti-Christian cabal, becoming the all-purpose modern scapegoat for disenchantment, secularization, and loss of traditional authority.
 
 The genius (and tragedy) of the myth is that it weaponizes real historical contempt for unmediated mystical experience (layer 1) to explain the success of rationalist secular projects (layer 2) that actually despised mysticism.

@@ -71,15 +71,20 @@ export const metadata = {
                           
                           Mystical practices originated with shamanism in indigenous cultures worldwide. Australian Aboriginal Dreamtime practices (continuous from at least 65,000 years ago) appear to be the oldest living mystical tradition: 
                           songlines, visionary journeys in trance, and the understanding that reality is co-created through ancestral illumination in the “Dreaming.” 
-                          This predates and parallels Paleolithic shamanism elsewhere. Slightly later shamanic practices are
+                          This predates and parallels Paleolithic shamanism elsewhere. 
+                          Slightly later shamanic practices are
                             evidenced by Upper Paleolithic cave paintings and artifacts in Europe, Asia, Africa, and the Americas. 
                             Shamans served as intermediaries, using rituals, herbs, drumming, chanting, and altered states 
                             (e.g., via plants like ayahuasca) for healing, divination, and spiritual journeys to restore harmony between 
-                            physical, emotional, and spiritual realms. These practices were highly popular in tribal societies, forming the core of 
+                            physical, emotional, and spiritual realms. 
+                            <br /><br />
+                            These practices were highly popular in tribal societies, forming the core of 
                             community life and influencing early views of health as cosmic balance. Culturally, 
                             they fostered reverence for nature, ancestral wisdom, and holistic worldviews, 
                             laying foundations for global spiritual traditions and impacting art through symbolic 
-                            representations. Shamanism and mystery religions dominate. The concept of <b>“illumination”</b> (direct divine knowledge or gnosis) 
+                            representations. Shamanism and mystery religions dominate. 
+                            <br /><br />
+                            The concept of <b>“illumination”</b> (direct divine knowledge or gnosis) 
                             appears early in Gnostic sects (1st–3rd centuries CE), which claim secret wisdom from higher realms and are branded heretical by orthodox Christianity. 
                             These groups are sometimes retrospectively labeled “Illuminist” because they emphasize inner light over institutional doctrine.</div>
                       </li>
@@ -98,29 +103,29 @@ export const metadata = {
                             esoteric rituals blended magic, incantations <a href="../mysteries/surpu-series">
                             (e.g., Šurpu Series) </a> , and herbal remedies with spiritual 
                             elements to address illness as disruptions in cosmic order (ma’at). 
-                            <br />
+                            <br /><br />
                             <b>Ayurveda</b> (over 5000 years ago) integrated dosha balance via meditation and herbs. 
-                            <br />
+                            <br /><br />
                             <b>Greek mystery religions, such as Eleusinian 
                             Mysteries</b> (c. 1500–1400 BCE), involved ecstatic initiations with strong evidence that the kykeon was an ergot-based entheogen producing profound mystical death/rebirth experiences.
-                            <br />
+                            <br /><br />
                             <b>Zoroastrian mysticism</b> (c. 1500–1000 BCE): the visionary poetry of the Gathas, fravahar (divine spark/inner light), and the later Zurvanite emphasis on transcendent time and illumination.
-                            <br />
+                            <br /><br />
                             <b>Hinduism's Upanishads</b> (c. 800-200 BCE) emphasized self-inquiry and yoga for moksha (liberation),
-                            <br />
+                            <br /><br />
                             <b>Pythagorean communities</b> (6th century BCE) and their akousmata (secret teachings) explicitly used the term “illumination” for mathematical-mystical insight into cosmic harmony.
-                            <br />
+                            <br /><br />
                             <b>Buddhism</b> (c. 5th century BCE) promoted meditation for nirvana, with paths like Zen's satori. 
-                            <br />
+                            <br /><br />
                             <b>Taoism in China</b> (c. 500 BCE) focused on qi harmony.
-                            <br />
+                            <br /><br />
                             <b>Hellenistic Orphic tradition and the Gold Tablets</b> (4th century BCE–2nd century CE) that promise post-mortem illumination and deification to initiates.
-                            <br />
+                            <br /><br />
                             <b>Neoplatonism</b> (Plotinus, 3rd century CE) described henosis (union with the One). 
                             Early Christianity incorporated theoria (contemplation) and apophatic theology. 
                             Popularity peaked in mystery cults and Eastern philosophies, influencing philosophy 
                             (e.g., nondualism), medicine (holistic approaches via Silk Road exchanges), and ethics by promoting interconnectedness and 
-                            transcendence of ego. <br />
+                            transcendence of ego. <br /><br />
                             Shamanism and mystery religions dominate as before. The concept of <b>“illumination”</b> (direct divine knowledge or gnosis) 
                             appears early in Gnostic sects (1st–3rd centuries CE), which claim secret wisdom from higher realms and are branded heretical by orthodox Christianity. 
                             These groups are sometimes retrospectively labeled “Illuminist” because they emphasize inner light over institutional doctrine.
@@ -142,27 +147,29 @@ export const metadata = {
                           <br />
                           In Christianity, Pseudo-Dionysius (c. 500 CE) advanced apophatic theology, 
                             influencing monasticism.   
-                             <br />
-                             9th–10th century emergence of the Brethren of Purity (Ikhwan al-Safa) in Basra/Baghdad — an Ismaili-influenced encyclopedic esoteric fraternity that self-described as “illuminated” sages synthesizing Neoplatonism, Pythagoreanism, and Abrahamic revelation.
-                             <br />
-                             Hildegard of Bingen (1098–1179) and the Rhineland/Flemish visionary women (Hadewijch, Beatrice of Nazareth) — major female illuminist currents that prefigure the Beguines.
-                             <br />
-                             Sufism in Islam (from early asceticism) emphasized dhikr (remembrance), sama (ecstatic music), and fana (self-annihilation), 
+                             <br /><br />
+                             <b>9th–10th century emergence of the Brethren of Purity</b>(Ikhwan al-Safa) in Basra/Baghdad — an Ismaili-influenced encyclopedic esoteric fraternity that self-described as “illuminated” sages synthesizing Neoplatonism, Pythagoreanism, and Abrahamic revelation.
+                             <br /><br />
+                             <b>Hildegard of Bingen (1098–1179) </b> and the Rhineland/Flemish visionary women (Hadewijch, Beatrice of Nazareth) — major female illuminist currents that prefigure the Beguines.
+                             <br /><br />
+                             <b>Sufism in Islam </b> (from early asceticism) emphasized dhikr (remembrance), sama (ecstatic music), and fana (self-annihilation), 
                              with peaks via Rumi (1207-1273) and al-Hallaj (858-922). 
-                             <br />
-                             Figures like Meister Eckhart (c. 1260-1328) with unio mystica
+                             <br /><br />
+                             <b>Figures like Meister Eckhart (c. 1260-1328)</b> with unio mystica
                              (mystical union) and movements like Beguines and Rhineland mystics spread it beyond cloisters.
-                             <br />
-                             Jewish Kabbalah (12th-13th centuries) used meditative diagrams and theurgic practices for 
+                             <br /><br />
+                             <b>Jewish Kabbalah (12th-13th centuries)</b> used meditative diagrams and theurgic practices for 
                              divine union, revitalized in 16th-century Safed. 
-                             <br />
-                             The Grail cycle (late 12th–13th century, especially Wolfram von Eschenbach’s Parzival) as a Western esoteric narrative of initiatory illumination that later feeds heavily into Rosicrucian and modern occult mythology.
-                             <br />
-                             Tibetan Buddhism's Dzogchen and Vajrayana deity yoga 
+                             <br /><br />
+                             <b>The Grail cycle (late 12th–13th century, especially Wolfram von Eschenbach’s Parzival)</b> as a Western esoteric narrative of initiatory illumination that later feeds heavily into Rosicrucian and modern occult mythology.
+                             <br /><br />
+                             <b>Tibetan Buddhism's Dzogchen and Vajrayana deity yoga </b>
                              gained traction. Popularity surged in Europe, Persia, and Spain through monastic orders, 
                              courts, and poetry, impacting culture by inspiring literature (e.g., Rumi's verses), 
                              art (mandalas, symbols), architecture (e.g., Gothic cathedrals symbolizing ascent), and social 
-                             reforms via ethical introspection and tolerance. Mystical illumination remains central in Christian, Islamic, and Jewish traditions (as before). The term <b>“Illuminati”</b> first appears historically in 15th–16th-century Spain with the Alumbrados (“the Enlightened Ones”), a contemplative movement that stresses passive reception of divine light, abandonment of ritual, and direct union with God without ecclesiastical mediation. The Spanish Inquisition suppresses them as heretical (1520s–1570s), accusing them of antinomianism and quietism; some flee to France where similar groups (Guérinets, Illuminés) emerge. 
+                             reforms via ethical introspection and tolerance. Mystical illumination remains central in Christian, Islamic, and Jewish traditions (as before). 
+                             <br /><br />
+                             The term <b>“Illuminati”</b> first appears historically in 15th–16th-century Spain with the Alumbrados (“the Enlightened Ones”), a contemplative movement that stresses passive reception of divine light, abandonment of ritual, and direct union with God without ecclesiastical mediation. The Spanish Inquisition suppresses them as heretical (1520s–1570s), accusing them of antinomianism and quietism; some flee to France where similar groups (Guérinets, Illuminés) emerge. 
                              This marks the first explicit use of <b>“Illuminati”</b> as a pejorative for mystics who bypass religious hierarchy.</div>
                       </li>
                        {/* List item */}
@@ -177,32 +184,25 @@ export const metadata = {
                           <h3 className="text-lg font-bold text-gray-800 dark:text-gray-100 pl-9">Renaissance and Early Modern Era (1500-1800 CE)</h3>
                         </div>
                         <div className="pl-9">
-                        Besides the Spanish Alumbrados (first documented 1511–1519, suppressed from 1525 onward), there were earlier groups explicitly called "Illuminati" or "Illuminés":
-                    
-                     <li>The 14th-century Hesychast controversy in Byzantium produced accusations of "Messalian Illuminati."</li>
-
-                          Mysticism adapted amid secularization. Christian affective mysticism (Jean Gerson) extended to laypeople, with Spanish mystics 
-                        like Teresa of Ávila (1515-1582) emphasizing ecstatic prayer. 
-                        <br />
-                        <li>In 1530s Italy, a short-lived circle around Cardinal Quiñones was called the "Illuminati."</li>
-                        Giordano Bruno (1548–1600) — explicitly used the language of illuminatio and heroic frenzy; burned at the stake partly for teaching a mystical-hermetic infinite universe doctrine.
-                        <br />
-                        Christian theosophy of Jakob Böhme (1575–1624) — his concept of the “divine spark” and inner Sophia directly influences later German Romanticism and feeds into both mystical and conspiratorial “illuminist” streams.
-                        <br />
-                        Rosicrucian manifestos (1614–1616) describe an invisible 
+                        Besides the Spanish Alumbrados, there were earlier groups explicitly called "Illuminati" or "Illuminés":
+                        As mysticism adapted amid secularization, The 14th-century Hesychast controversy in Byzantium produced accusations of "Messalian Illuminati."
+                        Christian affective mysticism (Jean Gerson) extended to laypeople, with 
+                        Spanish mystics like Teresa of Ávila (1515-1582) emphasizing ecstatic prayer. 
+                        
+                        In 1530s Italy, a short-lived circle around Cardinal Quiñones was called the "Illuminati."
+                        <br /><br />
+                        <b>Giordano Bruno (1548–1600)</b> — explicitly used the language of illuminatio and heroic frenzy; burned at the stake partly for teaching a mystical-hermetic infinite universe doctrine.
+                        <br /><br />
+                        <b>Christian theosophy of Jakob Böhme (1575–1624)</b> — his concept of the “divine spark” and inner Sophia directly influences later German Romanticism and feeds into both mystical and conspiratorial “illuminist” streams.
+                        <br /><br />
+                        <b>Rosicrucian manifestos (1614–1616)</b> describe an invisible 
                         brotherhood of illuminated adepts possessing ancient wisdom; later conspiracy writers will retroactively fold Rosicrucians into a 
                         supposed eternal Illuminati lineage.
                         The real Rosicrucian furor should be treated as more than just manifestos: dozens of published responses, alchemical circles claiming membership, and the myth of an invisible college of illuminated adepts that immediately begins the process of retroactive lineage-building.
+                        <br /><br />
+                        <b>Quietism controversy (late 17th century)</b>: Miguel de Molinos (1680s) and Madame Guyon/Fénelon in France — condemned as Illuminés for teaching pure love and abandonment of self-will without mediation. This wave directly sets the stage for 18th-century anti-mystical backlashes that make Weishaupt’s rationalist choice of the name “Illuminati” even more deliberately provocative.
                         <br />
-                        Quietism controversy (late 17th century): Miguel de Molinos (1680s) and Madame Guyon/Fénelon in France — condemned as Illuminés for teaching pure love and abandonment of self-will without mediation. This wave directly sets the stage for 18th-century anti-mystical backlashes that make Weishaupt’s rationalist choice of the name “Illuminati” even more deliberately provocative.
-                        <br />
-                        Hasidism in Judaism (18th century) focused on joyful devotion. 
-                          Western esotericism revived Hermeticism, alchemy (soul transmutation), and magic for self-discovery. 
-                          Enlightenment rationalism separated mysticism from science, but it influenced Romanticism. 
-                          Popularity waned in institutional forms but persisted in esoteric circles, affecting culture through philosophy (e.g., challenging materialism), 
-                          art (William Blake's visions), and global exchanges via colonialism, which marginalized indigenous practices while spreading Eastern ideas.
-  
-                    <br />
+                        
                        
                 </div>
                       </li>
@@ -218,17 +218,18 @@ export const metadata = {
                           <h3 className="text-lg font-bold text-gray-800 dark:text-gray-100 pl-9">18th–19th Century Transition</h3>
                         </div>
                         <div className="pl-9">
-                        1776–1800: The strict Templar origin legend of Freemasonry (promoted by Chevalier Ramsay 1737 and the Strict Observance rite) merges with Rosicrucian myths, creating the template that Barruel and Robison will later call “Illuminati.”
-                        <br />
-                        The French Martinist Order (Martinez de Pasqually 1754–1774, Louis-Claude de Saint-Martin 1770s onward) and the Elus Coëns explicitly use illumination terminology and theurgic practices — often lumped together with the Bavarian Illuminati by conspiracy writers even though they were mystical, not rationalist.
-                        <br />
-                        Hasidism in Judaism (18th century) focused on joyful devotion. 
+                        <b>1776–1800: The strict Templar origin legend of Freemasonry</b> (promoted by Chevalier Ramsay 1737 and the Strict Observance rite) merges with Rosicrucian myths, creating the template that Barruel and Robison will later call “Illuminati.”
+                        <br /><br />
+                        <b>The French Martinist Order</b> (Martinez de Pasqually 1754–1774, Louis-Claude de Saint-Martin 1770s onward) and the Elus Coëns explicitly use illumination terminology and theurgic practices — often lumped together with the Bavarian Illuminati by conspiracy writers even though they were mystical, not rationalist.
+                        <br /><br />
+                        <b>Hasidism in Judaism (18th century)</b> focused on joyful devotion. 
                           Western esotericism revived Hermeticism, alchemy (soul transmutation), and magic for self-discovery. 
                           Enlightenment rationalism separated mysticism from science, but it influenced Romanticism. 
                           Popularity waned in institutional forms but persisted in esoteric circles, affecting culture through philosophy (e.g., challenging materialism), 
                           art (William Blake's visions), and global exchanges via colonialism, which marginalized indigenous practices while spreading Eastern ideas.
-                    <br />
-                  The most famous historical Illuminati — the Bavarian Order of the Illuminati — 
+  
+                    <br /><br />
+                  <b>The most famous historical Illuminati</b> — the Bavarian Order of the Illuminati — 
                   is founded on May 1, 1776, by Adam Weishaupt, a Jesuit-trained law professor in Ingolstadt, Bavaria. 
                   Eplicitly anti-clerical and Enlightenment-rationalist, the Order aims to:
                   replace Christianity with a “religion of reason,”abolish monarchy,end superstition and priestly power,
@@ -329,15 +330,18 @@ export const metadata = {
                           </div>
                           <h3 className="text-lg font-bold text-gray-800 dark:text-gray-100 pl-9">19th–Mid-20th Century (1830s–1970s)</h3>
                         </div>
-                        <div className="pl-9">The myth evolves: 1830s–1890s — Linked to communism and Jewish plots in 
+                        <div className="pl-9"><b>The myth evolves: 1830s–1890s</b> — Linked to communism and Jewish plots in 
                             antisemitic forgeries (e.g., Protocols of the Elders of Zion indirectly references Illuminati-style cabals).
-                            1920s–1950s — British occultist Nesta Webster popularizes the idea of a perennial Illuminati masterminding all revolutions.
-                            Post-WWII — American far-right figures (John Birch Society, etc.) fold it into anti-UN “New World Order” fears.
+                            <br />
+                            <b>1897</b>: Léo Taxil’s hoax publicly admits that the entire “Luciferian Freemasonry/Palladian Illuminati” narrative he fed to the Catholic press for 12 years was fabricated — yet the hoax material (Diana Vaughan, Albert Pike Lucifer quotes) continues to be cited as fact in fundamentalist and conspiracist circles to this day.
+                            <br />
+                            <b>1920s–1950s</b> — British occultist Nesta Webster popularizes the idea of a perennial Illuminati masterminding all revolutions.
+                            <br />
+                            <b>Post-WWII </b> — American far-right figures (John Birch Society, etc.) fold it into anti-UN “New World Order” fears.
                             Religiously, the Illuminati becomes a Protestant fundamentalist bogeyman: proof that Catholicism, secularism, or “Luciferian” 
                             elites are secretly allied against true Christianity.
                             <br />
-                            1897: Léo Taxil’s hoax publicly admits that the entire “Luciferian Freemasonry/Palladian Illuminati” narrative he fed to the Catholic press for 12 years was fabricated — yet the hoax material (Diana Vaughan, Albert Pike Lucifer quotes) continues to be cited as fact in fundamentalist and conspiracist circles to this day.
-                            <br />
+                            
 
                             </div>
                       </li>
@@ -353,13 +357,12 @@ export const metadata = {
                           <h3 className="text-lg font-bold text-gray-800 dark:text-gray-100 pl-9">Late 20th–21st Century (1980s–Present)</h3>
                         </div>
                         <div className="pl-9">The Illuminati explodes into global pop culture and internet mythology:
-                        <br />1967: William Gosch (Discordian) and Kerry Thornley (Operation Mindfuck) begin mailing fake Illuminati letters to magazines, deliberately seeding absurdity to expose credulity — this directly influences Robert Anton Wilson.
-                        <br />1975 — Robert Anton Wilson’s satirical Illuminatus! Trilogy blurs fact and fiction.
-                        <br /> 1990s — Pat Robertson’s The New World Order (1991) and Texe Marrs rebrand it as Satanic.
-                        <br /> 2000s — Dan Brown’s novels, YouTube expose videos.
-                        <br /> 2010s - The “Illuminati” hand-sign (triangle/pyramid) originates as a harmless pop-culture joke (first widely used by Jay-Z as the Roc-A-Fella diamond logo in the late 1990s) before being reverse-engineered into proof of membership.
-                        <br />
-                        2020s — QAnon and broader conspiracy culture merge Illuminati with “deep state,” Hollywood pedophilia rings, and one-world religion narratives.
+                        <br /><b>1967 -</b> William Gosch (Discordian) and Kerry Thornley (Operation Mindfuck) begin mailing fake Illuminati letters to magazines, deliberately seeding absurdity to expose credulity — this directly influences Robert Anton Wilson.
+                        <br /><b>1975 —</b> Robert Anton Wilson and Robert Shae's satirical Illuminatus! Trilogy blurs fact and fiction.
+                        <br /> <b>1990s —</b> Pat Robertson’s The New World Order (1991) and Texe Marrs rebrand it as Satanic.
+                        <br /> <b>2000s —</b> Dan Brown’s novels, YouTube expose videos.
+                        <br /> <b>2010s - </b>The “Illuminati” hand-sign (triangle/pyramid) originates as a harmless pop-culture joke (first widely used by Jay-Z as the Roc-A-Fella diamond logo in the late 1990s) before being reverse-engineered into proof of membership.
+                        <br /> <b>2020s — </b>QAnon and broader conspiracy culture merge Illuminati with “deep state,” Hollywood pedophilia rings, and one-world religion narratives.
                         </div>
                       </li>
                       {/* List item */}

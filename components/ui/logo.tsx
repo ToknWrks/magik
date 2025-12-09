@@ -1,16 +1,62 @@
-import Link from 'next/link'
+// components/logo.tsx
+'use client';
 
-export default function Logo() {
+import Link from 'next/link'
+import Image from 'next/image'
+import { useEffect, useState } from 'react'
+
+interface LogoProps {
+  isSidebarOpen?: boolean
+}
+
+export default function Logo({ isSidebarOpen = false }: LogoProps) {
+  const [isDarkMode, setIsDarkMode] = useState(false)
+
+  useEffect(() => {
+    // Check for dark mode
+    const checkTheme = () => {
+      const isDark = document.documentElement.classList.contains('dark')
+      setIsDarkMode(isDark)
+    }
+
+    checkTheme()
+
+    // Watch for theme changes
+    const observer = new MutationObserver(checkTheme)
+    observer.observe(document.documentElement, { 
+      attributes: true, 
+      attributeFilter: ['class'] 
+    })
+
+    return () => observer.disconnect()
+  }, [])
+
+  // Choose logo based on theme
+  const logoSrc = isDarkMode 
+    ? '/images/illuminati-logo.png' 
+    : '/images/illuminati-logo-light.png'
+
+  console.log('🎨 Logo render - isSidebarOpen:', isSidebarOpen)
+
   return (
-    <Link className="block" href="/">
-      <svg
-        className="w-8 h-8 fill-yellow-700"
-        viewBox="100 80 300 300"// Adjusted to fit the path coordinates
-        xmlns="http://www.w3.org/2000/svg"
-       
+    <Link className="flex items-center gap-3" href="/">
+      <Image
+        src={logoSrc}
+        alt="Illuminati Logo"
+        width={32}
+        height={32}
+        className="w-8 h-8 flex-shrink-0"
+        priority
+      />
+      <span 
+        className={`albertus-font text-md text-gray-400 dark:text-gray-500 transition-all duration-300 ease-in-out ${
+          isSidebarOpen 
+            ? 'opacity-100 translate-x-0' 
+            : 'opacity-0 -translate-x-2 pointer-events-none'
+        }`}
       >
-        <path d="M100.794,375.179c1.863,3.088,5.266,5.008,8.87,5.008h292.679c3.604,0,6.996-1.92,8.862-5.008   c1.897-3.126,2.003-6.935,0.296-10.175L265.154,86.954c-1.783-3.415-5.296-5.531-9.154-5.531s-7.375,2.116-9.158,5.531   l-146.344,278.05C98.791,368.244,98.897,372.053,100.794,375.179z M133.573,346.611c0.159-0.288,0.466-0.478,0.8-0.478h169.694   v-3.839h-166.73c-0.319,0-0.608-0.152-0.775-0.425c-0.159-0.274-0.166-0.608-0.026-0.888l8.745-16.602   c0.159-0.288,0.467-0.478,0.8-0.478h58.077v-3.84H149.04c-0.315,0-0.607-0.159-0.774-0.432c-0.155-0.266-0.167-0.608-0.026-0.888   l10.926-20.752c0.122-0.228,0.35-0.402,0.608-0.455c0.068-0.022,0.129-0.022,0.19-0.022c0.204,0,0.398,0.06,0.554,0.19   c3.922,3.042,9.545,7.375,13.13,10.076l2.295-3.066c-2.815-2.116-13.87-10.645-13.87-10.645c-0.342-0.258-0.448-0.744-0.243-1.13   l31.25-59.009c18.988-8.529,70.125-27.688,112.851-9.204c-0.824-0.668-1.722-1.237-2.572-1.874c0.034,0.022,0.088,0.03,0.122,0.038   c-0.088-0.06-0.201-0.099-0.289-0.159c-26.894-19.63-67.378-18.969-101.404-5.729l20.361-38.675c0.159-0.288,0.466-0.478,0.8-0.478   h44.536v-3.839h-41.576c-0.316,0-0.604-0.159-0.77-0.433c-0.16-0.273-0.167-0.607-0.027-0.887l6.67-12.664   c0.156-0.288,0.467-0.471,0.801-0.471h37.714v-3.831h-34.756c-0.315,0-0.607-0.159-0.774-0.433   c-0.155-0.274-0.167-0.607-0.026-0.888l20.46-38.879c0.159-0.288,0.467-0.47,0.8-0.47c0.334,0,0.641,0.182,0.797,0.47   l39.714,75.467c0.141,0.281,0.133,0.615-0.026,0.888c-0.167,0.273-0.455,0.425-0.774,0.425h-40.51v3.831h43.473   c0.334,0,0.641,0.19,0.8,0.479l64.279,122.13c0.144,0.28,0.137,0.622-0.023,0.888c-0.167,0.273-0.455,0.432-0.774,0.432H255.199   v3.84h110.715c0.334,0,0.645,0.19,0.804,0.478l8.741,16.602c0.145,0.281,0.137,0.615-0.022,0.888   c-0.167,0.272-0.463,0.425-0.774,0.425h-49.107v3.839h52.066c0.334,0,0.645,0.19,0.797,0.478l6.078,11.541   c0.137,0.281,0.129,0.615-0.03,0.888c-0.167,0.273-0.455,0.425-0.774,0.425H128.303c-0.319,0-0.608-0.152-0.774-0.425   c-0.16-0.273-0.167-0.607-0.027-0.888L133.573,346.611z"/>
-       </svg>
+        ILLUMINATI
+      </span>
     </Link>
   )
 }

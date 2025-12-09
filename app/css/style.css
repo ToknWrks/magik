@@ -16,3 +16,23 @@
   .font-astrogadget {
     font-family: 'Astrogadget', sans-serif;
   }
+
+  /* In your globals.css or a new fonts.css file */
+@import url('https://fonts.googleapis.com/css2?family=Crimson+Text:ital,wght@0,400;0,600;1,400&display=swap');
+
+/* Fallback for Albertus MT */
+@font-face {
+  font-family: 'Albertus MT';
+  src: local('Albertus MT'), local('AlbertusMT');
+  /* If you have the font file, add it here:
+  src: url('/fonts/albertus-mt.woff2') format('woff2'),
+       url('/fonts/albertus-mt.woff') format('woff');
+  */
+}
+
+/* Crimson Text is a good web alternative that looks similar to Albertus MT */
+.albertus-font {
+  font-family: 'Albertus MT', 'Crimson Text', 'Times New Roman', serif;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+}

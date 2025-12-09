@@ -100,7 +100,7 @@ export default function Sidebar({
             </svg>
           </button>
           {/* Logo */}
-          <Logo />
+          <Logo isSidebarOpen={sidebarExpanded} />
         </div>
 
         {/* Links */}

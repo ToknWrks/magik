@@ -69,29 +69,43 @@ async function incrementViewCount(templateId: string) {
 class ConspiracyAIService {
   async generateConspiracyContent(template: any) {
     try {
-      const prompt = `
-Generate an article about "${template.title}" debunking conspiracy theories based on the best available information.
+      const prompt = `You are a spiritual teacher, wisdom keeper, researcher on mysteries occult and conspiracy theories. Write an enlightening article about "${template.title}".
+ debunking conspiracy theories based on the best available information.'
 ${template.key_facts?.join('\n') || 'No specific facts provided'}
-Structure the article in Markdown format with appropriate bold type headings: (do not include an introduction about markdown formatting). Please incldue sources with links.
-## Historical Timeline
+Write in a warm, wise, and accessible tone.
 
-## Reality Check 
+IMPORTANT FORMATTING RULES:
+- Use ## for main section headings (not #)
+- Use ### for sub-headings
+- Use **bold text** for emphasis
+- Leave a blank line between paragraphs
+- Use > for inspirational quotes
+- Use bullet points with - for lists
+- Do NOT include any meta-commentary about formatting
+- Do NOT start with "Here is" or similar phrases
+- Start directly with the content
 
-## Historical Facts
+Include these sections:
+## Introduction
+(A welcoming introduction to the theory)
+
+## Historical Context
+(Conspiratorial and historical / factual background)
 
 ## Scientific Perspective
+(The main principles and insights)
 
-## Psychological Factors
+## Spiritual / Esoteric perspective 
+(Events metaphysical and spiritual significance)
 
 ## Critical Thinking
+(A thoughtful analysis of different viewpoints)
 
-## Sources
-
-Make it engaging and persuasive, list dates in a timeline.  P
-      `;
+## Reflection
+(A closing thought or contemplation)`;
 
       const response = await anthropic.messages.create({
-        model: 'claude-3-haiku-20240307',  // Updated to latest model
+        model: 'claude-sonnet-4-20250514',  // Updated to latest model
         max_tokens: 2000,
         messages: [{ role: 'user', content: prompt }],
       });

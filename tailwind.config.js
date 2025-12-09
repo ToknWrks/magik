@@ -24,7 +24,7 @@ module.exports = {
           500: '#9E9E9E',  // Medium grey
           600: '#757575',  // Dark grey
           700: '#616161',  // Darker grey
-          800: '#212121',  // Very dark grey
+          800: '#1e1e1e',  // Very dark grey
           900: '#000000',  // Almost black
           950: '#0D0D0D',  // Very dark
         },

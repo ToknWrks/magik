@@ -49,7 +49,7 @@ export default function Logo({ isSidebarOpen = false }: LogoProps) {
         priority
       />
       <span 
-        className={`albertus-font text-md text-gray-400 dark:text-gray-500 transition-all duration-300 ease-in-out ${
+        className={`albertus-font text-md text-gray-400 dark:text-gray-500 transition-all duration-300 ease-in-out mt-1 ${
           isSidebarOpen 
             ? 'opacity-100 translate-x-0' 
             : 'opacity-0 -translate-x-2 pointer-events-none'

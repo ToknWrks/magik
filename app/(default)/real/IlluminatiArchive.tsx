@@ -11,43 +11,43 @@ export default function IlluminatiArchive() {
   // Use static data - NO database calls in server components
   const sections = [
     {
-      name: 'Mysteries',
+      name: 'Enlightenment',
       items: [
         {
           name: 'The Illuminati',
           status: 'Verified',
           slug: 'mysteries/illuminati-history',
-          description: 'A secret society founded in 1776 that allegedly controls world events. Or an ancient brotherhood of mystics seeking enlightenment?',
+          description: 'A secret society founded in 1776 that allegedly controls world events? Or an ancient brotherhood of mystics seeking enlightenment?',
         },
         {
-          name: 'Moon Landing Hoax',
+          name: 'Stanislav Grof',
           status: 'Verified',
-          slug: 'articles/moon-landing',
-          description: 'The theory that the 1969 moon landing was faked by NASA.',
+          slug: 'enlightenment/teachings-stanislav-grof',
+          description: 'Pioneer in transpersonal psychology and the therapeutic use of non-ordinary states of consciousness.',
         },
         {
-          name: 'Pizza Gate',
-          status: 'Fjnord',
-          slug: 'articles/pizza-gate',
-          description: 'A highly classified facility allegedly housing liberal pedophiles. Or a pizza shop?',
-        },
-        {
-          name: 'Time Travel Trump',
+          name: 'Aleister Crowley',
           status: 'Verified',
-          slug: 'conspiracies/donald-trump-time-traveler-messiah',
-          description: 'The belief that former President Donald Trump used time travel technology to influence political events.',
+          slug: 'enlightenment/aleister-crowley',
+          description: 'English occultist, ceremonial magician, poet, and mountaineer, known for founding Thelema.',
         },
         {
-          name: 'Flat Earth Theory',
+          name: 'Gayatri Mantra',
           status: 'Verified',
-          slug: 'conspiracies/flat-earth-theory',
-          description: 'The controversial theory that the Earth is flat.',
+          slug: 'enlightenment/gayatri-mantra',
+          description: 'A highly revered mantra from the Rig Veda, dedicated to Savitr, the sun deity.',
         },
         {
-          name: 'Chemtrails',
+          name: 'OSHO ',
           status: 'Verified',
-          slug: 'conspiracies/chemtrails',
-          description: 'The theory that aircraft trails contain harmful chemicals.',
+          slug: 'enlightenment/teachings-osho',
+          description: 'Indian mystic and spiritual teacher known for his teachings on meditation, love, and creativity.',
+        },
+        {
+          name: 'Manly P. Hall',
+          status: 'Verified',
+          slug: 'enlightenment/manly-p-hall',
+          description: 'Canadian-born author and mystic, best known for his work "The Secret Teachings of All Ages."',
         },
       ],
     },
@@ -68,11 +68,52 @@ export default function IlluminatiArchive() {
         },
       ],
     },
+    {
+      name: 'Mysteries',
+      items: [
+        {
+          name: 'Maui Fires',
+          status: 'Debunked',
+          slug: 'mysteries/maui-fires-illuminati',
+          description: 'The theory that the 2023 Maui wildfires were orchestrated by the Illuminati as part of a larger plan.',
+        },
+        {
+          name: 'Moon Landing Hoax',
+          status: 'Debunked',
+          slug: 'articles/moon-landing',
+          description: 'The theory that the 1969 moon landing was faked by NASA.',
+        },
+        {
+          name: 'Pizza Gate',
+          status: 'Fnord',
+          slug: 'articles/pizza-gate',
+          description: 'A highly classified facility allegedly housing liberal pedophiles. Or a pizza shop?',
+        },
+        {
+          name: 'Time Travel Trump',
+          status: 'Fnord',
+          slug: 'conspiracies/donald-trump-time-traveler-messiah',
+          description: 'The belief that former President Donald Trump used time travel technology to influence political events.',
+        },
+        {
+          name: 'Flat Earth Theory',
+          status: 'Debunked',
+          slug: 'conspiracies/flat-earth-theory',
+          description: 'The controversial theory that the Earth is flat.',
+        },
+        {
+          name: 'Chemtrails',
+          status: 'Under Review',
+          slug: 'conspiracies/chemtrails',
+          description: 'The theory that aircraft trails contain harmful chemicals.',
+        },
+      ],
+    },
   ];
 
   return (
     <Boundary
-      label="Illuminati Mysteries"
+      label="Illuminati - Singing and Dancing are the voice of the law"
       animateRerendering={false}
       kind="solid"
       className="flex flex-col gap-9 pt-8"  // Added pt-8 for top padding

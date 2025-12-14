@@ -373,6 +373,146 @@ export async function deleteEnlightenmentTemplate(id: string) {
   return result.rowCount !== null && result.rowCount > 0;
 }
 
+// Astrology template functions
+export async function getAllAstrologyTemplates() {
+  const result = await pool.query(
+    `SELECT id, slug, title, description, category, category2, status, is_active, difficulty_level, created_at
+     FROM astrology_templates 
+     WHERE is_active = true 
+     ORDER BY title ASC`
+  );
+  return result.rows;
+}
+
+export async function getAstrologyTemplate(slug: string) {
+  const result = await pool.query(
+    `SELECT * FROM astrology_templates WHERE slug = $1`,
+    [slug]
+  );
+  return result.rows[0];
+}
+
+export async function getAstrologyTemplateById(id: string) {
+  const result = await pool.query(
+    `SELECT * FROM astrology_templates WHERE id = $1`,
+    [id]
+  );
+  return result.rows[0];
+}
+
+export async function createAstrologyTemplate(data: {
+  title: string;
+  slug: string;
+  description?: string;
+  category?: string;
+  category2?: string;
+  status?: string;
+  planetary_combination?: string;
+  archetypal_themes?: string[];
+  evidence_points?: string[];
+  counterarguments?: string[];
+  difficulty_level?: string;
+  is_active?: boolean;
+  content_type?: string;
+  article_content?: string;
+}) {
+  const result = await pool.query(
+    `INSERT INTO astrology_templates 
+      (title, slug, description, category, category2, status, planetary_combination, 
+       archetypal_themes, evidence_points, counterarguments, difficulty_level, 
+       is_active, content_type, article_content)
+     VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14)
+     RETURNING *`,
+    [
+      data.title,
+      data.slug,
+      data.description || '',
+      data.category || '',
+      data.category2 || '',
+      data.status || 'Under Development',
+      data.planetary_combination || '',
+      data.archetypal_themes || [],
+      data.evidence_points || [],
+      data.counterarguments || [],
+      data.difficulty_level || 'intermediate',
+      data.is_active ?? true,
+      data.content_type || 'ai',
+      data.article_content || '',
+    ]
+  );
+  return result.rows[0];
+}
+
+export async function updateAstrologyTemplate(id: string, data: Partial<{
+  title: string;
+  slug: string;
+  description: string;
+  category: string;
+  category2: string;
+  status: string;
+  planetary_combination: string;
+  archetypal_themes: string | string[];
+  evidence_points: string | string[];
+  counterarguments: string | string[];
+  difficulty_level: string;
+  is_active: boolean;
+  content_type: string;
+  article_content: string;
+}>) {
+  const fields: string[] = [];
+  const values: any[] = [];
+  let paramCount = 1;
+
+  // Process array fields
+  const processedData = { ...data };
+
+  const archetypal_themes = processedData.archetypal_themes;
+  if (archetypal_themes && typeof archetypal_themes === 'string') {
+    processedData.archetypal_themes = archetypal_themes === '' ? [] :
+      archetypal_themes.split('\n').map(s => s.trim()).filter(s => s);
+  }
+  const evidence_points = processedData.evidence_points;
+  if (evidence_points && typeof evidence_points === 'string') {
+    processedData.evidence_points = evidence_points === '' ? [] :
+      evidence_points.split('\n').map(s => s.trim()).filter(s => s);
+  }
+  const counterarguments = processedData.counterarguments;
+  if (counterarguments && typeof counterarguments === 'string') {
+    processedData.counterarguments = counterarguments === '' ? [] :
+      counterarguments.split('\n').map((s: string) => s.trim()).filter((s: string) => s);
+  }
+
+  Object.entries(processedData).forEach(([key, value]) => {
+    if (value !== undefined) {
+      fields.push(`${key} = $${paramCount}`);
+      values.push(value);
+      paramCount++;
+    }
+  });
+
+  if (fields.length === 0) return null;
+
+  fields.push(`updated_at = NOW()`);
+  values.push(id);
+
+  const result = await pool.query(
+    `UPDATE astrology_templates 
+     SET ${fields.join(', ')}
+     WHERE id = $${paramCount}
+     RETURNING *`,
+    values
+  );
+  return result.rows[0];
+}
+
+export async function deleteAstrologyTemplate(id: string) {
+  const result = await pool.query(
+    `DELETE FROM astrology_templates WHERE id = $1 RETURNING id`,
+    [id]
+  );
+  return result.rowCount !== null && result.rowCount > 0;
+}
+
 // Generated content functions
 export async function saveGeneratedContent(templateId: string, content: string, debunking: string, sources: string[]) {
   try {

@@ -15,6 +15,7 @@ import AnalyticsCard08 from './analytics-card-08'
 import AnalyticsCard09 from './analytics-card-09'
 import AnalyticsCard10 from './analytics-card-10'
 import AnalyticsCard11 from './analytics-card-11'
+import AnalyticsCard12 from './analytics-card-12' // Add this
 
 export default function Analytics() {
   return (
@@ -63,6 +64,7 @@ export default function Analytics() {
         <AnalyticsCard10 />
         {/* Table (Top Products) */}
         <AnalyticsCard11 />
+        <AnalyticsCard12 /> {/* Add the keyword tracking card */}
 
       </div>
     </div>

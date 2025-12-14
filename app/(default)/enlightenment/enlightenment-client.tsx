@@ -43,15 +43,41 @@ function DifficultyBadge({ level }: { level: string }) {
       case 'beginner':
         return 'text-green-600 dark:text-green-400';
       case 'intermediate':
-        return 'text-yellow-600 dark:text-yellow-400';
+        return 'text-yellow-700 dark:text-yellow-700';
       case 'advanced':
-        return 'text-purple-600 dark:text-purple-400';
+      case 'expert':
+        return 'text-yellow-700 dark:text-yellow-700';
+      case 'all-levels':
+        return 'text-blue-600 dark:text-blue-400';
+      case 'informational':
+        return 'text-yellow-700 dark:text-yellow-700';
+      case 'introductory':
+        return 'text-indigo-600 dark:text-indigo-400';
+      case 'practical':
+      case 'meditative':
+        return 'text-orange-600 dark:text-orange-400';
+      case 'theoretical':
+      case 'philosophical':
+        return 'text-pink-600 dark:text-pink-400';
       default:
         return 'text-gray-600 dark:text-gray-400';
     }
   };
 
-  return <span className={`text-xs font-medium ${getColor()}`}>{level || 'All Levels'}</span>;
+  const getDisplayText = () => {
+    switch (level?.toLowerCase()) {
+      case 'all-levels':
+        return 'All Levels';
+      case 'beginner-intermediate':
+        return 'Beginner-Intermediate';
+      case 'intermediate-advanced':
+        return 'Intermediate-Advanced';
+      default:
+        return level?.charAt(0).toUpperCase() + level?.slice(1) || 'All Levels';
+    }
+  };
+
+  return <span className={`text-xs font-medium ${getColor()}`}>{getDisplayText()}</span>;
 }
 
 export default function EnlightenmentClient({ teachings }: EnlightenmentClientProps) {

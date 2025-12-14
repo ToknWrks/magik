@@ -282,7 +282,16 @@ export default function EnlightenmentFormModal({
                   <option value="beginner">Beginner - New to spiritual practice</option>
                   <option value="intermediate">Intermediate - Some experience</option>
                   <option value="advanced">Advanced - Experienced practitioners</option>
-                  <option value="All Levels"></option>
+                  <option value="all-levels">All Levels - Suitable for everyone</option>
+                  <option value="informational">Informational - Educational content</option>
+                  <option value="beginner-intermediate">Beginner to Intermediate</option>
+                  <option value="intermediate-advanced">Intermediate to Advanced</option>
+                  <option value="expert">Expert - Advanced practitioners only</option>
+                  <option value="introductory">Introductory - Overview level</option>
+                  <option value="practical">Practical - Hands-on exercises</option>
+                  <option value="theoretical">Theoretical - Conceptual understanding</option>
+                  <option value="meditative">Meditative - Focus on practice</option>
+                  <option value="philosophical">Philosophical - Deep contemplation</option>
                 </select>
               </div>
               <div className="flex items-center pt-6">

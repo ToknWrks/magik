@@ -1,35 +1,51 @@
 'use client'
 
+import { useState, useEffect } from 'react';
 import LineChart03 from '@/components/charts/line-chart-03'
 import { chartAreaGradient } from '@/components/charts/chartjs-config'
-
-// Import utilities
 import { tailwindConfig, hexToRGB } from '@/components/utils/utils'
 
 export default function AnalyticsCard01() {
+  const [analyticsData, setAnalyticsData] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
 
+  useEffect(() => {
+    fetchAnalytics();
+  }, []);
+
+  const fetchAnalytics = async () => {
+    try {
+      setLoading(true);
+      const response = await fetch('/api/analytics/ga4?metric=activeUsers');
+      const data = await response.json();
+      
+      // Calculate totals from GA4 data
+      const totalUsers = data.rows?.reduce((sum: number, row: any) => sum + row.value, 0) || 0;
+      const totalSessions = data.rows?.reduce((sum: number, row: any) => sum + row.sessions, 0) || 0;
+      const avgBounceRate = data.rows?.reduce((sum: number, row: any) => sum + row.bounceRate, 0) / data.rows?.length || 0;
+      const avgDuration = data.rows?.reduce((sum: number, row: any) => sum + row.avgDuration, 0) / data.rows?.length || 0;
+      
+      setAnalyticsData({
+        visitors: totalUsers,
+        pageviews: totalSessions,
+        bounceRate: Math.round(avgBounceRate),
+        avgDuration: Math.round(avgDuration),
+        chartData: data.rows || [],
+      });
+    } catch (error) {
+      console.error('Failed to fetch analytics:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Create chart data from GA4 response
   const chartData = {
-    labels: [
-      '12-01-2022', '01-01-2023', '02-01-2023',
-      '03-01-2023', '04-01-2023', '05-01-2023',
-      '06-01-2023', '07-01-2023', '08-01-2023',
-      '09-01-2023', '10-01-2023', '11-01-2023',
-      '12-01-2023', '01-01-2024', '02-01-2024',
-      '03-01-2024', '04-01-2024', '05-01-2024',
-      '06-01-2024', '07-01-2024', '08-01-2024',
-      '09-01-2024', '10-01-2024', '11-01-2024',
-      '12-01-2024', '01-01-2025',
-    ],
+    labels: analyticsData?.chartData?.map((row: any) => row.date) || [],
     datasets: [
-      // Indigo line
       {
-        label: 'Current',
-        data: [
-          5000, 8700, 7500, 12000, 11000, 9500, 10500,
-          10000, 15000, 9000, 10000, 7000, 22000, 7200,
-          9800, 9000, 10000, 8000, 15000, 12000, 11000,
-          13000, 11000, 15000, 17000, 18000,
-        ],
+        label: 'Visitors',
+        data: analyticsData?.chartData?.map((row: any) => row.value) || [],
         fill: true,
         backgroundColor: function(context: any) {
           const chart = context.chart;
@@ -51,27 +67,18 @@ export default function AnalyticsCard01() {
         clip: 20,
         tension: 0.2,
       },
-      // Gray line
-      {
-        label: 'Previous',
-        data: [
-          8000, 5000, 6500, 5000, 6500, 12000, 8000,
-          9000, 8000, 8000, 12500, 10000, 10000, 12000,
-          11000, 16000, 12000, 10000, 10000, 14000, 9000,
-          10000, 15000, 12500, 14000, 11000,
-        ],
-        borderColor: `rgba(${hexToRGB(tailwindConfig.theme.colors.gray[500])}, 0.25)`,
-        borderWidth: 2,
-        pointRadius: 0,
-        pointHoverRadius: 3,
-        pointBackgroundColor: `rgba(${hexToRGB(tailwindConfig.theme.colors.gray[500])}, 0.25)`,
-        pointHoverBackgroundColor: `rgba(${hexToRGB(tailwindConfig.theme.colors.gray[500])}, 0.25)`,
-        pointBorderWidth: 0,
-        pointHoverBorderWidth: 0,        
-        clip: 20,
-        tension: 0.2,
-      },
     ],
+  }
+
+  if (loading) {
+    return (
+      <div className="flex flex-col col-span-full xl:col-span-8 bg-white dark:bg-gray-800 shadow-sm rounded-xl">
+        <div className="animate-pulse p-8">
+          <div className="h-6 bg-gray-200 dark:bg-gray-700 rounded w-1/4 mb-4"></div>
+          <div className="h-32 bg-gray-200 dark:bg-gray-700 rounded"></div>
+        </div>
+      </div>
+    );
   }
 
   return(
@@ -85,7 +92,9 @@ export default function AnalyticsCard01() {
           <div className="flex items-center py-2">
             <div className="mr-5">
               <div className="flex items-center">
-                <div className="text-3xl font-bold text-gray-800 dark:text-gray-100 mr-2">24.7K</div>
+                <div className="text-3xl font-bold text-gray-800 dark:text-gray-100 mr-2">
+                  {analyticsData?.visitors?.toLocaleString() || '0'}
+                </div>
                 <div className="text-sm font-medium text-green-600">+49%</div>
               </div>
               <div className="text-sm text-gray-500 dark:text-gray-400">Unique Visitors</div>
@@ -96,7 +105,9 @@ export default function AnalyticsCard01() {
           <div className="flex items-center py-2">
             <div className="mr-5">
               <div className="flex items-center">
-                <div className="text-3xl font-bold text-gray-800 dark:text-gray-100 mr-2">56.9K</div>
+                <div className="text-3xl font-bold text-gray-800 dark:text-gray-100 mr-2">
+                  {analyticsData?.pageviews?.toLocaleString() || '0'}
+                </div>
                 <div className="text-sm font-medium text-green-600">+7%</div>
               </div>
               <div className="text-sm text-gray-500 dark:text-gray-400">Total Pageviews</div>
@@ -107,7 +118,9 @@ export default function AnalyticsCard01() {
           <div className="flex items-center py-2">
             <div className="mr-5">
               <div className="flex items-center">
-                <div className="text-3xl font-bold text-gray-800 dark:text-gray-100 mr-2">54%</div>
+                <div className="text-3xl font-bold text-gray-800 dark:text-gray-100 mr-2">
+                  {analyticsData?.bounceRate || '0'}%
+                </div>
                 <div className="text-sm font-medium text-red-500">-7%</div>
               </div>
               <div className="text-sm text-gray-500 dark:text-gray-400">Bounce Rate</div>
@@ -118,7 +131,9 @@ export default function AnalyticsCard01() {
           <div className="flex items-center">
             <div>
               <div className="flex items-center">
-                <div className="text-3xl font-bold text-gray-800 dark:text-gray-100 mr-2">2m 56s</div>
+                <div className="text-3xl font-bold text-gray-800 dark:text-gray-100 mr-2">
+                  {Math.floor((analyticsData?.avgDuration || 0) / 60)}m {(analyticsData?.avgDuration || 0) % 60}s
+                </div>
                 <div className="text-sm font-medium text-red-500">+7%</div>
               </div>
               <div className="text-sm text-gray-500 dark:text-gray-400">Visit Duration</div>
@@ -128,7 +143,6 @@ export default function AnalyticsCard01() {
       </div>
       {/* Chart built with Chart.js 3 */}
       <div className="grow">
-        {/* Change the height attribute to adjust the chart height */}
         <LineChart03 data={chartData} width={800} height={300} />
       </div>
     </div>

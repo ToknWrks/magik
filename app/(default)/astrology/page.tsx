@@ -1,6 +1,12 @@
 // app/astrology/page.tsx
-import { AstrologyClient } from './astrology-client';
+import { getAllAstrologyTemplates } from '@/lib/db';
+import AstrologyClient from './astrology-client'; // Make sure this matches the export
 
-export default function Page() {
-  return <AstrologyClient />;
+// Force dynamic rendering
+export const dynamic = 'force-dynamic';
+
+export default async function Page() {
+  const combinations = await getAllAstrologyTemplates();
+  
+  return <AstrologyClient combinations={combinations} />;
 }

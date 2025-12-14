@@ -100,7 +100,7 @@ export default function EnlightenmentClient({ teachings }: EnlightenmentClientPr
 
   return (
     <Boundary
-      label="Enlightenment Archive"
+      label="Enlightenment Teachings"
       animateRerendering={false}
       kind="solid"
       className="flex flex-col gap-9"

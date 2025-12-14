@@ -79,6 +79,7 @@ const categories = [
   'Philosophy',
   "Tree of Life",
   "Ritual",
+  "Mantra",
   'Other',
 ]
 

@@ -75,7 +75,7 @@ export default function AstrologyClient({ combinations: initialCombinations }: A
 
   return (
     <Boundary
-      label="Archetypal Astrology Archive"
+      label="Archetypal Astrology Combinations"
       animateRerendering={false}
       kind="solid"
       className="flex flex-col gap-9"

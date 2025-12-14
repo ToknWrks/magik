@@ -20,10 +20,10 @@ export default function IlluminatiArchive() {
           description: 'A secret society founded in 1776 that allegedly controls world events? Or an ancient brotherhood of mystics seeking enlightenment?',
         },
         {
-          name: 'Stanislav Grof',
+          name: 'Astrology',
           status: 'Verified',
-          slug: 'enlightenment/teachings-stanislav-grof',
-          description: 'Pioneer in transpersonal psychology and the therapeutic use of non-ordinary states of consciousness.',
+          slug: 'astrology',
+          description: 'astrology is the study of the movements and relative positions of celestial bodies interpreted as having an influence on human affairs and the natural world.',
         },
         {
           name: 'Aleister Crowley',

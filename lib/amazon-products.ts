@@ -186,7 +186,7 @@ export const amazonProducts: AmazonProduct[] = [
     category: 'Gear',
     image: 'https://enoywz5kbkm.exactdn.com/wp-content/uploads/2021/05/cere2-1.webp?strip=all',
     amazonUrl: 'https://www.portiersupplies.com/?ref=illuminati',
-    featured: false,
+    featured: true,
   },
   {
     id: 'portier-gear-2',
@@ -197,7 +197,7 @@ export const amazonProducts: AmazonProduct[] = [
     category: 'Gear',
     image: 'https://enoywz5kbkm.exactdn.com/wp-content/uploads/2021/05/Portalbox-V3.jpg?strip=all',
     amazonUrl: 'https://portiersupplies.com/product/portalbox/?ref=illuminati',
-    featured: false,
+    featured: true,
   },
   {
     id: 'portier-gear-3',
@@ -208,7 +208,7 @@ export const amazonProducts: AmazonProduct[] = [
     category: 'Gear',
     image: 'https://enoywz5kbkm.exactdn.com/wp-content/uploads/2021/05/portalcase.png?strip=all',
     amazonUrl: 'https://portiersupplies.com/product/portalcase/?ref=illuminati',
-    featured: false,
+    featured: true,
   },
   {
     id: 'portier-gear-5',

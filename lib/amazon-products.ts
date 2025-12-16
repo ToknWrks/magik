@@ -123,6 +123,16 @@ export const amazonProducts: AmazonProduct[] = [
   // Documentaries/DVDs
   {
     id: 'amazon-dvd-1',
+    name: 'Way of the Psychonaut',
+    slug: 'way-of-the-psychonaut-documentary',
+    description: 'Way of the Psychonaut Documentary streaming',
+    price: 3.99,
+    category: 'Documentaries',
+    image: 'https://m.media-amazon.com/images/I/81FqmNcgtWL._AC_UY436_FMwebp_QL65_.jpg',
+    amazonUrl: 'https://amzn.to/48Jkua4',
+  },
+  {
+    id: 'amazon-dvd-2',
     name: 'Cloak of The Illuminati',
     slug: 'cloak-of-the-illuminati',
     description: 'Illuminati Stargate Secrets of the Anunnaki 2 DVD Set',

@@ -185,7 +185,7 @@ export const amazonProducts: AmazonProduct[] = [
     price: 528.00,
     category: 'Gear',
     image: 'https://enoywz5kbkm.exactdn.com/wp-content/uploads/2021/05/cere2-1.webp?strip=all',
-    amazonUrl: 'https://www.portiersupplies.com/?ref=olyqsblj',
+    amazonUrl: 'https://www.portiersupplies.com/?ref=illuminati',
     featured: false,
   },
   {
@@ -196,7 +196,7 @@ export const amazonProducts: AmazonProduct[] = [
     price: 193.00,
     category: 'Gear',
     image: 'https://enoywz5kbkm.exactdn.com/wp-content/uploads/2021/05/Portalbox-V3.jpg?strip=all',
-    amazonUrl: 'https://portiersupplies.com/product/portalbox/?ref=olyqsblj',
+    amazonUrl: 'https://portiersupplies.com/product/portalbox/?ref=illuminati',
     featured: false,
   },
   {
@@ -207,7 +207,7 @@ export const amazonProducts: AmazonProduct[] = [
     price: 193.00,
     category: 'Gear',
     image: 'https://enoywz5kbkm.exactdn.com/wp-content/uploads/2021/05/portalcase.png?strip=all',
-    amazonUrl: 'https://portiersupplies.com/product/portalcase/?ref=olyqsblj',
+    amazonUrl: 'https://portiersupplies.com/product/portalcase/?ref=illuminati',
     featured: false,
   },
   {
@@ -218,7 +218,7 @@ export const amazonProducts: AmazonProduct[] = [
     price: 170.00,
     category: 'Gear',
     image: 'https://enoywz5kbkm.exactdn.com/wp-content/uploads/2024/09/glass_sherlock_open.jpg?strip=all',
-    amazonUrl: 'https://portiersupplies.com/product/glass-sherlock-vaporgenie-gvg/?ref=olyqsblj',
+    amazonUrl: 'https://portiersupplies.com/product/glass-sherlock-vaporgenie-gvg/?ref=illuminati',
     featured: false,
   },
   {
@@ -229,7 +229,7 @@ export const amazonProducts: AmazonProduct[] = [
     price: 21.00,
     category: 'Gear',
     image: 'https://enoywz5kbkm.exactdn.com/wp-content/uploads/2024/10/Carddeck.jpg?strip=all',
-    amazonUrl: 'https://portiersupplies.com/product/intention-integration/?ref=olyqsblj',
+    amazonUrl: 'https://portiersupplies.com/product/intention-integration/?ref=illuminati',
     featured: false,
   },
   {
@@ -240,7 +240,7 @@ export const amazonProducts: AmazonProduct[] = [
     price: 21.00,
     category: 'Gear',
     image: 'https://enoywz5kbkm.exactdn.com/wp-content/uploads/2021/05/Portalbook2025_LoRes.jpg?strip=all',
-    amazonUrl: 'https://portiersupplies.com/product/portalbook/?ref=olyqsblj',
+    amazonUrl: 'https://portiersupplies.com/product/portalbook/?ref=illuminati',
     featured: false,
   },
   {
@@ -251,7 +251,7 @@ export const amazonProducts: AmazonProduct[] = [
     price: 17.00,
     category: 'Gear',
     image: 'https://enoywz5kbkm.exactdn.com/wp-content/uploads/2021/05/mask2.webp?strip=all',
-    amazonUrl: 'https://portiersupplies.com/product/journeymask/?ref=olyqsblj',
+    amazonUrl: 'https://portiersupplies.com/product/journeymask/?ref=illuminati',
     featured: false,
   },
   {

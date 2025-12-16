@@ -211,7 +211,7 @@ export default function ProductDetail({ slug }: { slug: string }) {
               {/* Amazon Notice */}
               <div className="bg-orange-50 dark:bg-orange-900/20 border border-orange-200 dark:border-orange-800 rounded-lg p-4">
                 <p className="text-sm text-orange-800 dark:text-orange-200">
-                  This is a partner product sold through Amazon. Clicking the button below will take you to Amazon to complete your purchase.
+                  This is a partner product sold through a partner website. Clicking the button below will take you to their to complete your purchase.
                 </p>
               </div>
 
@@ -220,12 +220,10 @@ export default function ProductDetail({ slug }: { slug: string }) {
                 href={amazonProduct.amazonUrl}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="w-full py-4 px-6 rounded-lg text-lg font-medium transition-colors bg-[#FF9900] hover:bg-[#e88b00] text-white flex items-center justify-center gap-3"
+                className="w-full py-4 px-6 rounded-lg text-lg font-medium transition-colors bg-yellow-700 hover:bg-[#e88b00] text-white flex items-center justify-center gap-3"
               >
-                <svg className="w-6 h-6" viewBox="0 0 24 24" fill="currentColor">
-                  <path d="M.045 18.02c.072-.116.187-.124.348-.022 3.636 2.11 7.594 3.166 11.87 3.166 2.852 0 5.668-.533 8.447-1.595l.315-.14c.138-.06.234-.1.293-.13.226-.088.39-.046.502.126.112.172.04.332-.217.478-.32.182-.65.344-.993.489-.222.104-.466.2-.733.287-.456.153-.906.287-1.35.4-.894.233-1.81.39-2.75.47-.94.08-1.88.12-2.82.12-.97 0-1.94-.036-2.91-.107-.97-.07-1.92-.19-2.86-.36-.94-.17-1.86-.396-2.76-.68-.9-.28-1.76-.61-2.59-.98-.22-.1-.43-.2-.64-.31-.21-.11-.39-.22-.55-.33C.138 18.348.012 18.196.045 18.02zm11.87 2.82c-3.94 0-7.6-.93-10.97-2.78-.1-.06-.13-.14-.07-.24.06-.1.15-.11.25-.05 3.37 1.77 6.97 2.66 10.79 2.66 3.92 0 7.6-.94 11.04-2.81.1-.06.19-.04.25.05.06.1.04.19-.06.25-3.47 1.93-7.19 2.93-11.23 2.93z"/>
-                </svg>
-                Buy on Amazon
+                
+                Buy on website
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
                 </svg>
@@ -233,7 +231,7 @@ export default function ProductDetail({ slug }: { slug: string }) {
 
               {/* Affiliate Disclosure */}
               <p className="text-xs text-gray-500 dark:text-gray-400">
-                As an Amazon Associate, we earn from qualifying purchases. Price and availability subject to change.
+                As an Associate, we earn from qualifying purchases. Price and availability subject to change.
               </p>
 
               <Link

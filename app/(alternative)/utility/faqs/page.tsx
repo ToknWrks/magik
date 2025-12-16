@@ -12,7 +12,7 @@ export default function Faqs() {
 
           {/* Page title */}
           <div className="mb-5">
-            <h1 className="text-2xl md:text-3xl text-gray-800 dark:text-gray-100 font-bold">👋 How we can help you today?</h1>
+            <h1 className="text-2xl md:text-3xl text-gray-800 dark:text-gray-100 font-bold">How we can help?</h1>
           </div>
 
           {/* Search form */}

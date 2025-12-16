@@ -178,6 +178,39 @@ export const amazonProducts: AmazonProduct[] = [
 
   // Equipment/Gear
   {
+    id: 'portier-gear-1',
+    name: 'Ceremony Box - Limited Edition',
+    slug: 'ceremony-box-limited-edition',
+    description: 'Use code "illuminati" and save 10%. A Premium, Limited Edition Set for Transformative Rituals. Crafted with intention, the Ceremonybox is our most luxurious heirloom offering, designed to support your plant medicine ceremonies. Limited to just 100 pieces, this exclusive box serves as a complete set for mushroom tea or other ceremonial brews. Every item, from the tools to the educational guide, is thoughtfully curated in collaboration with our broader psychedelic community to enhance your ritual from start to finish — helping you prepare, experience, and integrate beautifully. Carefully designed to reduce nausea and anxiety, the Ceremonybox ensures you are well prepared for a mindful and transformative journey. Made from premium materials like rosewood and marble, it provides secure, organized storage, creating a sacred space you can treasure for decades to come.',
+    price: 528.00,
+    category: 'Gear',
+    image: 'https://enoywz5kbkm.exactdn.com/wp-content/uploads/2021/05/cere2-1.webp?strip=all',
+    amazonUrl: 'https://www.portiersupplies.com/?ref=olyqsblj',
+    featured: false,
+  },
+  {
+    id: 'portier-gear-2',
+    name: 'Portal Box',
+    slug: 'portal-box',
+    description: 'Use code "illuminati" and save 10%. The Portalbox is a premium, handmade wooden storage solution crafted to optimize your psychedelic journey with DMT or other plant medicines. Designed with intention, we’ve handpicked the best tools and guidance, ensuring a safe and mindful experience while helping to eliminate bad practices and stigma. Built in collaboration with the psychedelic community, the Portalbox is made to last for decades, facilitating breakthrough experiences in a respectful and educated manner.',
+    price: 193.00,
+    category: 'Gear',
+    image: 'https://enoywz5kbkm.exactdn.com/wp-content/uploads/2021/05/Portalbox-V3.jpg?strip=all',
+    amazonUrl: 'https://portiersupplies.com/product/portalbox/?ref=olyqsblj',
+    featured: false,
+  },
+  {
+    id: 'portier-gear-3',
+    name: 'Portal Case',
+    slug: 'portal-case',
+    description: 'Use code "illuminati" and save 10%. The Portalcase is the compact version of the Portalbox, made with similar craftsmanship and care. Handcrafted from rosewood and lined with velvet, it provides flexible storage and security for a small amount of tools and plant medicine. With the most essential storage tools included, it’s the perfect companion for those on dedicated inner journeys.',
+    price: 193.00,
+    category: 'Gear',
+    image: 'https://enoywz5kbkm.exactdn.com/wp-content/uploads/2021/05/portalcase.png?strip=all',
+    amazonUrl: 'https://portiersupplies.com/product/portalcase/?ref=olyqsblj',
+    featured: false,
+  },
+  {
     id: 'amazon-gear-1',
     name: 'Faraday Bag for Phones',
     slug: 'faraday-bag-phones',
@@ -208,6 +241,36 @@ export const amazonProducts: AmazonProduct[] = [
     image: 'https://m.media-amazon.com/images/I/61xKL-Z44SL._AC_SL1500_.jpg',
     amazonUrl: 'https://amzn.to/4oxtLXi',
   },
+  {
+    id: 'amazon-gear-4',
+    name: 'Moon Phases Eye Mask ',
+    slug: '',
+    description: 'Get restful sleep with this comfortable moon phases eye mask.',
+    price: 9.99,
+    category: 'Gear',
+    image: 'https://m.media-amazon.com/images/I/61tygkF2LJL._AC_SL1500_.jpg',
+    amazonUrl: 'https://amzn.to/49d8eP0',
+  },
+  {
+    id: 'amazon-gear-5',
+    name: 'Meditation in Psychedelic River Sleep Mask',
+    slug: 'meditation-psychedelic-river-sleep-mask',
+    description: 'Experience deep relaxation with this psychedelic river sleep mask for meditation.',
+    price: 14.99,
+    category: 'Gear',
+    image: 'https://m.media-amazon.com/images/I/618DKhQfOAL._AC_SL1500_.jpg',
+    amazonUrl: 'https://amzn.to/4oSQ2yR',
+  },
+  {
+    id: 'amazon-gear-6',
+    name: 'Blackout Journey Eye Mask',
+    slug: 'blackout-journey-eye-mask',
+    description: 'Enhance your meditation journey practice with this blackout eye mask.',
+    price: 19.99,
+    category: 'Gear',
+    image: 'https://m.media-amazon.com/images/I/81BpTrjOWFL._AC_SL1500_.jpg',
+    amazonUrl: 'https://amzn.to/44uiCiT',
+  }
 ];
 
 export const amazonCategories = ['Books','Divination','Documentaries','Gear'];

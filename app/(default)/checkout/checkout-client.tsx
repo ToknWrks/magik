@@ -918,7 +918,7 @@ export default function CheckoutClient() {
               </div>
               <div className="flex justify-between mb-2">
                 <span className="text-gray-600 dark:text-gray-400">Shipping</span>
-                <span className="text-gray-900 dark:text-gray-100">Calculated by Printful</span>
+                <span className="text-gray-900 dark:text-gray-100">Lower 48 States Only. USA.</span>
               </div>
               <div className="flex justify-between text-xl font-bold text-gray-900 dark:text-gray-100 pt-2 border-t border-gray-200 dark:border-gray-700">
                 <span>Total</span>

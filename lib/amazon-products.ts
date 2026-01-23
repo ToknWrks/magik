@@ -120,6 +120,26 @@ export const amazonProducts: AmazonProduct[] = [
     image: 'https://m.media-amazon.com/images/I/81PhshiUbNL._SL1500_.jpg',
     amazonUrl: 'https://amzn.to/4oBimWt',
   },
+  {
+    id: 'amazon-book-8',
+    name: 'Holotropic Breathwork: A New Approach to Self-Exploration and Therapy',
+    slug: 'holotropic-breathwork',
+    description: 'Stanislav Grof and Christina Grof\'s guide to a powerful technique for accessing altered states of consciousness for healing and personal growth.',
+    price: 28.00,
+    category: 'Books',
+    image: 'https://m.media-amazon.com/images/I/61bJyb1tTRL._SL1360_.jpg',
+    amazonUrl: 'https://amzn.to/48XmQRc',
+  },
+  {
+    id: 'amazon-book-9',
+    name: 'Soulcraft: Crossing into the Mysteries of Nature and Psyche',
+    slug: 'soulcraft-crossing-into-the-mysteries-of-nature-and-psyche',
+    description: 'Bill Plotkin\'s exploration of the deep connection between nature and the human psyche, offering insights into personal transformation and ecological consciousness.',
+    price: 15.00,
+    category: 'Books',
+    image: 'https://m.media-amazon.com/images/I/81i4DgBLJqL._SL1500_.jpg',
+    amazonUrl: 'https://amzn.to/45bbV5m',
+  },
   // Documentaries/DVDs
   {
     id: 'amazon-dvd-1',

@@ -6,6 +6,7 @@ import { Boundary } from '@/components/ui/boundary';
 import Link from 'next/link';
 import ShareToX from '@/components/ShareToX';
 import AutoLinkMarkdown from '@/components/AutoLinkMarkdown';
+import Script from 'next/script';
 
 interface AstrologyContentProps {
   slug: string;
@@ -48,6 +49,8 @@ export function AstrologyContent({ slug }: AstrologyContentProps) {
           archetypal_themes: template.archetypal_themes,
           evidence_points: template.evidence_points,
           counterarguments: template.counterarguments,
+          created_at: template.created_at,
+          updated_at: template.updated_at,
         });
         return;
       }
@@ -69,6 +72,8 @@ export function AstrologyContent({ slug }: AstrologyContentProps) {
         archetypal_themes: template.archetypal_themes,
         evidence_points: template.evidence_points,
         counterarguments: template.counterarguments,
+        created_at: template.created_at,
+        updated_at: template.updated_at,
       });
     } catch (err) {
       setError(err instanceof Error ? err.message : 'An error occurred');
@@ -116,108 +121,192 @@ export function AstrologyContent({ slug }: AstrologyContentProps) {
     );
   }
 
+  // Structured Data for SEO
+  const structuredData = {
+    '@context': 'https://schema.org',
+    '@type': 'Article',
+    headline: content.title,
+    description: content.description || `Explore the ${content.title} planetary combination in archetypal astrology`,
+    author: {
+      '@type': 'Organization',
+      name: 'Real Illuminati',
+      url: 'https://illuminati.earth'
+    },
+    publisher: {
+      '@type': 'Organization',
+      name: 'Real Illuminati',
+      logo: {
+        '@type': 'ImageObject',
+        url: 'https://illuminati.earth/images/illuminati-logo.png'
+      }
+    },
+    datePublished: content.created_at,
+    dateModified: content.updated_at,
+    mainEntityOfPage: {
+      '@type': 'WebPage',
+      '@id': `https://illuminati.earth/astrology/${slug}`
+    },
+    articleSection: 'Astrology',
+    keywords: [content.category, content.category2, 'archetypal astrology', 'planetary combinations'],
+    breadcrumb: {
+      '@type': 'BreadcrumbList',
+      itemListElement: [
+        {
+          '@type': 'ListItem',
+          position: 1,
+          name: 'Home',
+          item: 'https://illuminati.earth'
+        },
+        {
+          '@type': 'ListItem',
+          position: 2,
+          name: 'Astrology',
+          item: 'https://illuminati.earth/astrology'
+        },
+        {
+          '@type': 'ListItem',
+          position: 3,
+          name: content.title,
+          item: `https://illuminati.earth/astrology/${slug}`
+        }
+      ]
+    }
+  };
+
   return (
-    <Boundary label="Archetypal Astrology">
-      <div className="max-w-4xl mx-auto">
-        {/* Back Link */}
-        <Link 
-          href="/astrology" 
-          className="text-sm text-gray-600 dark:text-gray-400 hover:text-amber-600 dark:hover:text-amber-400 mb-6 inline-flex items-center gap-1 transition-colors"
-        >
-          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-          </svg>
-          Back to Astrology Archive
-        </Link>
+    <>
+      {/* Structured Data */}
+      <Script
+        id="structured-data"
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify(structuredData),
+        }}
+      />
 
-        {/* Title & Share */}
-        <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4 mt-4 mb-8">
-          <h1 className="text-3xl md:text-4xl font-bold text-gray-900 dark:text-gray-100">
-            {content.title}
-          </h1>
-          <ShareToX 
-            title={content.title} 
-            hashtags={['realilluminati', 'astrology', 'archetypal', 'planets']}
-          />
-        </div>
+      <Boundary label="Archetypal Astrology">
+        <div className="max-w-4xl mx-auto">
+          {/* Breadcrumb Navigation */}
+          <nav aria-label="Breadcrumb" className="mb-6">
+            <ol className="flex items-center space-x-2 text-sm text-gray-500 dark:text-gray-400">
+              <li>
+                <Link href="/" className="hover:text-gray-700 dark:hover:text-gray-200">
+                  Home
+                </Link>
+              </li>
+              <li>/</li>
+              <li>
+                <Link href="/astrology" className="hover:text-gray-700 dark:hover:text-gray-200">
+                  Astrology
+                </Link>
+              </li>
+              <li>/</li>
+              <li className="text-gray-900 dark:text-gray-100 font-medium" aria-current="page">
+                {content.title}
+              </li>
+            </ol>
+          </nav>
 
-        {/* Archetypal Themes */}
-        {content.archetypal_themes?.length > 0 && (
-          <div className="mb-8 p-5 bg-gray-50 dark:bg-gray-800/50 rounded-lg border border-gray-200 dark:border-gray-700">
-            <h3 className="font-semibold text-gray-900 dark:text-gray-100 mb-3 flex items-center gap-2">
-              <span className="w-1.5 h-1.5 bg-amber-500 rounded-full"></span>
-              Archetypal Themes
-            </h3>
-            <ul className="space-y-2">
-              {content.archetypal_themes.map((theme: string, i: number) => (
-                <li key={i} className="flex items-start gap-2 text-sm text-gray-700 dark:text-gray-300">
-                  <span className="text-amber-500 mt-0.5">•</span>
-                  {theme}
-                </li>
-              ))}
-            </ul>
-          </div>
-        )}
-
-        {/* Main Content with Auto-Links */}
-        <article className="prose-article">
-          <AutoLinkMarkdown content={content.body || ''} currentSlug={slug} />
-        </article>
-
-        {/* Evidence Points */}
-        {content.evidence_points?.length > 0 && (
-          <div className="mt-10 p-5 bg-gray-50 dark:bg-gray-800/50 rounded-lg border border-gray-200 dark:border-gray-700">
-            <h3 className="font-semibold text-gray-900 dark:text-gray-100 mb-3 flex items-center gap-2">
-              <span className="w-1.5 h-1.5 bg-amber-500 rounded-full"></span>
-              Supporting Evidence
-            </h3>
-            <ul className="space-y-2">
-              {content.evidence_points.map((point: string, i: number) => (
-                <li key={i} className="flex items-start gap-2 text-sm text-gray-700 dark:text-gray-300">
-                  <span className="text-amber-500 mt-0.5">•</span>
-                  {point}
-                </li>
-              ))}
-            </ul>
-          </div>
-        )}
-
-        {/* Counterarguments */}
-        {content.counterarguments?.length > 0 && (
-          <div className="mt-6 p-5 bg-gray-50 dark:bg-gray-800/50 rounded-lg border border-gray-200 dark:border-gray-700">
-            <h3 className="font-semibold text-gray-900 dark:text-gray-100 mb-3 flex items-center gap-2">
-              <span className="w-1.5 h-1.5 bg-amber-500 rounded-full"></span>
-              Alternative Perspectives
-            </h3>
-            <ul className="space-y-2">
-              {content.counterarguments.map((arg: string, i: number) => (
-                <li key={i} className="flex items-start gap-2 text-sm text-gray-700 dark:text-gray-300">
-                  <span className="text-amber-500 mt-0.5">•</span>
-                  {arg}
-                </li>
-              ))}
-            </ul>
-          </div>
-        )}
-
-        {/* Footer */}
-        <div className="mt-12 pt-6 border-t border-gray-200 dark:border-gray-700 flex flex-col sm:flex-row items-center justify-between gap-4">
+          {/* Back Link */}
           <Link 
             href="/astrology" 
-            className="inline-flex items-center gap-2 px-4 py-2 bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors text-sm"
+            className="text-sm text-gray-600 dark:text-gray-400 hover:text-amber-600 dark:hover:text-amber-400 mb-6 inline-flex items-center gap-1 transition-colors"
           >
             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
             </svg>
-            Explore More Combinations
+            Back to Astrology Archive
           </Link>
-          <ShareToX 
-            title={content.title} 
-            hashtags={['realilluminati', 'astrology', 'archetypal', 'planets']}
-          />
+
+          {/* Title & Share */}
+          <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4 mt-4 mb-8">
+            <h1 className="text-3xl md:text-4xl font-bold text-gray-900 dark:text-gray-100">
+              {content.title}
+            </h1>
+            <ShareToX 
+              title={content.title} 
+              hashtags={['realilluminati', 'astrology', 'archetypal', 'planets']}
+            />
+          </div>
+
+          {/* Archetypal Themes */}
+          {content.archetypal_themes?.length > 0 && (
+            <div className="mb-8 p-5 bg-gray-50 dark:bg-gray-800/50 rounded-lg border border-gray-200 dark:border-gray-700">
+              <h3 className="font-semibold text-gray-900 dark:text-gray-100 mb-3 flex items-center gap-2">
+                <span className="w-1.5 h-1.5 bg-amber-500 rounded-full"></span>
+                Archetypal Themes
+              </h3>
+              <ul className="space-y-2">
+                {content.archetypal_themes.map((theme: string, i: number) => (
+                  <li key={i} className="flex items-start gap-2 text-sm text-gray-700 dark:text-gray-300">
+                    <span className="text-amber-500 mt-0.5">•</span>
+                    {theme}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
+
+          {/* Main Content with Auto-Links */}
+          <article className="prose-article">
+            <AutoLinkMarkdown content={content.body || ''} currentSlug={slug} />
+          </article>
+
+          {/* Evidence Points */}
+          {content.evidence_points?.length > 0 && (
+            <div className="mt-10 p-5 bg-gray-50 dark:bg-gray-800/50 rounded-lg border border-gray-200 dark:border-gray-700">
+              <h3 className="font-semibold text-gray-900 dark:text-gray-100 mb-3 flex items-center gap-2">
+                <span className="w-1.5 h-1.5 bg-amber-500 rounded-full"></span>
+                Supporting Evidence
+              </h3>
+              <ul className="space-y-2">
+                {content.evidence_points.map((point: string, i: number) => (
+                  <li key={i} className="flex items-start gap-2 text-sm text-gray-700 dark:text-gray-300">
+                    <span className="text-amber-500 mt-0.5">•</span>
+                    {point}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
+
+          {/* Counterarguments */}
+          {content.counterarguments?.length > 0 && (
+            <div className="mt-6 p-5 bg-gray-50 dark:bg-gray-800/50 rounded-lg border border-gray-200 dark:border-gray-700">
+              <h3 className="font-semibold text-gray-900 dark:text-gray-100 mb-3 flex items-center gap-2">
+                <span className="w-1.5 h-1.5 bg-amber-500 rounded-full"></span>
+                Alternative Perspectives
+              </h3>
+              <ul className="space-y-2">
+                {content.counterarguments.map((arg: string, i: number) => (
+                  <li key={i} className="flex items-start gap-2 text-sm text-gray-700 dark:text-gray-300">
+                    <span className="text-amber-500 mt-0.5">•</span>
+                    {arg}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
+
+          {/* Footer */}
+          <div className="mt-12 pt-6 border-t border-gray-200 dark:border-gray-700 flex flex-col sm:flex-row items-center justify-between gap-4">
+            <Link 
+              href="/astrology" 
+              className="inline-flex items-center gap-2 px-4 py-2 bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors text-sm"
+            >
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+              </svg>
+              Explore More Combinations
+            </Link>
+            <ShareToX 
+              title={content.title} 
+              hashtags={['realilluminati', 'astrology', 'archetypal', 'planets']}
+            />
+          </div>
         </div>
-      </div>
-    </Boundary>
+      </Boundary>
+    </>
   );
 }
 

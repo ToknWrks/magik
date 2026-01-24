@@ -109,6 +109,7 @@ const videoTabs: VideoTab[] = [
     endTime: 1900,
     platform: 'youtube',
   },
+
   {
     id: 'Voice',
     title: 'Voice',
@@ -118,6 +119,18 @@ const videoTabs: VideoTab[] = [
     publishedDate: '2024-01-15',
     startTime: 810,
     endTime: 910,
+    platform: 'youtube',
+  },
+
+  {
+    id: 'Got Game',
+    title: 'Got Game',
+    description: 'Lance Pitman Snowboard Video Part - Got Game',
+    videoId: 'buMYmB3XpYU',
+    duration: '4:00',
+    publishedDate: '2024-01-15',
+    startTime: 569,
+    endTime: 800,
     platform: 'youtube',
   },
  

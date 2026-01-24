@@ -81,7 +81,7 @@ const videoTabs: VideoTab[] = [
     duration: '1:45',
     publishedDate: '2024-01-30',
     startTime: 1278, 
-    endTime: 1365,
+    endTime: 1370,
     platform: 'youtube',
     
   },
@@ -371,12 +371,12 @@ export default function LancePitman() {
         {/* Footer */}
         <div className="mt-12 pt-8 border-t border-gray-200 dark:border-gray-700 text-center">
           <p className="text-gray-600 dark:text-gray-400">
-            For more content from Lance Pitman, visit our{' '}
+            For more content visit {' '}
             <a 
-              href="/astrology" 
+              href="/real/illuminati-history" 
               className="text-amber-600 dark:text-amber-400 hover:underline"
             >
-              Astrology Archive
+              Illuminati
             </a>
           </p>
         </div>

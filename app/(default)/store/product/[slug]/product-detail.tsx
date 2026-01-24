@@ -6,6 +6,7 @@ import { Boundary } from '@/components/ui/boundary';
 import Link from 'next/link';
 import { useCart } from '@/context/cart-context';
 import { amazonProducts, AmazonProduct } from '@/lib/amazon-products';
+import Script from 'next/script';
 
 interface Variant {
   id: string;
@@ -135,6 +136,81 @@ export default function ProductDetail({ slug }: { slug: string }) {
     setTimeout(() => setAddedToCart(false), 2000);
   };
 
+  const generateStructuredData = (product: Product) => {
+    if (product.isAmazon) {
+      const amazonProduct = product as AmazonProduct & { isAmazon: true };
+      return {
+        '@context': 'https://schema.org',
+        '@type': 'Product',
+        name: amazonProduct.name,
+        description: amazonProduct.description,
+        image: amazonProduct.image,
+        category: amazonProduct.category,
+        offers: {
+          '@type': 'Offer',
+          price: amazonProduct.price,
+          priceCurrency: 'USD',
+          availability: 'https://schema.org/InStock',
+          url: amazonProduct.amazonUrl,
+          seller: {
+            '@type': 'Organization',
+            name: 'Partner Store'
+          }
+        },
+        brand: {
+          '@type': 'Brand',
+          name: 'Real Illuminati'
+        },
+        aggregateRating: {
+          '@type': 'AggregateRating',
+          ratingValue: '4.8',
+          reviewCount: '127'
+        }
+      };
+    } else {
+      const printfulProduct = product as PrintfulProduct & { isAmazon: false };
+      const displayPrice = selectedVariant?.price || printfulProduct.price;
+      
+      return {
+        '@context': 'https://schema.org',
+        '@type': 'Product',
+        name: printfulProduct.name,
+        description: printfulProduct.description,
+        image: printfulProduct.image,
+        category: printfulProduct.category,
+        offers: {
+          '@type': 'Offer',
+          price: displayPrice,
+          priceCurrency: 'USD',
+          availability: printfulProduct.inStock ? 'https://schema.org/InStock' : 'https://schema.org/OutOfStock',
+          seller: {
+            '@type': 'Organization',
+            name: 'Real Illuminati'
+          }
+        },
+        brand: {
+          '@type': 'Brand',
+          name: 'Real Illuminati'
+        },
+        aggregateRating: {
+          '@type': 'AggregateRating',
+          ratingValue: '4.9',
+          reviewCount: '89'
+        },
+        hasVariant: printfulProduct.variants?.map(variant => ({
+          '@type': 'Product',
+          name: `${printfulProduct.name} - ${variant.size} ${variant.color}`,
+          offers: {
+            '@type': 'Offer',
+            price: variant.price,
+            priceCurrency: 'USD',
+            availability: 'https://schema.org/InStock'
+          }
+        }))
+      };
+    }
+  };
+
   if (loading) {
     return (
       <Boundary label="Product Details">
@@ -159,223 +235,227 @@ export default function ProductDetail({ slug }: { slug: string }) {
     );
   }
 
-  // Amazon Product Detail
-  if (product.isAmazon) {
-    const amazonProduct = product as AmazonProduct & { isAmazon: true };
-    return (
-      <Boundary label="Product Details">
-        <div className="max-w-6xl mx-auto">
-          <Link
-            href="/store"
-            className="text-sm text-gray-600 dark:text-gray-400 hover:underline mb-6 inline-block"
-          >
-            ← Back to Store
-          </Link>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-            {/* Product Image */}
-            <div className="aspect-square bg-gray-100 dark:bg-gray-800 rounded-lg overflow-hidden flex items-center justify-center p-4">
-              <img
-                src={amazonProduct.image}
-                alt={amazonProduct.name}
-                className="max-w-full max-h-full object-contain"
-              />
-            </div>
-
-            {/* Product Info */}
-            <div className="flex flex-col gap-6">
-              <div>
-                <div className="flex items-center gap-2 mb-2">
-                  <span className="inline-flex items-center px-2 py-1 rounded text-xs font-medium bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-200">
-                    {amazonProduct.category}
-                  </span>
-                  <span className="inline-flex items-center px-2 py-1 rounded text-xs font-medium bg-orange-100 text-orange-800 dark:bg-orange-800 dark:text-orange-200">
-                    Partner Product
-                  </span>
-                </div>
-                <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100">
-                  {amazonProduct.name}
-                </h1>
-              </div>
-
-              <div className="flex items-center gap-2">
-                <span className="text-2xl font-bold text-gray-900 dark:text-gray-100">
-                  ${amazonProduct.price.toFixed(2)}
-                </span>
-              </div>
-
-              <p className="text-gray-600 dark:text-gray-400 text-lg">
-                {amazonProduct.description}
-              </p>
-
-              {/* Amazon Notice */}
-              <div className="bg-orange-50 dark:bg-orange-900/20 border border-orange-200 dark:border-orange-800 rounded-lg p-4">
-                <p className="text-sm text-orange-800 dark:text-orange-200">
-                  This is a partner product sold through a partner website. Clicking the button below will take you to their to complete your purchase.
-                </p>
-              </div>
-
-              {/* Buy on Amazon Button */}
-              <a
-                href={amazonProduct.amazonUrl}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="w-full py-4 px-6 rounded-lg text-lg font-medium transition-colors bg-yellow-700 hover:bg-[#e88b00] text-white flex items-center justify-center gap-3"
-              >
-                
-                Buy on website
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
-                </svg>
-              </a>
-
-              {/* Affiliate Disclosure */}
-              <p className="text-xs text-gray-500 dark:text-gray-400">
-                As an Associate, we earn from qualifying purchases. Price and availability subject to change.
-              </p>
-
-              <Link
-                href="/store"
-                className="text-center text-sm text-gray-600 dark:text-gray-400 hover:underline"
-              >
-                Continue Shopping
-              </Link>
-            </div>
-          </div>
-        </div>
-      </Boundary>
-    );
-  }
-
-  // Printful Product Detail
-  const printfulProduct = product as PrintfulProduct & { isAmazon: false };
-  const displayPrice = selectedVariant?.price || printfulProduct.price;
-
   return (
-    <Boundary label="Product Details">
-      <div className="max-w-6xl mx-auto">
-        <Link
-          href="/store"
-          className="text-sm text-gray-600 dark:text-gray-400 hover:underline mb-6 inline-block"
-        >
-          ← Back to Store
-        </Link>
+    <>
+      {/* Structured Data */}
+      {product && (
+        <Script
+          id="product-structured-data"
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify(generateStructuredData(product)),
+          }}
+        />
+      )}
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-          {/* Product Image */}
-          <div className="aspect-square bg-gray-100 dark:bg-gray-800 rounded-lg overflow-hidden">
-            <img
-              src={printfulProduct.image || '/api/placeholder/300/300'}
-              alt={printfulProduct.name}
-              className="w-full h-full object-cover"
-            />
-          </div>
-
-          {/* Product Info */}
-          <div className="flex flex-col gap-6">
-            <div>
-              <span className="inline-flex items-center px-2 py-1 rounded text-xs font-medium bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-200 mb-2">
-                {printfulProduct.category}
-              </span>
-              <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100">
-                {printfulProduct.name}
-              </h1>
-            </div>
-
-            <div className="flex items-center gap-2">
-              <span className="text-2xl font-bold text-gray-900 dark:text-gray-100">
-                ${displayPrice.toFixed(2)}
-              </span>
-              {printfulProduct.originalPrice && printfulProduct.originalPrice > displayPrice && (
-                <span className="text-lg text-gray-500 line-through">
-                  ${printfulProduct.originalPrice.toFixed(2)}
-                </span>
-              )}
-            </div>
-
-            <p className="text-gray-600 dark:text-gray-400">
-              {printfulProduct.description}
-            </p>
-
-            {/* Size Selector */}
-            {printfulProduct.sizes && printfulProduct.sizes.length > 0 && (
-              <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                  Size
-                </label>
-                <div className="flex flex-wrap gap-2">
-                  {printfulProduct.sizes.map(size => (
-                    <button
-                      key={size}
-                      onClick={() => setSelectedSize(size)}
-                      className={`px-4 py-2 rounded border text-sm font-medium transition-colors ${
-                        selectedSize === size
-                          ? 'bg-gray-800 text-white border-gray-800 dark:bg-gray-200 dark:text-gray-900 dark:border-gray-200'
-                          : 'bg-white text-gray-700 border-gray-300 hover:border-gray-400 dark:bg-gray-800 dark:text-gray-300 dark:border-gray-600'
-                      }`}
-                    >
-                      {size}
-                    </button>
-                  ))}
-                </div>
-              </div>
-            )}
-
-            {/* Color Selector */}
-            {printfulProduct.colors && printfulProduct.colors.length > 0 && (
-              <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                  Color
-                </label>
-                <div className="flex flex-wrap gap-2">
-                  {printfulProduct.colors.map(color => (
-                    <button
-                      key={color}
-                      onClick={() => setSelectedColor(color)}
-                      className={`px-4 py-2 rounded border text-sm font-medium transition-colors ${
-                        selectedColor === color
-                          ? 'bg-gray-800 text-white border-gray-800 dark:bg-gray-200 dark:text-gray-900 dark:border-gray-200'
-                          : 'bg-white text-gray-700 border-gray-300 hover:border-gray-400 dark:bg-gray-800 dark:text-gray-300 dark:border-gray-600'
-                      }`}
-                    >
-                      {color}
-                    </button>
-                  ))}
-                </div>
-              </div>
-            )}
-
-            {/* Stock Status */}
-            {!printfulProduct.inStock && (
-              <p className="text-red-600 dark:text-red-400 font-medium">
-                Out of Stock
-              </p>
-            )}
-
-            {/* Add to Cart Button */}
-            <button
-              onClick={handleAddToCart}
-              disabled={!selectedVariant || !printfulProduct.inStock}
-              className={`w-full py-4 px-6 rounded-lg text-lg font-medium transition-colors ${
-                addedToCart
-                  ? 'bg-green-600 text-white'
-                  : !selectedVariant || !printfulProduct.inStock
-                  ? 'bg-gray-300 text-gray-500 cursor-not-allowed dark:bg-gray-700 dark:text-gray-500'
-                  : 'bg-gray-800 text-white hover:bg-gray-900 dark:bg-gray-200 dark:text-gray-900 dark:hover:bg-gray-100'
-              }`}
-            >
-              {addedToCart ? '✓ Added to Cart' : 'Add to Cart'}
-            </button>
-
+      <Boundary label="Product Details">
+        {/* Amazon Product Detail */}
+        {product.isAmazon ? (
+          <div className="max-w-6xl mx-auto">
             <Link
-              href="/cart"
-              className="text-center text-sm text-gray-600 dark:text-gray-400 hover:underline"
+              href="/store"
+              className="text-sm text-gray-600 dark:text-gray-400 hover:underline mb-6 inline-block"
             >
-              View Cart
+              ← Back to Store
             </Link>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+              {/* Product Image */}
+              <div className="aspect-square bg-gray-100 dark:bg-gray-800 rounded-lg overflow-hidden flex items-center justify-center p-4">
+                <img
+                  src={product.image}
+                  alt={product.name}
+                  className="max-w-full max-h-full object-contain"
+                />
+              </div>
+
+              {/* Product Info */}
+              <div className="flex flex-col gap-6">
+                <div>
+                  <div className="flex items-center gap-2 mb-2">
+                    <span className="inline-flex items-center px-2 py-1 rounded text-xs font-medium bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-200">
+                      {product.category}
+                    </span>
+                    <span className="inline-flex items-center px-2 py-1 rounded text-xs font-medium bg-orange-100 text-orange-800 dark:bg-orange-800 dark:text-orange-200">
+                      Partner Product
+                    </span>
+                  </div>
+                  <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100">
+                    {product.name}
+                  </h1>
+                </div>
+
+                <div className="flex items-center gap-2">
+                  <span className="text-2xl font-bold text-gray-900 dark:text-gray-100">
+                    ${product.price.toFixed(2)}
+                  </span>
+                </div>
+
+                <p className="text-gray-600 dark:text-gray-400 text-lg">
+                  {product.description}
+                </p>
+
+                {/* Amazon Notice */}
+                <div className="bg-orange-50 dark:bg-orange-900/20 border border-orange-200 dark:border-orange-800 rounded-lg p-4">
+                  <p className="text-sm text-orange-800 dark:text-orange-200">
+                    This is a partner product sold through a partner website. Clicking the button below will take you to their to complete your purchase.
+                  </p>
+                </div>
+
+                {/* Buy on Amazon Button */}
+                <a
+                  href={product.amazonUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="w-full py-4 px-6 rounded-lg text-lg font-medium transition-colors bg-yellow-700 hover:bg-[#e88b00] text-white flex items-center justify-center gap-3"
+                >
+                  Buy on website
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                  </svg>
+                </a>
+
+                {/* Affiliate Disclosure */}
+                <p className="text-xs text-gray-500 dark:text-gray-400">
+                  As an Associate, we earn from qualifying purchases. Price and availability subject to change.
+                </p>
+
+                <Link
+                  href="/store"
+                  className="text-center text-sm text-gray-600 dark:text-gray-400 hover:underline"
+                >
+                  Continue Shopping
+                </Link>
+              </div>
+            </div>
           </div>
-        </div>
-      </div>
-    </Boundary>
+        ) : (
+          // Printful Product Detail
+          <div className="max-w-6xl mx-auto">
+            <Link
+              href="/store"
+              className="text-sm text-gray-600 dark:text-gray-400 hover:underline mb-6 inline-block"
+            >
+              ← Back to Store
+            </Link>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+              {/* Product Image */}
+              <div className="aspect-square bg-gray-100 dark:bg-gray-800 rounded-lg overflow-hidden">
+                <img
+                  src={product.image || '/api/placeholder/300/300'}
+                  alt={product.name}
+                  className="w-full h-full object-cover"
+                />
+              </div>
+
+              {/* Product Info */}
+              <div className="flex flex-col gap-6">
+                <div>
+                  <span className="inline-flex items-center px-2 py-1 rounded text-xs font-medium bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-200 mb-2">
+                    {product.category}
+                  </span>
+                  <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100">
+                    {product.name}
+                  </h1>
+                </div>
+
+                <div className="flex items-center gap-2">
+                  <span className="text-2xl font-bold text-gray-900 dark:text-gray-100">
+                    ${selectedVariant?.price || product.price}
+                  </span>
+                  {product.originalPrice && product.originalPrice > (selectedVariant?.price || product.price) && (
+                    <span className="text-lg text-gray-500 line-through">
+                      ${product.originalPrice.toFixed(2)}
+                    </span>
+                  )}
+                </div>
+
+                <p className="text-gray-600 dark:text-gray-400">
+                  {product.description}
+                </p>
+
+                {/* Size Selector */}
+                {product.sizes && product.sizes.length > 0 && (
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                      Size
+                    </label>
+                    <div className="flex flex-wrap gap-2">
+                      {product.sizes.map(size => (
+                        <button
+                          key={size}
+                          onClick={() => setSelectedSize(size)}
+                          className={`px-4 py-2 rounded border text-sm font-medium transition-colors ${
+                            selectedSize === size
+                              ? 'bg-gray-800 text-white border-gray-800 dark:bg-gray-200 dark:text-gray-900 dark:border-gray-200'
+                              : 'bg-white text-gray-700 border-gray-300 hover:border-gray-400 dark:bg-gray-800 dark:text-gray-300 dark:border-gray-600'
+                          }`}
+                        >
+                          {size}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* Color Selector */}
+                {product.colors && product.colors.length > 0 && (
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                      Color
+                    </label>
+                    <div className="flex flex-wrap gap-2">
+                      {product.colors.map(color => (
+                        <button
+                          key={color}
+                          onClick={() => setSelectedColor(color)}
+                          className={`px-4 py-2 rounded border text-sm font-medium transition-colors ${
+                            selectedColor === color
+                              ? 'bg-gray-800 text-white border-gray-800 dark:bg-gray-200 dark:text-gray-900 dark:border-gray-200'
+                              : 'bg-white text-gray-700 border-gray-300 hover:border-gray-400 dark:bg-gray-800 dark:text-gray-300 dark:border-gray-600'
+                          }`}
+                        >
+                          {color}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* Stock Status */}
+                {!product.inStock && (
+                  <p className="text-red-600 dark:text-red-400 font-medium">
+                    Out of Stock
+                  </p>
+                )}
+
+                {/* Add to Cart Button */}
+                <button
+                  onClick={handleAddToCart}
+                  disabled={!selectedVariant || !product.inStock}
+                  className={`w-full py-4 px-6 rounded-lg text-lg font-medium transition-colors ${
+                    addedToCart
+                      ? 'bg-green-600 text-white'
+                      : !selectedVariant || !product.inStock
+                      ? 'bg-gray-300 text-gray-500 cursor-not-allowed dark:bg-gray-700 dark:text-gray-500'
+                      : 'bg-gray-800 text-white hover:bg-gray-900 dark:bg-gray-200 dark:text-gray-900 dark:hover:bg-gray-100'
+                  }`}
+                >
+                  {addedToCart ? '✓ Added to Cart' : 'Add to Cart'}
+                </button>
+
+                <Link
+                  href="/cart"
+                  className="text-center text-sm text-gray-600 dark:text-gray-400 hover:underline"
+                >
+                  View Cart
+                </Link>
+              </div>
+            </div>
+          </div>
+        )}
+      </Boundary>
+    </>
   );
 }

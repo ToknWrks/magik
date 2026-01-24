@@ -22,6 +22,19 @@ interface VideoTab {
 const videoTabs: VideoTab[] = [
 
   {
+    id: 'Illuminati Post',
+    title: 'Post Illuminati ',
+    description: 'Lance Pitman Snowboarding ',
+    videoId: '91773705',
+    duration: '4:15',
+    publishedDate: '2001-10-15',
+    startTime: 1, // Start at 90 seconds (1:30)
+    endTime: 250,
+    platform: 'vimeo',
+    
+  },
+
+  {
     id: 'Illuminati Snowboards',
     title: 'Illuminati ',
     description: 'Lance Pitman Snowboard Video Part - Illuminati Snowboards',

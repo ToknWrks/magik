@@ -4,9 +4,8 @@ import LancePitman from './lance-pitman';
 
 // Metadata for SEO
 export const metadata: Metadata = {
-  title: 'Lance Pitman - Archetypal Astrology Lectures | Real Illuminati',
-  description: 'Explore comprehensive video lectures on archetypal astrology by Lance Pitman. Learn about planetary combinations, practical applications, and real-world case studies in depth.',
-  keywords: ['archetypal astrology', 'lance pitman', 'planetary combinations', 'astrology lectures', 'spiritual development'],
+  title: 'Lance Pitman - Snowboard Video Parts | Real Illuminati',
+  description: 'Lance Pitmans snowboarding video parts from early k2 days to illuminati snowboards.',
   openGraph: {
     title: 'Lance Pitman - Archetypal Astrology Lectures',
     description: 'Comprehensive video series exploring archetypal astrology principles and planetary combinations.',

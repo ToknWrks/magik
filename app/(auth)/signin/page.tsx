@@ -44,7 +44,7 @@ export default function SignIn() {
           <div className="min-h-[100dvh] h-full flex flex-col after:flex-1">
             <AuthHeader />
             <div className="max-w-sm mx-auto w-full px-4 py-8">
-              <h1 className="text-3xl text-gray-800 dark:text-gray-100 font-bold mb-6">Who is the widows son?</h1>
+              <h1 className="text-3xl text-gray-800 dark:text-gray-100 font-bold mb-6">Welcome Home</h1>
               <form onSubmit={handleSubmit}>
                 <div className="space-y-4">
                   <div>

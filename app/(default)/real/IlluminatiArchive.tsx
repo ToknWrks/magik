@@ -64,7 +64,7 @@ export default function IlluminatiArchive() {
           name: 'Spirit Voices',
           status: 'Verified',
           slug: 'spirit-voices',
-          description: 'The theory that aircraft trails contain harmful chemicals.',
+          description: 'An ode to the "Song of Zazen" by Hakuin Zenji, this collection invites you to explore the depths of Zen practice and philosophy.',
         },
       ],
     },

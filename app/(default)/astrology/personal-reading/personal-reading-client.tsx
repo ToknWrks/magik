@@ -940,7 +940,7 @@ export default function PersonalReadingClient() {
           type="submit"
           className="w-full py-3 px-6 bg-gray-800 hover:bg-gray-900 text-yellow-700 font-semibold rounded-xl text-base transition-colors"
         >
-          Continue to Payment — $9
+          Continue 
         </button>
       </form>
     </div>

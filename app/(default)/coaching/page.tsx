@@ -1,13 +1,13 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Boundary } from '@/components/ui/boundary';
 import dynamic from 'next/dynamic';
 
 const SolomonSession = dynamic(() => import('./SolomonSession'), { ssr: false });
 
-export default function CoachingPage() {
+function CoachingPageInner() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [accessToken, setAccessToken] = useState<string | null>(null);
@@ -106,5 +106,13 @@ export default function CoachingPage() {
       {/* Session */}
       <SolomonSession accessToken={accessToken} initialBalance={balance} initialResumeTranscript={initialResumeTranscript} />
     </div>
+  );
+}
+
+export default function CoachingPage() {
+  return (
+    <Suspense>
+      <CoachingPageInner />
+    </Suspense>
   );
 }

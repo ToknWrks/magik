@@ -10,16 +10,14 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const { username, avatar_url } = await request.json();
+    const { username, avatar_url, bio } = await request.json();
 
-    if (!username && !avatar_url) {
+    if (!username && avatar_url === undefined && bio === undefined) {
       return NextResponse.json({ error: 'Nothing to update' }, { status: 400 });
     }
 
-    // Ensure avatar_url column exists
-    await pool.query(`
-      ALTER TABLE users ADD COLUMN IF NOT EXISTS avatar_url TEXT
-    `);
+    await pool.query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS avatar_url TEXT`);
+    await pool.query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS bio TEXT`);
 
     const updates: string[] = [];
     const values: any[] = [];
@@ -38,11 +36,16 @@ export async function POST(request: NextRequest) {
       values.push(avatar_url);
     }
 
+    if (bio !== undefined) {
+      updates.push(`bio = $${idx++}`);
+      values.push(bio);
+    }
+
     updates.push(`updated_at = NOW()`);
     values.push(userId);
 
     const result = await pool.query(
-      `UPDATE users SET ${updates.join(', ')} WHERE id = $${idx} RETURNING id, email, username, role, avatar_url`,
+      `UPDATE users SET ${updates.join(', ')} WHERE id = $${idx} RETURNING id, email, username, role, avatar_url, bio`,
       values
     );
 

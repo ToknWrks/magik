@@ -30,7 +30,7 @@ export default function RootLayout({
         <CartProvider>
           <AppProvider>
             {children}
-            <GoogleAnalytics gaId="G-ZGM8KTHLE1" />
+            {process.env.NEXT_PUBLIC_GA_ID && <GoogleAnalytics gaId={process.env.NEXT_PUBLIC_GA_ID} />}
           </AppProvider>
           </CartProvider>
         </Theme>

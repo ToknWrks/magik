@@ -18,7 +18,7 @@ export async function GET(request: NextRequest) {
     }
     
     const result = await pool.query(
-      'SELECT id, email, username, role FROM users WHERE id = $1', 
+      'SELECT id, email, username, role, avatar_url FROM users WHERE id = $1',
       [userId]
     );
     const user = result.rows[0];
@@ -28,12 +28,13 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ user: null });
     }
     
-    return NextResponse.json({ 
+    return NextResponse.json({
       user: {
         id: user.id,
         email: user.email,
         username: user.username,
         role: user.role,
+        avatar_url: user.avatar_url || null,
       }
     });
   } catch (error) {

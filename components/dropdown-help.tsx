@@ -44,12 +44,22 @@ export default function DropdownHelp({ align }: {
             <MenuItems as="ul" className="focus:outline-none">
               <MenuItem as="li">
                 {({ active }) => (
-                  <Link className={`font-medium text-sm flex items-center py-1 px-3 ${active ? 'text-gray-700 dark:text-yellow-700' : 'text-yellow-700'}`} href="/shop">
+                  <Link className={`font-medium text-sm flex items-center py-1 px-3 ${active ? 'text-gray-700 dark:text-yellow-700' : 'text-yellow-700'}`} href="/store">
                     <svg className="w-3 h-3 fill-current text-gray-500 shrink-0 mr-2" viewBox="0 0 12 12">
                       <rect y="3" width="12" height="9" rx="1" />
                       <path d="M2 0h8v2H2z" />
                     </svg>
                     <span>Shop</span>
+                  </Link>
+                )}
+              </MenuItem>
+              <MenuItem as="li">
+                {({ active }) => (
+                  <Link className={`font-medium text-sm flex items-center py-1 px-3 ${active ? 'text-gray-600 dark:text-yellow-700' : 'text-yellow-700'}`} href="/astrology/personal-reading">
+                    <svg className="w-3 h-3 fill-current text-gray-500 shrink-0 mr-2" viewBox="0 0 12 12">
+                      <path d="M6 0a6 6 0 100 12A6 6 0 006 0zm0 1a5 5 0 110 10A5 5 0 016 1zm0 2a1 1 0 100 2 1 1 0 000-2zm-.5 3h1v4h-1V6z" />
+                    </svg>
+                    <span>Reading</span>
                   </Link>
                 )}
               </MenuItem>

@@ -164,7 +164,15 @@ function SessionControls({
 
 // ── Start screen ───────────────────────────────────────────────────────────────
 
-function StartScreen({ balance, onStart }: { balance: number; onStart: () => void }) {
+function StartScreen({
+  balance,
+  accessToken,
+  configId,
+}: {
+  balance: number;
+  accessToken: string;
+  configId: string;
+}) {
   const { status, connect } = useVoice();
   const [connecting, setConnecting] = useState(false);
   const [error, setError] = useState('');
@@ -173,8 +181,7 @@ function StartScreen({ balance, onStart }: { balance: number; onStart: () => voi
     setConnecting(true);
     setError('');
     try {
-      await onStart();
-      await connect();
+      await connect({ auth: { type: 'accessToken', value: accessToken }, configId });
     } catch {
       setError('Failed to connect. Please try again.');
     } finally {
@@ -308,9 +315,13 @@ function SessionSummary({
 
 function InnerSession({
   balance: initialBalance,
+  accessToken,
+  configId,
   onSessionEnd,
 }: {
   balance: number;
+  accessToken: string;
+  configId: string;
   onSessionEnd: (creditsUsed: number, newBalance: number, elapsedSeconds: number) => void;
 }) {
   const { status } = useVoice();
@@ -411,9 +422,8 @@ function InnerSession({
           <StartScreen
             key="start"
             balance={balance}
-            onStart={async () => {
-              // balance check happens in StartScreen before connect()
-            }}
+            accessToken={accessToken}
+            configId={configId}
           />
         ) : (
           <MessageList key="messages" ref={messagesRef} />
@@ -461,13 +471,16 @@ export default function SolomonSession({
     );
   }
 
+  const configId = process.env.NEXT_PUBLIC_HUME_COACHING_CONFIG_ID ?? '';
+
   return (
-    <VoiceProvider
-      key={sessionKey}
-      auth={{ type: 'accessToken', value: accessToken }}
-      configId={process.env.NEXT_PUBLIC_HUME_COACHING_CONFIG_ID}
-    >
-      <InnerSession balance={initialBalance} onSessionEnd={handleSessionEnd} />
+    <VoiceProvider key={sessionKey}>
+      <InnerSession
+        balance={initialBalance}
+        accessToken={accessToken}
+        configId={configId}
+        onSessionEnd={handleSessionEnd}
+      />
     </VoiceProvider>
   );
 }

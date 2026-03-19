@@ -24,6 +24,29 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: 'Admin access required' }, { status: 403 });
     }
 
+    // Ensure optional tables exist so the JOIN doesn't fail
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS user_credits (
+        user_id UUID PRIMARY KEY,
+        balance INTEGER NOT NULL DEFAULT 0
+      );
+      CREATE TABLE IF NOT EXISTS astrology_readings (
+        id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+        user_id UUID,
+        stripe_payment_id TEXT,
+        birth_date TEXT,
+        birth_location TEXT,
+        report TEXT,
+        created_at TIMESTAMPTZ DEFAULT NOW()
+      );
+      CREATE TABLE IF NOT EXISTS coaching_sessions (
+        id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+        user_id TEXT,
+        transcript JSONB,
+        created_at TIMESTAMPTZ DEFAULT NOW()
+      );
+    `);
+
     const { searchParams } = new URL(request.url);
     const search = searchParams.get('search') || '';
 

@@ -281,18 +281,21 @@ export default function AdminUsersPage() {
   const router = useRouter();
   const [users, setUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState('');
   const [search, setSearch] = useState('');
   const [selected, setSelected] = useState<User | null>(null);
 
   const load = useCallback(async (q = '') => {
     setLoading(true);
+    setLoadError('');
     try {
       const res = await fetch(`/api/admin/users${q ? `?search=${encodeURIComponent(q)}` : ''}`, { credentials: 'include' });
       const data = await res.json();
       if (res.status === 403) { router.push('/'); return; }
+      if (!res.ok) { setLoadError(data.error || `Error ${res.status}`); return; }
       setUsers(data.users || []);
-    } catch {
-      // ignore
+    } catch (e: any) {
+      setLoadError(e?.message || 'Failed to load users');
     } finally {
       setLoading(false);
     }
@@ -349,6 +352,10 @@ export default function AdminUsersPage() {
         {loading ? (
           <div className="flex justify-center py-16">
             <div className="animate-spin rounded-full h-7 w-7 border-b-2 border-yellow-600" />
+          </div>
+        ) : loadError ? (
+          <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-xl p-4 text-sm text-red-700 dark:text-red-400">
+            {loadError}
           </div>
         ) : users.length === 0 ? (
           <div className="text-center py-16 text-gray-400 text-sm">No users found.</div>

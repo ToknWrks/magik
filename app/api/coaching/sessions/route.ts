@@ -1,0 +1,94 @@
+import { NextRequest, NextResponse } from 'next/server';
+import { Pool } from '@neondatabase/serverless';
+import Anthropic from '@anthropic-ai/sdk';
+
+const pool = new Pool({ connectionString: process.env.DATABASE_URL, ssl: true });
+const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
+
+async function ensureTable() {
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS coaching_sessions (
+      id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+      user_id TEXT NOT NULL,
+      transcript JSONB NOT NULL,
+      summary TEXT,
+      duration_seconds INTEGER,
+      credits_used INTEGER,
+      created_at TIMESTAMPTZ DEFAULT NOW()
+    )
+  `);
+}
+
+export async function POST(request: NextRequest) {
+  try {
+    const userId = request.cookies.get('user_id')?.value;
+    if (!userId) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+
+    const { transcript, durationSeconds, creditsUsed } = await request.json();
+    if (!transcript?.length) return NextResponse.json({ error: 'No transcript provided' }, { status: 400 });
+
+    await ensureTable();
+
+    // Format transcript for Claude
+    const formatted = transcript
+      .filter((m: any) => m.type === 'user_message' || m.type === 'assistant_message')
+      .map((m: any) => `${m.message.role === 'user' ? 'You' : 'Solomon'}: ${m.message.content}`)
+      .join('\n\n');
+
+    // Generate summary with Claude
+    const response = await anthropic.messages.create({
+      model: 'claude-haiku-4-5-20251001',
+      max_tokens: 600,
+      messages: [{
+        role: 'user',
+        content: `You are reviewing a spiritual coaching session transcript between a user and Solomon, a transpersonal coach. Generate a warm, insightful post-session reflection with these sections:
+
+**Key Themes** — 2–3 core themes that emerged
+**Insights** — What the user seemed to discover or move toward
+**Invitation** — One gentle next step or practice to carry forward
+
+Keep it personal, concise, and encouraging. Write directly to the user as "you".
+
+Transcript:
+${formatted}`,
+      }],
+    });
+
+    const summary = response.content[0].type === 'text' ? response.content[0].text : '';
+
+    const result = await pool.query(
+      `INSERT INTO coaching_sessions (user_id, transcript, summary, duration_seconds, credits_used)
+       VALUES ($1, $2, $3, $4, $5)
+       RETURNING id, created_at`,
+      [userId, JSON.stringify(transcript), summary, durationSeconds, creditsUsed]
+    );
+
+    return NextResponse.json({ session: { ...result.rows[0], summary } });
+  } catch (error) {
+    console.error('Save coaching session error:', error);
+    return NextResponse.json({ error: 'Failed to save session' }, { status: 500 });
+  }
+}
+
+export async function GET(request: NextRequest) {
+  try {
+    const userId = request.cookies.get('user_id')?.value;
+    if (!userId) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+
+    await ensureTable();
+
+    const result = await pool.query(
+      `SELECT id, summary, duration_seconds, credits_used, created_at
+       FROM coaching_sessions
+       WHERE user_id = $1
+       ORDER BY created_at DESC
+       LIMIT 20`,
+      [userId]
+    );
+
+    return NextResponse.json({ sessions: result.rows });
+  } catch (error) {
+    console.error('Fetch coaching sessions error:', error);
+    return NextResponse.json({ error: 'Failed to fetch sessions' }, { status: 500 });
+  }
+}

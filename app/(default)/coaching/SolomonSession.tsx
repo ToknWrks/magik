@@ -258,54 +258,95 @@ function SessionSummary({
   elapsedSeconds,
   creditsUsed,
   balance,
+  summary,
+  savingSession,
   onNew,
 }: {
   elapsedSeconds: number;
   creditsUsed: number;
   balance: number;
+  summary: string;
+  savingSession: boolean;
   onNew: () => void;
 }) {
   const mins = Math.floor(elapsedSeconds / 60);
   const secs = elapsedSeconds % 60;
 
   return (
-    <div className="flex-1 flex flex-col items-center justify-center p-8 text-center">
-      <div className="w-16 h-16 bg-yellow-100 dark:bg-yellow-900/30 rounded-full flex items-center justify-center mb-4">
-        <svg className="w-8 h-8 text-yellow-700 dark:text-yellow-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-        </svg>
-      </div>
-      <h2 className="text-xl font-bold text-gray-900 dark:text-gray-100 mb-1">Session Complete</h2>
-      <p className="text-sm text-gray-500 dark:text-gray-400 mb-8">May your path be illuminated.</p>
+    <div className="flex-1 overflow-y-auto p-6">
+      <div className="max-w-2xl mx-auto space-y-6">
+        {/* Header */}
+        <div className="text-center pt-4">
+          <div className="w-14 h-14 bg-yellow-100 dark:bg-yellow-900/30 rounded-full flex items-center justify-center mx-auto mb-3">
+            <svg className="w-7 h-7 text-yellow-700 dark:text-yellow-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+            </svg>
+          </div>
+          <h2 className="text-xl font-bold text-gray-900 dark:text-gray-100 mb-1">Session Complete</h2>
+          <p className="text-sm text-gray-500 dark:text-gray-400">May your path be illuminated.</p>
+        </div>
 
-      <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-5 mb-8 w-full max-w-xs space-y-3">
-        <div className="flex items-center justify-between text-sm">
-          <span className="text-gray-500 dark:text-gray-400">Duration</span>
-          <span className="font-semibold text-gray-900 dark:text-gray-100">{mins}m {secs}s</span>
+        {/* Stats */}
+        <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-5 grid grid-cols-3 gap-4 text-center">
+          <div>
+            <p className="text-lg font-bold text-gray-900 dark:text-gray-100">{mins}m {secs}s</p>
+            <p className="text-xs text-gray-500 dark:text-gray-400">Duration</p>
+          </div>
+          <div>
+            <p className="text-lg font-bold text-gray-900 dark:text-gray-100">{creditsUsed}</p>
+            <p className="text-xs text-gray-500 dark:text-gray-400">Credits used</p>
+          </div>
+          <div>
+            <p className="text-lg font-bold text-yellow-700 dark:text-yellow-500">{balance}</p>
+            <p className="text-xs text-gray-500 dark:text-gray-400">Remaining</p>
+          </div>
         </div>
-        <div className="flex items-center justify-between text-sm">
-          <span className="text-gray-500 dark:text-gray-400">Credits used</span>
-          <span className="font-semibold text-gray-900 dark:text-gray-100">{creditsUsed}</span>
-        </div>
-        <div className="flex items-center justify-between text-sm border-t border-gray-100 dark:border-gray-700 pt-3">
-          <span className="text-gray-500 dark:text-gray-400">Remaining</span>
-          <span className="font-semibold text-yellow-700 dark:text-yellow-500">{balance} credits</span>
-        </div>
-      </div>
 
-      <div className="flex flex-col sm:flex-row gap-3">
-        <button
-          onClick={onNew}
-          className="px-6 py-2.5 bg-yellow-700 hover:bg-yellow-800 text-white font-medium rounded-xl transition-colors text-sm"
-        >
-          New Session
-        </button>
-        <Link
-          href="/profile"
-          className="px-6 py-2.5 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 font-medium rounded-xl hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors text-sm text-center"
-        >
-          Back to Profile
-        </Link>
+        {/* Summary */}
+        <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 overflow-hidden">
+          <div className="px-5 py-4 border-b border-gray-100 dark:border-gray-700 flex items-center gap-2">
+            <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+            </svg>
+            <h3 className="font-semibold text-gray-900 dark:text-gray-100 text-sm">Session Reflection</h3>
+          </div>
+          <div className="p-5">
+            {savingSession ? (
+              <div className="flex items-center gap-3 text-gray-400">
+                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-yellow-600" />
+                <span className="text-sm">Generating reflection...</span>
+              </div>
+            ) : summary ? (
+              <div className="prose prose-sm dark:prose-invert max-w-none text-gray-700 dark:text-gray-300 leading-relaxed whitespace-pre-line">
+                {summary}
+              </div>
+            ) : (
+              <p className="text-sm text-gray-400">No reflection available.</p>
+            )}
+          </div>
+        </div>
+
+        {/* Actions */}
+        <div className="flex flex-col sm:flex-row gap-3 pb-6">
+          <button
+            onClick={onNew}
+            className="flex-1 py-2.5 bg-yellow-700 hover:bg-yellow-800 text-white font-medium rounded-xl transition-colors text-sm"
+          >
+            New Session
+          </button>
+          <Link
+            href="/coaching/sessions"
+            className="flex-1 py-2.5 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 font-medium rounded-xl hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors text-sm text-center"
+          >
+            All Sessions
+          </Link>
+          <Link
+            href="/profile"
+            className="flex-1 py-2.5 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 font-medium rounded-xl hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors text-sm text-center"
+          >
+            Profile
+          </Link>
+        </div>
       </div>
     </div>
   );
@@ -322,9 +363,9 @@ function InnerSession({
   balance: number;
   accessToken: string;
   configId: string;
-  onSessionEnd: (creditsUsed: number, newBalance: number, elapsedSeconds: number) => void;
+  onSessionEnd: (creditsUsed: number, newBalance: number, elapsedSeconds: number, transcript: any[]) => void;
 }) {
-  const { status } = useVoice();
+  const { status, messages } = useVoice();
   const [elapsedSeconds, setElapsedSeconds] = useState(0);
   const [creditsUsed, setCreditsUsed] = useState(0);
   const [balance, setBalance] = useState(initialBalance);
@@ -396,7 +437,7 @@ function InnerSession({
             } else {
               // Out of credits — end session
               if (timerRef.current) clearInterval(timerRef.current);
-              onSessionEnd(creditsUsed, balance, elapsed);
+              onSessionEnd(creditsUsed, balance, elapsed, messages);
             }
           } else {
             setCreditsUsed(prev => prev + additionalCredits);
@@ -412,7 +453,7 @@ function InnerSession({
 
   const handleEnd = () => {
     if (timerRef.current) clearInterval(timerRef.current);
-    onSessionEnd(creditsUsed, balance, elapsedSeconds);
+    onSessionEnd(creditsUsed, balance, elapsedSeconds, messages);
   };
 
   return (
@@ -449,20 +490,43 @@ export default function SolomonSession({
   initialBalance: number;
 }) {
   const [phase, setPhase] = useState<'session' | 'summary'>('session');
-  const [summary, setSummary] = useState({ creditsUsed: 0, balance: initialBalance, elapsed: 0 });
+  const [summaryData, setSummaryData] = useState({ creditsUsed: 0, balance: initialBalance, elapsed: 0 });
+  const [sessionSummary, setSessionSummary] = useState('');
+  const [savingSession, setSavingSession] = useState(false);
   const [sessionKey, setSessionKey] = useState(0);
 
-  const handleSessionEnd = (creditsUsed: number, balance: number, elapsed: number) => {
-    setSummary({ creditsUsed, balance, elapsed });
+  const handleSessionEnd = async (creditsUsed: number, balance: number, elapsed: number, transcript: any[]) => {
+    setSummaryData({ creditsUsed, balance, elapsed });
+    setSessionSummary('');
     setPhase('summary');
+
+    if (transcript.length > 0) {
+      setSavingSession(true);
+      try {
+        const res = await fetch('/api/coaching/sessions', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          credentials: 'include',
+          body: JSON.stringify({ transcript, durationSeconds: elapsed, creditsUsed }),
+        });
+        const data = await res.json();
+        if (data.session?.summary) setSessionSummary(data.session.summary);
+      } catch {
+        // summary unavailable — session still ended cleanly
+      } finally {
+        setSavingSession(false);
+      }
+    }
   };
 
   if (phase === 'summary') {
     return (
       <SessionSummary
-        elapsedSeconds={summary.elapsed}
-        creditsUsed={summary.creditsUsed}
-        balance={summary.balance}
+        elapsedSeconds={summaryData.elapsed}
+        creditsUsed={summaryData.creditsUsed}
+        balance={summaryData.balance}
+        summary={sessionSummary}
+        savingSession={savingSession}
         onNew={() => {
           setPhase('session');
           setSessionKey(k => k + 1);

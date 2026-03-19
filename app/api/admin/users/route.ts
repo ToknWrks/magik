@@ -36,10 +36,10 @@ export async function GET(request: NextRequest) {
       SELECT
         u.id, u.email, u.username, u.role, u.created_at,
         COALESCE(uc.balance, 0) AS credit_balance,
-        (SELECT COUNT(*) FROM astrology_readings WHERE user_id = u.id) AS reading_count,
+        (SELECT COUNT(*) FROM astrology_readings WHERE user_id::text = u.id::text) AS reading_count,
         (SELECT COUNT(*) FROM coaching_sessions WHERE user_id::text = u.id::text) AS session_count
       FROM users u
-      LEFT JOIN user_credits uc ON uc.user_id = u.id
+      LEFT JOIN user_credits uc ON uc.user_id = u.id::text
       ${search ? `WHERE u.email ILIKE $1 OR u.username ILIKE $1` : ''}
       ORDER BY u.created_at DESC
       LIMIT 200

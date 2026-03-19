@@ -15,6 +15,7 @@ import ArticleFormModal, { ArticleFormData, Article as ArticleType } from './Art
 import TemplateFormModal, { TemplateFormData, Template as TemplateType } from './TemplateFormModal';
 import EnlightenmentFormModal, { EnlightenmentFormData, EnlightenmentTemplate } from './EnlightenmentFormModal';
 import EnlightenmentTable from './EnlightenmentTable';
+import Link from 'next/link';
 
 // Rename Article and Template interfaces
 export interface DashboardArticle {
@@ -548,6 +549,11 @@ function AdminDashboardContent() {
             </li>
             <li className="m-1">
               <button onClick={() => setContentType('enlightenment')} className={`inline-flex items-center justify-center text-sm font-medium leading-5 rounded-full px-3 py-1 border border-gray-200 dark:border-gray-700/60 hover:border-gray-300 dark:hover:border-gray-600 shadow-sm ${contentType === 'enlightenment' ? 'bg-purple-600 text-white' : 'bg-white dark:bg-gray-800 text-gray-500 dark:text-gray-400'} transition`}>Enlightenment</button>
+            </li>
+            <li className="m-1">
+              <Link href="/administratio/users" className="inline-flex items-center justify-center text-sm font-medium leading-5 rounded-full px-3 py-1 border border-gray-200 dark:border-gray-700/60 hover:border-gray-300 dark:hover:border-gray-600 shadow-sm bg-white dark:bg-gray-800 text-gray-500 dark:text-gray-400 transition">
+                Users
+              </Link>
             </li>
             <li className="m-1">
               <button onClick={() => setFilter('published')} className={`inline-flex items-center justify-center text-sm font-medium leading-5 rounded-full px-3 py-1 border border-gray-200 dark:border-gray-700/60 hover:border-gray-300 dark:hover:border-gray-600 shadow-sm ${filter === 'published' ? 'bg-gray-900 dark:bg-gray-100 text-white dark:text-gray-800' : 'bg-white dark:bg-gray-800 text-gray-500 dark:text-gray-400'} transition`}>Published <span className="ml-1 text-gray-400 dark:text-gray-500">{articles.filter(a => a?.status === 'published').length}</span></button>

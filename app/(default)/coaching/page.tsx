@@ -41,7 +41,7 @@ function CoachingPageInner() {
         return;
       }
       if (tokenData.error) {
-        setError(tokenData.error);
+        setError('Failed to connect to Solomon. Please try again.');
         return;
       }
       setAccessToken(tokenData.accessToken);

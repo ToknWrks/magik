@@ -11,8 +11,6 @@ export async function GET(request: NextRequest) {
   try {
     // Verify admin using user_id cookie
     const userId = request.cookies.get('user_id')?.value;
-    console.log('Users API - user_id:', userId);
-
     if (!userId) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
@@ -22,67 +20,27 @@ export async function GET(request: NextRequest) {
       [userId]
     );
 
-    console.log('Users API - user result:', userResult.rows);
-
     if (userResult.rows.length === 0 || userResult.rows[0].role !== 'admin') {
       return NextResponse.json({ error: 'Admin access required' }, { status: 403 });
     }
 
-    // Simpler query first to test
+    const { searchParams } = new URL(request.url);
+    const search = searchParams.get('search') || '';
+
     const result = await pool.query(`
-      SELECT 
-        id,
-        email,
-        username,
-        role,
-        created_at
-      FROM users
-      ORDER BY created_at DESC
-    `);
+      SELECT
+        u.id, u.email, u.username, u.role, u.created_at,
+        COALESCE(uc.balance, 0) AS credit_balance,
+        (SELECT COUNT(*) FROM astrology_readings WHERE user_id = u.id) AS reading_count,
+        (SELECT COUNT(*) FROM coaching_sessions WHERE user_id::text = u.id::text) AS session_count
+      FROM users u
+      LEFT JOIN user_credits uc ON uc.user_id = u.id
+      ${search ? `WHERE u.email ILIKE $1 OR u.username ILIKE $1` : ''}
+      ORDER BY u.created_at DESC
+      LIMIT 200
+    `, search ? [`%${search}%`] : []);
 
-    console.log('Users API - found users:', result.rows.length);
-
-    // Add order stats separately
-    const usersWithStats = await Promise.all(
-      result.rows.map(async (user) => {
-        try {
-          const orderStats = await pool.query(`
-            SELECT 
-              COUNT(id) as order_count,
-              COALESCE(SUM(total), 0) as total_spent,
-              MAX(created_at) as last_order_date,
-              COUNT(CASE WHEN status = 'refunded' THEN 1 END) as refund_count
-            FROM orders
-            WHERE user_id = $1
-          `, [user.id]);
-
-          const lastOrder = await pool.query(`
-            SELECT id FROM orders WHERE user_id = $1 ORDER BY created_at DESC LIMIT 1
-          `, [user.id]);
-
-          return {
-            ...user,
-            order_count: orderStats.rows[0]?.order_count || '0',
-            total_spent: orderStats.rows[0]?.total_spent || '0',
-            last_order_date: orderStats.rows[0]?.last_order_date || null,
-            last_order_id: lastOrder.rows[0]?.id || null,
-            refund_count: orderStats.rows[0]?.refund_count || '0',
-          };
-        } catch (err) {
-          console.error('Error getting stats for user:', user.id, err);
-          return {
-            ...user,
-            order_count: '0',
-            total_spent: '0',
-            last_order_date: null,
-            last_order_id: null,
-            refund_count: '0',
-          };
-        }
-      })
-    );
-
-    return NextResponse.json({ users: usersWithStats });
+    return NextResponse.json({ users: result.rows });
   } catch (error) {
     console.error('Users fetch error:', error);
     return NextResponse.json({ 

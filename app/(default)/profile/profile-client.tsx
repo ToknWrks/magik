@@ -192,6 +192,7 @@ export default function ProfileClient() {
   const [user, setUser] = useState<User | null>(null)
   const [loading, setLoading] = useState(true)
   const [latestReading, setLatestReading] = useState<Reading | null>(null)
+  const [credits, setCredits] = useState<number | null>(null)
 
   // Edit state
   const [editing, setEditing] = useState(false)
@@ -210,7 +211,9 @@ export default function ProfileClient() {
     Promise.all([
       fetch('/api/auth/me', { credentials: 'include' }).then(r => r.json()),
       fetch('/api/astrology/readings', { credentials: 'include' }).then(r => r.json()),
-    ]).then(([authData, readingsData]) => {
+      fetch('/api/credits/balance', { credentials: 'include' }).then(r => r.json()).catch(() => ({ balance: null })),
+    ]).then(([authData, readingsData, creditsData]) => {
+      if (creditsData.balance !== undefined) setCredits(creditsData.balance);
       if (authData.user) {
         setUser(authData.user)
         setUsername(authData.user.username)
@@ -404,9 +407,19 @@ export default function ProfileClient() {
                   </div>
                   <p className="text-sm text-gray-500 dark:text-gray-400 mb-2">{user.email}</p>
                   {user.bio && <p className="text-sm text-gray-600 dark:text-gray-300 leading-relaxed">{user.bio}</p>}
-                  <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-gray-100 text-gray-600 dark:bg-gray-700 dark:text-gray-300 mt-2">
-                    {user.role === 'admin' ? 'Administrator' : 'Member'}
-                  </span>
+                  <div className="flex items-center gap-2 mt-2 flex-wrap">
+                    <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-gray-100 text-gray-600 dark:bg-gray-700 dark:text-gray-300">
+                      {user.role === 'admin' ? 'Administrator' : 'Member'}
+                    </span>
+                    {credits !== null && (
+                      <Link href="/credits" className="inline-flex items-center gap-1 px-2 py-0.5 bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded text-xs font-medium text-yellow-700 dark:text-yellow-500 hover:bg-yellow-100 transition-colors">
+                        <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
+                          <path d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" />
+                        </svg>
+                        {credits} credits
+                      </Link>
+                    )}
+                  </div>
                 </div>
               )}
             </div>
@@ -458,6 +471,38 @@ export default function ProfileClient() {
                 <div>
                   <p className="text-sm font-medium text-gray-900 dark:text-gray-100">Archetypal Astrology</p>
                   <p className="text-xs text-gray-500 dark:text-gray-400">Explore planetary combinations</p>
+                </div>
+              </div>
+              <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+              </svg>
+            </Link>
+
+            <Link href="/coaching" className="flex items-center justify-between px-5 py-4 hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors">
+              <div className="flex items-center gap-3">
+                <svg className="w-5 h-5 text-gray-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z" />
+                </svg>
+                <div>
+                  <p className="text-sm font-medium text-gray-900 dark:text-gray-100">Session with Solomon</p>
+                  <p className="text-xs text-gray-500 dark:text-gray-400">Voice coaching · 100 credits / 10 min</p>
+                </div>
+              </div>
+              <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+              </svg>
+            </Link>
+
+            <Link href="/credits" className="flex items-center justify-between px-5 py-4 hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors">
+              <div className="flex items-center gap-3">
+                <svg className="w-5 h-5 text-gray-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                <div>
+                  <p className="text-sm font-medium text-gray-900 dark:text-gray-100">Credits</p>
+                  <p className="text-xs text-gray-500 dark:text-gray-400">
+                    {credits !== null ? `${credits} credits remaining` : 'Buy credits for coaching & dialogue'}
+                  </p>
                 </div>
               </div>
               <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">

@@ -65,6 +65,16 @@ export default function DropdownHelp({ align }: {
               </MenuItem>
               <MenuItem as="li">
                 {({ active }) => (
+                  <Link className={`font-medium text-sm flex items-center py-1 px-3 ${active ? 'text-gray-600 dark:text-yellow-700' : 'text-yellow-700'}`} href="/coaching">
+                    <svg className="w-3 h-3 fill-current text-gray-500 shrink-0 mr-2" viewBox="0 0 12 12">
+                      <path d="M6 0a6 6 0 100 12A6 6 0 006 0zM5 3.5a1 1 0 112 0v3a1 1 0 11-2 0v-3zm1 6a1 1 0 100-2 1 1 0 000 2z" />
+                    </svg>
+                    <span>Solomon</span>
+                  </Link>
+                )}
+              </MenuItem>
+              <MenuItem as="li">
+                {({ active }) => (
                   <Link className={`font-medium text-sm flex items-center py-1 px-3 ${active ? 'text-gray-600 dark:text-yellow-700' : 'text-yellow-700'}`} href="/cart">
                     <svg className="w-3 h-3 fill-current text-gray-500 shrink-0 mr-2" viewBox="0 0 12 12">
                       <path d="M10.5 0h-9A1.5 1.5 0 000 1.5v9A1.5 1.5 0 001.5 12h9a1.5 1.5 0 001.5-1.5v-9A1.5 1.5 0 0010.5 0zM10 7L8.207 5.207l-3 3-1.414-1.414 3-3L5 2h5v5z" />

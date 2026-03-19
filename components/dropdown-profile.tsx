@@ -18,11 +18,16 @@ export default function DropdownProfile({
   align?: 'left' | 'right'
 }) {
   const [user, setUser] = useState<User | null>(null);
+  const [credits, setCredits] = useState<number | null>(null);
 
   useEffect(() => {
     const storedUser = localStorage.getItem('user');
     if (storedUser) {
       setUser(JSON.parse(storedUser));
+      fetch('/api/credits/balance', { credentials: 'include' })
+        .then(r => r.ok ? r.json() : null)
+        .then(d => d && setCredits(d.balance))
+        .catch(() => {});
     }
   }, []);
 
@@ -72,6 +77,14 @@ export default function DropdownProfile({
                 <span className="block text-xs text-gray-400 dark:text-gray-500 italic mt-0.5">
                   {user.role === 'admin' ? 'Administrator' : 'Member'}
                 </span>
+                {credits !== null && (
+                  <Link href="/credits" className="inline-flex items-center gap-1 mt-1.5 px-2 py-0.5 bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded text-xs font-medium text-yellow-700 dark:text-yellow-500 hover:bg-yellow-100 dark:hover:bg-yellow-900/40 transition-colors">
+                    <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
+                      <path d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" />
+                    </svg>
+                    {credits} credits
+                  </Link>
+                )}
               </div>
 
               {/* User Links */}
@@ -87,6 +100,21 @@ export default function DropdownProfile({
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
                         </svg>
                         My Profile
+                      </Link>
+                    )}
+                  </MenuItem>
+                </li>
+                <li>
+                  <MenuItem>
+                    {({ active }) => (
+                      <Link
+                        className={`flex items-center px-3 py-1.5 ${active ? 'bg-gray-50 dark:bg-gray-700/50' : ''}`}
+                        href="/credits"
+                      >
+                        <svg className="w-4 h-4 mr-2 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                        Buy Credits
                       </Link>
                     )}
                   </MenuItem>

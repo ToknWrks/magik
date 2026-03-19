@@ -3,6 +3,21 @@ import { Pool } from '@neondatabase/serverless';
 
 const pool = new Pool({ connectionString: process.env.DATABASE_URL, ssl: true });
 
+async function ensureTable() {
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS invite_codes (
+      id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+      code TEXT NOT NULL UNIQUE,
+      description TEXT,
+      type TEXT NOT NULL DEFAULT 'free_reading',
+      max_uses INTEGER NOT NULL DEFAULT 1,
+      uses INTEGER NOT NULL DEFAULT 0,
+      expires_at TIMESTAMPTZ,
+      created_at TIMESTAMPTZ DEFAULT NOW()
+    )
+  `);
+}
+
 export async function POST(request: NextRequest) {
   try {
     // Admin only
@@ -13,6 +28,8 @@ export async function POST(request: NextRequest) {
     if (user.rows[0]?.role !== 'admin') {
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
     }
+
+    await ensureTable();
 
     const { code, description, type = 'free_reading', maxUses = 1, expiresAt } = await request.json();
 
@@ -44,6 +61,8 @@ export async function GET(request: NextRequest) {
     if (user.rows[0]?.role !== 'admin') {
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
     }
+
+    await ensureTable();
 
     const result = await pool.query(
       `SELECT id, code, description, type, max_uses, uses, expires_at, created_at

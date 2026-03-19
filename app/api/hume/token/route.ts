@@ -9,7 +9,7 @@ export async function GET() {
       return NextResponse.json({ error: 'Hume credentials not configured' }, { status: 500 });
     }
 
-    const credentials = Buffer.from(`${apiKey}:${secretKey}`).toString('base64');
+    const credentials = btoa(`${apiKey}:${secretKey}`);
 
     const res = await fetch('https://api.hume.ai/oauth2-cc/token', {
       method: 'POST',

@@ -92,10 +92,12 @@ const MessageList = forwardRef<ComponentRef<typeof motion.div>, Record<never, ne
 function SessionControls({
   elapsedSeconds,
   creditsUsed,
+  balance,
   onEnd,
 }: {
   elapsedSeconds: number;
   creditsUsed: number;
+  balance: number;
   onEnd: () => void;
 }) {
   const { disconnect, status, isMuted, mute, unmute, micFft } = useVoice();
@@ -112,7 +114,17 @@ function SessionControls({
           exit={{ y: 80, opacity: 0 }}
           className="border-t border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 px-4 py-4"
         >
-          <div className="max-w-2xl mx-auto flex items-center gap-4">
+          {balance <= 20 && balance > 0 && (
+          <div className="max-w-2xl mx-auto mb-2">
+            <div className="flex items-center gap-2 px-3 py-1.5 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg text-xs text-red-600 dark:text-red-400">
+              <svg className="w-3.5 h-3.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z" />
+              </svg>
+              Low credits ({balance} remaining) — <Link href="/credits" className="underline font-medium">buy more</Link> to keep going
+            </div>
+          </div>
+        )}
+        <div className="max-w-2xl mx-auto flex items-center gap-4">
             {/* Timer + credits */}
             <div className="flex-shrink-0 text-center min-w-[72px]">
               <p className="text-lg font-mono font-bold text-gray-900 dark:text-gray-100">{mins}:{secs}</p>
@@ -168,10 +180,14 @@ function StartScreen({
   balance,
   accessToken,
   configId,
+  previousSummary,
+  isResume,
 }: {
   balance: number;
   accessToken: string;
   configId: string;
+  previousSummary: string | null;
+  isResume?: boolean;
 }) {
   const { status, connect } = useVoice();
   const [connecting, setConnecting] = useState(false);
@@ -207,9 +223,26 @@ function StartScreen({
       </div>
 
       <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-1">Solomon</h2>
-      <p className="text-sm text-gray-500 dark:text-gray-400 mb-8 max-w-sm">
+      <p className="text-sm text-gray-500 dark:text-gray-400 mb-4 max-w-sm">
         Your personal guide for spiritual exploration and self-discovery. Ask about any teaching, challenge, or question on your path.
       </p>
+
+      {isResume ? (
+        <div className="flex items-center gap-2 px-3 py-1.5 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-full mb-4">
+          <svg className="w-3.5 h-3.5 text-green-600 dark:text-green-500 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z" />
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+          </svg>
+          <span className="text-xs text-green-700 dark:text-green-400">Resuming your last session</span>
+        </div>
+      ) : previousSummary ? (
+        <div className="flex items-center gap-2 px-3 py-1.5 bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-full mb-4">
+          <svg className="w-3.5 h-3.5 text-yellow-600 dark:text-yellow-500 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+          </svg>
+          <span className="text-xs text-yellow-700 dark:text-yellow-400">Solomon remembers your last session</span>
+        </div>
+      ) : null}
 
       <div className="bg-gray-50 dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-4 mb-8 w-full max-w-xs">
         <div className="flex items-center justify-between text-sm mb-2">
@@ -260,17 +293,23 @@ function SessionSummary({
   balance,
   summary,
   savingSession,
+  onResume,
   onNew,
+  onFreshStart,
 }: {
   elapsedSeconds: number;
   creditsUsed: number;
   balance: number;
   summary: string;
   savingSession: boolean;
+  onResume: () => void;
   onNew: () => void;
+  onFreshStart: () => void;
 }) {
   const mins = Math.floor(elapsedSeconds / 60);
   const secs = elapsedSeconds % 60;
+  const unusedMinutes = Math.max(0, 10 - mins);
+  const unusedCredits = unusedMinutes > 0 && creditsUsed <= 100 ? unusedMinutes * CREDITS_PER_MINUTE : 0;
 
   return (
     <div className="flex-1 overflow-y-auto p-6">
@@ -302,6 +341,23 @@ function SessionSummary({
           </div>
         </div>
 
+        {/* Unused time notice */}
+        {unusedCredits > 0 && (
+          <div className="bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-xl p-4 flex items-start gap-3">
+            <svg className="w-4 h-4 text-yellow-600 dark:text-yellow-500 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            <div>
+              <p className="text-sm font-medium text-yellow-800 dark:text-yellow-300">
+                {unusedMinutes} prepaid {unusedMinutes === 1 ? 'minute' : 'minutes'} remaining
+              </p>
+              <p className="text-xs text-yellow-700 dark:text-yellow-400 mt-0.5">
+                Resume this session to use your full 10 minutes, or start fresh — credits stay in your balance either way.
+              </p>
+            </div>
+          </div>
+        )}
+
         {/* Summary */}
         <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 overflow-hidden">
           <div className="px-5 py-4 border-b border-gray-100 dark:border-gray-700 flex items-center gap-2">
@@ -327,25 +383,53 @@ function SessionSummary({
         </div>
 
         {/* Actions */}
-        <div className="flex flex-col sm:flex-row gap-3 pb-6">
+        <div className="space-y-3 pb-6">
+          {/* Primary: Resume */}
           <button
-            onClick={onNew}
-            className="flex-1 py-2.5 bg-yellow-700 hover:bg-yellow-800 text-white font-medium rounded-xl transition-colors text-sm"
+            onClick={onResume}
+            className="w-full py-3 bg-yellow-700 hover:bg-yellow-800 text-white font-medium rounded-xl transition-colors text-sm flex items-center justify-center gap-2"
           >
-            New Session
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z" />
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            Resume Session
           </button>
-          <Link
-            href="/coaching/sessions"
-            className="flex-1 py-2.5 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 font-medium rounded-xl hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors text-sm text-center"
-          >
-            All Sessions
-          </Link>
-          <Link
-            href="/profile"
-            className="flex-1 py-2.5 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 font-medium rounded-xl hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors text-sm text-center"
-          >
-            Profile
-          </Link>
+
+          <div className="flex gap-3">
+            <button
+              onClick={onNew}
+              className="flex-1 py-2.5 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 font-medium rounded-xl hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors text-sm"
+              title="Continue this topic with Solomon"
+            >
+              New Session
+            </button>
+            <button
+              onClick={onFreshStart}
+              className="flex-1 py-2.5 border border-gray-300 dark:border-gray-600 text-gray-500 dark:text-gray-400 font-medium rounded-xl hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors text-sm"
+              title="Start fresh — Solomon won't remember previous sessions"
+            >
+              Fresh Start
+            </button>
+          </div>
+          <p className="text-xs text-center text-gray-400 dark:text-gray-500">
+            New Session continues your topic · Fresh Start is a clean slate
+          </p>
+
+          <div className="flex gap-3 pt-1">
+            <Link
+              href="/coaching/sessions"
+              className="flex-1 py-2.5 text-gray-500 dark:text-gray-400 text-sm text-center hover:text-gray-700 dark:hover:text-gray-300 transition-colors"
+            >
+              All Sessions
+            </Link>
+            <Link
+              href="/profile"
+              className="flex-1 py-2.5 text-gray-500 dark:text-gray-400 text-sm text-center hover:text-gray-700 dark:hover:text-gray-300 transition-colors"
+            >
+              Profile
+            </Link>
+          </div>
         </div>
       </div>
     </div>
@@ -358,14 +442,18 @@ function InnerSession({
   balance: initialBalance,
   accessToken,
   configId,
+  previousSummary,
+  resumeTranscript,
   onSessionEnd,
 }: {
   balance: number;
   accessToken: string;
   configId: string;
+  previousSummary: string | null;
+  resumeTranscript: any[] | null;
   onSessionEnd: (creditsUsed: number, newBalance: number, elapsedSeconds: number, transcript: any[]) => void;
 }) {
-  const { status, messages } = useVoice();
+  const { status, messages, sendSessionSettings } = useVoice();
   const [elapsedSeconds, setElapsedSeconds] = useState(0);
   const [creditsUsed, setCreditsUsed] = useState(0);
   const [balance, setBalance] = useState(initialBalance);
@@ -374,6 +462,29 @@ function InnerSession({
   const lastMinuteCharged = useRef(0);
   const didDeductMinimum = useRef(false);
   const messagesRef = useRef<ComponentRef<typeof MessageList>>(null);
+
+  // Inject context once connected
+  const sentContextRef = useRef(false);
+  useEffect(() => {
+    if (status.value === 'connected' && !sentContextRef.current) {
+      sentContextRef.current = true;
+      if (resumeTranscript && resumeTranscript.length > 0) {
+        // Resuming: inject the full transcript so Solomon picks up exactly where they left off
+        const formatted = resumeTranscript
+          .filter((m: any) => m.type === 'user_message' || m.type === 'assistant_message')
+          .map((m: any) => `${m.message.role === 'user' ? 'User' : 'Solomon'}: ${m.message.content}`)
+          .join('\n\n');
+        sendSessionSettings({
+          systemPrompt: `You are resuming a session that was just paused. Here is the conversation so far — pick up naturally where you left off, without any re-introduction:\n\n${formatted}`,
+        });
+      } else if (previousSummary) {
+        // New session with topic continuity
+        sendSessionSettings({
+          systemPrompt: `Context from the user's previous session with you:\n\n${previousSummary}\n\nUse this to provide continuity — reference themes, insights, or invitations from last time where relevant. Do not mention that you have been given a summary; simply be present and connected.`,
+        });
+      }
+    }
+  }, [status.value]);
 
   // Auto-scroll on new messages
   const scrollToBottom = () => {
@@ -465,6 +576,8 @@ function InnerSession({
             balance={balance}
             accessToken={accessToken}
             configId={configId}
+            previousSummary={resumeTranscript ? null : previousSummary}
+            isResume={!!resumeTranscript}
           />
         ) : (
           <MessageList key="messages" ref={messagesRef} />
@@ -474,6 +587,7 @@ function InnerSession({
       <SessionControls
         elapsedSeconds={elapsedSeconds}
         creditsUsed={creditsUsed}
+        balance={balance}
         onEnd={handleEnd}
       />
     </div>
@@ -485,17 +599,33 @@ function InnerSession({
 export default function SolomonSession({
   accessToken,
   initialBalance,
+  initialResumeTranscript = null,
 }: {
   accessToken: string;
   initialBalance: number;
+  initialResumeTranscript?: any[] | null;
 }) {
   const [phase, setPhase] = useState<'session' | 'summary'>('session');
   const [summaryData, setSummaryData] = useState({ creditsUsed: 0, balance: initialBalance, elapsed: 0 });
   const [sessionSummary, setSessionSummary] = useState('');
   const [savingSession, setSavingSession] = useState(false);
   const [sessionKey, setSessionKey] = useState(0);
+  const [previousSummary, setPreviousSummary] = useState<string | null>(null);
+  const [resumeTranscript, setResumeTranscript] = useState<any[] | null>(initialResumeTranscript);
+  const lastTranscriptRef = useRef<any[]>([]);
+
+  useEffect(() => {
+    fetch('/api/coaching/sessions', { credentials: 'include' })
+      .then(r => r.json())
+      .then(d => {
+        const lastSummary = d.sessions?.[0]?.summary;
+        if (lastSummary) setPreviousSummary(lastSummary);
+      })
+      .catch(() => {});
+  }, []);
 
   const handleSessionEnd = async (creditsUsed: number, balance: number, elapsed: number, transcript: any[]) => {
+    lastTranscriptRef.current = transcript;
     setSummaryData({ creditsUsed, balance, elapsed });
     setSessionSummary('');
     setPhase('summary');
@@ -510,7 +640,10 @@ export default function SolomonSession({
           body: JSON.stringify({ transcript, durationSeconds: elapsed, creditsUsed }),
         });
         const data = await res.json();
-        if (data.session?.summary) setSessionSummary(data.session.summary);
+        if (data.session?.summary) {
+          setSessionSummary(data.session.summary);
+          setPreviousSummary(data.session.summary);
+        }
       } catch {
         // summary unavailable — session still ended cleanly
       } finally {
@@ -527,7 +660,19 @@ export default function SolomonSession({
         balance={summaryData.balance}
         summary={sessionSummary}
         savingSession={savingSession}
+        onResume={() => {
+          setResumeTranscript(lastTranscriptRef.current);
+          setPhase('session');
+          setSessionKey(k => k + 1);
+        }}
         onNew={() => {
+          setResumeTranscript(null);
+          setPhase('session');
+          setSessionKey(k => k + 1);
+        }}
+        onFreshStart={() => {
+          setResumeTranscript(null);
+          setPreviousSummary(null);
           setPhase('session');
           setSessionKey(k => k + 1);
         }}
@@ -543,6 +688,8 @@ export default function SolomonSession({
         balance={initialBalance}
         accessToken={accessToken}
         configId={configId}
+        previousSummary={previousSummary}
+        resumeTranscript={resumeTranscript}
         onSessionEnd={handleSessionEnd}
       />
     </VoiceProvider>

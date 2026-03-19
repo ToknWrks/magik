@@ -13,6 +13,10 @@ interface Session {
   created_at: string;
 }
 
+interface SessionDetail extends Session {
+  transcript: any[] | null;
+}
+
 function fmtDuration(seconds: number) {
   const m = Math.floor(seconds / 60);
   const s = seconds % 60;
@@ -25,11 +29,46 @@ function fmtDate(iso: string) {
   });
 }
 
+function Transcript({ messages }: { messages: any[] }) {
+  const filtered = messages.filter(
+    (m: any) => m.type === 'user_message' || m.type === 'assistant_message'
+  );
+  if (filtered.length === 0) return <p className="text-sm text-gray-400 italic">No transcript available.</p>;
+
+  return (
+    <div className="space-y-3">
+      {filtered.map((msg: any, i: number) => {
+        const isUser = msg.type === 'user_message';
+        return (
+          <div key={i} className={`flex ${isUser ? 'justify-end' : 'justify-start'}`}>
+            <div className={`max-w-[85%] px-3 py-2 rounded-xl text-sm leading-relaxed ${
+              isUser
+                ? 'bg-yellow-700 text-white rounded-br-sm'
+                : 'bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-200 rounded-bl-sm'
+            }`}>
+              {!isUser && (
+                <p className="text-xs font-semibold text-yellow-600 dark:text-yellow-500 mb-0.5 uppercase tracking-wide">Solomon</p>
+              )}
+              <p>{msg.message?.content}</p>
+            </div>
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
 export default function CoachingSessionsPage() {
   const router = useRouter();
   const [sessions, setSessions] = useState<Session[]>([]);
   const [loading, setLoading] = useState(true);
   const [expanded, setExpanded] = useState<string | null>(null);
+  const [sessionDetails, setSessionDetails] = useState<Record<string, SessionDetail>>({});
+  const [loadingDetail, setLoadingDetail] = useState<string | null>(null);
+  const [activeTab, setActiveTab] = useState<Record<string, 'reflection' | 'transcript'>>({});
+  const [resuming, setResuming] = useState<string | null>(null);
+  const [confirmDelete, setConfirmDelete] = useState<string | null>(null);
+  const [deleting, setDeleting] = useState<string | null>(null);
 
   useEffect(() => {
     fetch('/api/auth/me', { credentials: 'include' })
@@ -42,6 +81,61 @@ export default function CoachingSessionsPage() {
       .catch(() => {})
       .finally(() => setLoading(false));
   }, [router]);
+
+  const handleExpand = async (id: string) => {
+    const next = expanded === id ? null : id;
+    setExpanded(next);
+    if (next && !sessionDetails[id]) {
+      setLoadingDetail(id);
+      try {
+        const res = await fetch(`/api/coaching/sessions/${id}`, { credentials: 'include' });
+        const data = await res.json();
+        if (data.session) {
+          setSessionDetails(prev => ({ ...prev, [id]: data.session }));
+        }
+      } catch {
+        // detail unavailable
+      } finally {
+        setLoadingDetail(null);
+      }
+    }
+  };
+
+  const handleDelete = async (sessionId: string) => {
+    setDeleting(sessionId);
+    try {
+      await fetch(`/api/coaching/sessions/${sessionId}`, {
+        method: 'DELETE',
+        credentials: 'include',
+      });
+      setSessions(prev => prev.filter(s => s.id !== sessionId));
+      setConfirmDelete(null);
+      if (expanded === sessionId) setExpanded(null);
+    } catch {
+      // leave UI unchanged on error
+    } finally {
+      setDeleting(null);
+    }
+  };
+
+  const handleResume = async (sessionId: string) => {
+    setResuming(sessionId);
+    try {
+      let detail = sessionDetails[sessionId];
+      if (!detail) {
+        const res = await fetch(`/api/coaching/sessions/${sessionId}`, { credentials: 'include' });
+        const data = await res.json();
+        detail = data.session;
+        if (detail) setSessionDetails(prev => ({ ...prev, [sessionId]: detail }));
+      }
+      if (detail?.transcript) {
+        sessionStorage.setItem('solomon_resume_transcript', JSON.stringify(detail.transcript));
+        router.push('/coaching?resume=true');
+      }
+    } catch {
+      setResuming(null);
+    }
+  };
 
   if (loading) {
     return (
@@ -93,11 +187,11 @@ export default function CoachingSessionsPage() {
                 className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 overflow-hidden"
               >
                 {/* Header row */}
-                <button
-                  onClick={() => setExpanded(expanded === session.id ? null : session.id)}
-                  className="w-full px-5 py-4 flex items-center justify-between hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors text-left"
-                >
-                  <div className="flex items-center gap-4">
+                <div className="w-full px-5 py-4 flex items-center justify-between">
+                  <button
+                    onClick={() => handleExpand(session.id)}
+                    className="flex items-center gap-4 flex-1 text-left hover:opacity-80 transition-opacity"
+                  >
                     <div className="w-9 h-9 rounded-full bg-gradient-to-br from-yellow-800 to-yellow-600 flex items-center justify-center text-sm flex-shrink-0">
                       ⚕
                     </div>
@@ -107,34 +201,124 @@ export default function CoachingSessionsPage() {
                       </p>
                       <p className="text-xs text-gray-500 dark:text-gray-400">{fmtDate(session.created_at)}</p>
                     </div>
-                  </div>
-                  <div className="flex items-center gap-4">
+                  </button>
+
+                  <div className="flex items-center gap-3">
                     <div className="text-right hidden sm:block">
                       <p className="text-xs text-gray-500 dark:text-gray-400">{fmtDuration(session.duration_seconds)}</p>
                       <p className="text-xs text-yellow-700 dark:text-yellow-500">{session.credits_used} credits</p>
                     </div>
-                    <svg
-                      className={`w-4 h-4 text-gray-400 transition-transform ${expanded === session.id ? 'rotate-180' : ''}`}
-                      fill="none" stroke="currentColor" viewBox="0 0 24 24"
-                    >
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                    </svg>
-                  </div>
-                </button>
 
-                {/* Expanded summary */}
+                    {/* Resume button */}
+                    <button
+                      onClick={() => handleResume(session.id)}
+                      disabled={resuming === session.id}
+                      className="flex items-center gap-1.5 px-3 py-1.5 bg-yellow-700 hover:bg-yellow-800 disabled:opacity-50 text-white text-xs font-medium rounded-lg transition-colors flex-shrink-0"
+                      title="Resume this session"
+                    >
+                      {resuming === session.id ? (
+                        <div className="w-3 h-3 border-b border-white rounded-full animate-spin" />
+                      ) : (
+                        <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z" />
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                      )}
+                      Resume
+                    </button>
+
+                    {/* Delete button */}
+                    {confirmDelete === session.id ? (
+                      <div className="flex items-center gap-1 flex-shrink-0">
+                        <button
+                          onClick={() => handleDelete(session.id)}
+                          disabled={deleting === session.id}
+                          className="px-2.5 py-1.5 bg-red-600 hover:bg-red-700 disabled:opacity-50 text-white text-xs font-medium rounded-lg transition-colors"
+                        >
+                          {deleting === session.id ? '...' : 'Delete'}
+                        </button>
+                        <button
+                          onClick={() => setConfirmDelete(null)}
+                          className="px-2.5 py-1.5 text-gray-500 dark:text-gray-400 text-xs font-medium hover:text-gray-700 dark:hover:text-gray-200 transition-colors"
+                        >
+                          Cancel
+                        </button>
+                      </div>
+                    ) : (
+                      <button
+                        onClick={() => setConfirmDelete(session.id)}
+                        className="p-1.5 text-gray-400 hover:text-red-500 transition-colors flex-shrink-0"
+                        title="Delete session"
+                      >
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                        </svg>
+                      </button>
+                    )}
+
+                    {/* Expand chevron */}
+                    <button onClick={() => handleExpand(session.id)}>
+                      <svg
+                        className={`w-4 h-4 text-gray-400 transition-transform ${expanded === session.id ? 'rotate-180' : ''}`}
+                        fill="none" stroke="currentColor" viewBox="0 0 24 24"
+                      >
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                      </svg>
+                    </button>
+                  </div>
+                </div>
+
+                {/* Expanded content */}
                 {expanded === session.id && (
-                  <div className="px-5 pb-5 border-t border-gray-100 dark:border-gray-700">
-                    <div className="flex gap-4 text-sm py-3 sm:hidden">
+                  <div className="border-t border-gray-100 dark:border-gray-700">
+                    {/* Mobile stats */}
+                    <div className="flex gap-4 text-sm px-5 py-3 sm:hidden border-b border-gray-100 dark:border-gray-700">
                       <span className="text-gray-500 dark:text-gray-400">{fmtDuration(session.duration_seconds)}</span>
                       <span className="text-yellow-700 dark:text-yellow-500">{session.credits_used} credits</span>
                     </div>
-                    {session.summary ? (
-                      <div className="mt-3 text-sm text-gray-700 dark:text-gray-300 leading-relaxed whitespace-pre-line">
-                        {session.summary}
+
+                    {loadingDetail === session.id ? (
+                      <div className="flex items-center gap-3 px-5 py-6 text-gray-400">
+                        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-yellow-600" />
+                        <span className="text-sm">Loading session...</span>
                       </div>
                     ) : (
-                      <p className="mt-3 text-sm text-gray-400 italic">No reflection saved for this session.</p>
+                      <>
+                        {/* Tabs */}
+                        <div className="flex border-b border-gray-100 dark:border-gray-700 px-5">
+                          {(['reflection', 'transcript'] as const).map(tab => (
+                            <button
+                              key={tab}
+                              onClick={() => setActiveTab(prev => ({ ...prev, [session.id]: tab }))}
+                              className={`py-3 pr-5 text-sm font-medium capitalize transition-colors border-b-2 -mb-px ${
+                                (activeTab[session.id] ?? 'reflection') === tab
+                                  ? 'border-yellow-600 text-yellow-700 dark:text-yellow-500'
+                                  : 'border-transparent text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300'
+                              }`}
+                            >
+                              {tab}
+                            </button>
+                          ))}
+                        </div>
+
+                        <div className="px-5 py-4">
+                          {(activeTab[session.id] ?? 'reflection') === 'reflection' ? (
+                            session.summary ? (
+                              <div className="text-sm text-gray-700 dark:text-gray-300 leading-relaxed whitespace-pre-line">
+                                {session.summary}
+                              </div>
+                            ) : (
+                              <p className="text-sm text-gray-400 italic">No reflection saved for this session.</p>
+                            )
+                          ) : (
+                            sessionDetails[session.id]?.transcript ? (
+                              <Transcript messages={sessionDetails[session.id].transcript!} />
+                            ) : (
+                              <p className="text-sm text-gray-400 italic">Transcript not available.</p>
+                            )
+                          )}
+                        </div>
+                      </>
                     )}
                   </div>
                 )}

@@ -490,6 +490,10 @@ function PaymentForm({
   const [error, setError] = useState('');
   const [isDark, setIsDark] = useState(false);
   const [cardComplete, setCardComplete] = useState({ number: false, expiry: false, cvc: false });
+  const [couponInput, setCouponInput] = useState('');
+  const [couponApplied, setCouponApplied] = useState('');
+  const [couponError, setCouponError] = useState('');
+  const [validatingCoupon, setValidatingCoupon] = useState(false);
 
   const isDev = process.env.NODE_ENV === 'development';
 
@@ -513,7 +517,30 @@ function PaymentForm({
     },
   };
 
-  const isReady = isDev || (cardComplete.number && cardComplete.expiry && cardComplete.cvc);
+  const isReady = isDev || !!couponApplied || (cardComplete.number && cardComplete.expiry && cardComplete.cvc);
+
+  const handleApplyCoupon = async () => {
+    if (!couponInput.trim()) return;
+    setValidatingCoupon(true);
+    setCouponError('');
+    try {
+      const res = await fetch('/api/invite/validate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ code: couponInput.trim() }),
+      });
+      const data = await res.json();
+      if (data.valid && data.type === 'free_reading') {
+        setCouponApplied(couponInput.trim());
+      } else {
+        setCouponError(data.error || 'Invalid code');
+      }
+    } catch {
+      setCouponError('Failed to validate code. Try again.');
+    } finally {
+      setValidatingCoupon(false);
+    }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -522,10 +549,13 @@ function PaymentForm({
     setError('');
 
     try {
-      let paymentIntentId: string;
+      let paymentIntentId: string | undefined;
+      let couponCode: string | undefined;
 
       if (isDev) {
         paymentIntentId = 'dev_bypass';
+      } else if (couponApplied) {
+        couponCode = couponApplied;
       } else {
         setLoadingMsg('Processing payment...');
         const intentRes = await fetch('/api/payments/create-intent', {
@@ -558,6 +588,7 @@ function PaymentForm({
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           paymentIntentId,
+          couponCode,
           birthDate: formData.birthDate,
           birthTime: formData.birthTime,
           birthLocation: formData.birthLocation,
@@ -609,8 +640,58 @@ function PaymentForm({
           <div className="bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg p-3">
             <p className="text-sm text-yellow-800 dark:text-yellow-200">Dev mode — payment bypassed</p>
           </div>
+        ) : couponApplied ? (
+          /* Coupon applied — no card needed */
+          <div className="bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg p-4 flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <svg className="w-4 h-4 text-green-600 dark:text-green-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+              </svg>
+              <div>
+                <p className="text-sm font-medium text-green-800 dark:text-green-200">Invite code applied</p>
+                <p className="text-xs text-green-600 dark:text-green-400 font-mono">{couponApplied.toUpperCase()}</p>
+              </div>
+            </div>
+            <button
+              type="button"
+              onClick={() => { setCouponApplied(''); setCouponInput(''); }}
+              className="text-xs text-green-600 dark:text-green-400 hover:underline"
+            >
+              Remove
+            </button>
+          </div>
         ) : (
           <>
+            {/* Coupon field */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Invite Code</label>
+              <div className="flex gap-2">
+                <input
+                  type="text"
+                  value={couponInput}
+                  onChange={e => { setCouponInput(e.target.value); setCouponError(''); }}
+                  onKeyDown={e => e.key === 'Enter' && (e.preventDefault(), handleApplyCoupon())}
+                  placeholder="Have a code? Enter it here"
+                  className="flex-1 px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 text-sm uppercase tracking-wider placeholder:normal-case placeholder:tracking-normal"
+                />
+                <button
+                  type="button"
+                  onClick={handleApplyCoupon}
+                  disabled={!couponInput.trim() || validatingCoupon}
+                  className="px-4 py-2 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 disabled:opacity-40 text-gray-700 dark:text-gray-300 text-sm font-medium rounded-lg transition-colors"
+                >
+                  {validatingCoupon ? '...' : 'Apply'}
+                </button>
+              </div>
+              {couponError && <p className="text-xs text-red-500 mt-1">{couponError}</p>}
+            </div>
+
+            <div className="flex items-center gap-3 text-xs text-gray-400 dark:text-gray-500">
+              <div className="flex-1 h-px bg-gray-200 dark:bg-gray-700" />
+              <span>or pay by card</span>
+              <div className="flex-1 h-px bg-gray-200 dark:bg-gray-700" />
+            </div>
+
             <div>
               <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Card Number</label>
               <div className="p-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-900">
@@ -640,7 +721,7 @@ function PaymentForm({
           className={`w-full py-3 px-6 rounded-lg font-semibold text-base transition-colors ${
             !isReady || loading
               ? 'bg-gray-200 dark:bg-gray-700 text-gray-400 cursor-not-allowed'
-              : 'bg-indigo-600 hover:bg-indigo-700 text-white'
+              : 'bg-yellow-700 hover:bg-yellow-800 text-white'
           }`}
         >
           {loading ? (
@@ -651,17 +732,21 @@ function PaymentForm({
               </svg>
               {loadingMsg || 'Processing...'}
             </span>
+          ) : couponApplied || isDev ? (
+            'Get My Free Reading'
           ) : (
             'Pay $9.00 & Get My Reading'
           )}
         </button>
 
-        <p className="text-xs text-center text-gray-400 dark:text-gray-500 flex items-center justify-center gap-1">
-          <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
-          </svg>
-          Secured by Stripe
-        </p>
+        {!couponApplied && !isDev && (
+          <p className="text-xs text-center text-gray-400 dark:text-gray-500 flex items-center justify-center gap-1">
+            <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+            </svg>
+            Secured by Stripe
+          </p>
+        )}
       </form>
     </div>
   );

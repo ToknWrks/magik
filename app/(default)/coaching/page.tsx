@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { Boundary } from '@/components/ui/boundary';
 import dynamic from 'next/dynamic';
 
@@ -9,10 +9,26 @@ const SolomonSession = dynamic(() => import('./SolomonSession'), { ssr: false })
 
 export default function CoachingPage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [accessToken, setAccessToken] = useState<string | null>(null);
   const [balance, setBalance] = useState<number | null>(null);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(true);
+  const [initialResumeTranscript, setInitialResumeTranscript] = useState<any[] | null>(null);
+
+  useEffect(() => {
+    if (searchParams.get('resume') === 'true') {
+      try {
+        const stored = sessionStorage.getItem('solomon_resume_transcript');
+        if (stored) {
+          setInitialResumeTranscript(JSON.parse(stored));
+          sessionStorage.removeItem('solomon_resume_transcript');
+        }
+      } catch {
+        // ignore
+      }
+    }
+  }, []);
 
   useEffect(() => {
     Promise.all([
@@ -88,7 +104,7 @@ export default function CoachingPage() {
       </div>
 
       {/* Session */}
-      <SolomonSession accessToken={accessToken} initialBalance={balance} />
+      <SolomonSession accessToken={accessToken} initialBalance={balance} initialResumeTranscript={initialResumeTranscript} />
     </div>
   );
 }

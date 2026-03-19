@@ -28,6 +28,7 @@ export async function POST(request: NextRequest) {
   try {
     const {
       paymentIntentId,
+      couponCode,
       birthDate,
       birthTime,
       birthLocation,
@@ -39,23 +40,45 @@ export async function POST(request: NextRequest) {
 
     const isDev = process.env.NODE_ENV === 'development';
     const devBypass = isDev && paymentIntentId === 'dev_bypass';
+    const usingCoupon = !devBypass && !!couponCode;
 
-    if (!paymentIntentId || !birthDate || !birthLocation || !email) {
+    if (!birthDate || !birthLocation || !email) {
       return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
     }
-
-    // Verify payment with Stripe (skipped in dev bypass mode)
-    if (!devBypass) {
-      const paymentIntent = await stripe.paymentIntents.retrieve(paymentIntentId);
-      if (paymentIntent.status !== 'succeeded') {
-        return NextResponse.json({ error: 'Payment not completed' }, { status: 402 });
-      }
+    if (!paymentIntentId && !couponCode) {
+      return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
     }
 
     await ensureTable();
 
-    // Check for duplicate (idempotency) — skipped in dev bypass mode
-    if (!devBypass) {
+    let effectivePaymentId: string;
+
+    if (devBypass) {
+      effectivePaymentId = `dev_bypass_${Date.now()}`;
+    } else if (usingCoupon) {
+      // Atomically redeem the coupon — only succeeds if still valid
+      const redeemed = await pool.query(
+        `UPDATE invite_codes
+         SET uses = uses + 1
+         WHERE UPPER(code) = UPPER($1)
+           AND type = 'free_reading'
+           AND uses < max_uses
+           AND (expires_at IS NULL OR expires_at > NOW())
+         RETURNING id`,
+        [couponCode.trim()]
+      );
+      if (redeemed.rows.length === 0) {
+        return NextResponse.json({ error: 'Invalid or already-used invite code' }, { status: 402 });
+      }
+      effectivePaymentId = `coupon_${couponCode.trim().toUpperCase()}_${Date.now()}`;
+    } else {
+      // Verify payment with Stripe
+      const paymentIntent = await stripe.paymentIntents.retrieve(paymentIntentId);
+      if (paymentIntent.status !== 'succeeded') {
+        return NextResponse.json({ error: 'Payment not completed' }, { status: 402 });
+      }
+
+      // Check for duplicate (idempotency)
       const existing = await pool.query(
         'SELECT * FROM astrology_readings WHERE stripe_payment_id = $1',
         [paymentIntentId]
@@ -63,6 +86,8 @@ export async function POST(request: NextRequest) {
       if (existing.rows.length > 0) {
         return NextResponse.json({ reading: existing.rows[0] });
       }
+
+      effectivePaymentId = paymentIntentId;
     }
 
     // Get or create user
@@ -128,7 +153,7 @@ Write in second person ("you/your"), with depth and warmth. Be specific — refe
       `INSERT INTO astrology_readings (user_id, stripe_payment_id, birth_date, birth_time, birth_location, focus, report)
        VALUES ($1, $2, $3, $4, $5, $6, $7)
        RETURNING *`,
-      [user.id, paymentIntentId, birthDate, birthTime || null, birthLocation, focus || null, report]
+      [user.id, effectivePaymentId, birthDate, birthTime || null, birthLocation, focus || null, report]
     );
 
     const reading = result.rows[0];

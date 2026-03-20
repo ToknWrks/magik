@@ -15,6 +15,7 @@ function CoachingPageInner() {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(true);
   const [initialResumeTranscript, setInitialResumeTranscript] = useState<any[] | null>(null);
+  const [initialContentContext, setInitialContentContext] = useState<{ title: string; type: 'enlightenment' | 'mystery' } | null>(null);
 
   useEffect(() => {
     if (searchParams.get('resume') === 'true') {
@@ -27,6 +28,15 @@ function CoachingPageInner() {
       } catch {
         // ignore
       }
+    }
+    try {
+      const ctx = sessionStorage.getItem('solomon_content_context');
+      if (ctx) {
+        setInitialContentContext(JSON.parse(ctx));
+        sessionStorage.removeItem('solomon_content_context');
+      }
+    } catch {
+      // ignore
     }
   }, []);
 
@@ -104,7 +114,7 @@ function CoachingPageInner() {
       </div>
 
       {/* Session */}
-      <SolomonSession accessToken={accessToken} initialBalance={balance} initialResumeTranscript={initialResumeTranscript} />
+      <SolomonSession accessToken={accessToken} initialBalance={balance} initialResumeTranscript={initialResumeTranscript} initialContentContext={initialContentContext} />
     </div>
   );
 }

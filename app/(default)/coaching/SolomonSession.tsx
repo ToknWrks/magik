@@ -445,6 +445,7 @@ function InnerSession({
   previousSummary,
   resumeTranscript,
   resumedElapsedSeconds = 0,
+  contentContext,
   onSessionEnd,
 }: {
   balance: number;
@@ -453,6 +454,7 @@ function InnerSession({
   previousSummary: string | null;
   resumeTranscript: any[] | null;
   resumedElapsedSeconds?: number;
+  contentContext?: { title: string; type: 'enlightenment' | 'mystery' } | null;
   onSessionEnd: (creditsUsed: number, newBalance: number, elapsedSeconds: number, transcript: any[]) => void;
 }) {
   const { status, messages, sendSessionSettings } = useVoice();
@@ -478,6 +480,17 @@ function InnerSession({
           .join('\n\n');
         sendSessionSettings({
           systemPrompt: `You are resuming a session that was just paused. Here is the conversation so far — pick up naturally where you left off, without any re-introduction:\n\n${formatted}`,
+        });
+      } else if (contentContext) {
+        // User came from an article — open with that context
+        const typeLabel = contentContext.type === 'enlightenment'
+          ? 'a spiritual teaching on enlightenment'
+          : 'an esoteric mystery';
+        const previousCtx = previousSummary
+          ? `\n\nContext from their previous session with you:\n${previousSummary}\n\nUse this for continuity where relevant.`
+          : '';
+        sendSessionSettings({
+          systemPrompt: `The user has just been reading "${contentContext.title}" — ${typeLabel}. Greet them warmly and invite them into dialogue about what they've read, what resonated, or any questions that arose.${previousCtx}`,
         });
       } else if (previousSummary) {
         // New session with topic continuity
@@ -609,10 +622,12 @@ export default function SolomonSession({
   accessToken,
   initialBalance,
   initialResumeTranscript = null,
+  initialContentContext = null,
 }: {
   accessToken: string;
   initialBalance: number;
   initialResumeTranscript?: any[] | null;
+  initialContentContext?: { title: string; type: 'enlightenment' | 'mystery' } | null;
 }) {
   const [phase, setPhase] = useState<'session' | 'summary'>('session');
   const [summaryData, setSummaryData] = useState({ creditsUsed: 0, balance: initialBalance, elapsed: 0 });
@@ -704,6 +719,7 @@ export default function SolomonSession({
         previousSummary={previousSummary}
         resumeTranscript={resumeTranscript}
         resumedElapsedSeconds={resumeTranscript ? resumedElapsed : 0}
+        contentContext={resumeTranscript ? null : initialContentContext}
         onSessionEnd={handleSessionEnd}
       />
     </VoiceProvider>

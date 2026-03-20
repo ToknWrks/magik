@@ -245,10 +245,37 @@ export function EnlightenmentContent({ slug }: EnlightenmentContentProps) {
           </div>
         )}
 
+        {/* Discuss with Solomon */}
+        {isLoggedIn && (
+          <div className="mt-10 p-5 bg-yellow-50 dark:bg-yellow-900/10 rounded-xl border border-yellow-200 dark:border-yellow-800 flex flex-col sm:flex-row items-center gap-4">
+            <div className="w-12 h-12 rounded-full bg-gradient-to-br from-yellow-800 to-yellow-600 flex items-center justify-center text-2xl flex-shrink-0">
+              ⚕
+            </div>
+            <div className="flex-1 text-center sm:text-left">
+              <p className="font-semibold text-gray-900 dark:text-gray-100 text-sm">Discuss this teaching with Solomon</p>
+              <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">Your personal spiritual guide — ask questions, explore deeper, reflect on what resonated.</p>
+            </div>
+            <button
+              onClick={() => {
+                try {
+                  sessionStorage.setItem('solomon_content_context', JSON.stringify({ title: content.title, type: 'enlightenment' }));
+                } catch { /* ignore */ }
+                window.location.href = '/coaching';
+              }}
+              className="flex-shrink-0 inline-flex items-center gap-2 px-5 py-2.5 bg-yellow-700 hover:bg-yellow-800 text-white font-medium rounded-xl text-sm transition-colors"
+            >
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z" />
+              </svg>
+              Talk to Solomon
+            </button>
+          </div>
+        )}
+
         {/* Footer */}
         <div className="mt-12 pt-6 border-t border-gray-200 dark:border-gray-700 flex flex-col sm:flex-row items-center justify-between gap-4">
-          <Link 
-            href="/enlightenment" 
+          <Link
+            href="/enlightenment"
             className="inline-flex items-center gap-2 px-4 py-2 bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors text-sm"
           >
             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -256,8 +283,8 @@ export function EnlightenmentContent({ slug }: EnlightenmentContentProps) {
             </svg>
             Explore More Teachings
           </Link>
-          <ShareToX 
-            title={content.title} 
+          <ShareToX
+            title={content.title}
             hashtags={['realilluminati', 'enlightenment', 'wisdom', 'spirituality']}
           />
         </div>

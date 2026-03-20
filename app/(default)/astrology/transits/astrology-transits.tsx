@@ -275,6 +275,7 @@ export default function AstrologyTransits() {
         ) : personalTransits.length === 0 ? (
           <div className="text-center py-16 text-gray-400 text-sm">No active personal transits found.</div>
         ) : (
+          <>
           <div className="flex gap-4 mb-4 text-xs text-gray-500 dark:text-gray-400">
             <span><span className="inline-block px-2 py-0.5 rounded bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 font-medium mr-1">applying</span>building toward exact — influence intensifying</span>
             <span><span className="inline-block px-2 py-0.5 rounded bg-gray-100 dark:bg-gray-700 text-gray-500 dark:text-gray-400 font-medium mr-1">separating</span>past exact — influence waning</span>
@@ -308,6 +309,7 @@ export default function AstrologyTransits() {
               </div>
             ))}
           </div>
+          </>
         )
       ) : loading ? (
         <div>Loading transits...</div>

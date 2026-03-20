@@ -123,6 +123,7 @@ export async function POST(request: NextRequest) {
 
     // Grant credits if coupon included them
     if (couponCredits > 0) {
+      await pool.query(`CREATE TABLE IF NOT EXISTS user_credits (user_id TEXT PRIMARY KEY, balance INTEGER NOT NULL DEFAULT 0)`);
       await pool.query(
         `INSERT INTO user_credits (user_id, balance)
          VALUES ($1, $2)

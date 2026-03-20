@@ -544,7 +544,6 @@ function PaymentForm({
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!stripe || !elements) return;
     setLoading(true);
     setError('');
 
@@ -557,6 +556,7 @@ function PaymentForm({
       } else if (couponApplied) {
         couponCode = couponApplied;
       } else {
+        if (!stripe || !elements) { setError('Payment not ready. Please try again.'); setLoading(false); return; }
         setLoadingMsg('Processing payment...');
         const intentRes = await fetch('/api/payments/create-intent', {
           method: 'POST',

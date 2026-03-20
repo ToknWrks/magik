@@ -57,6 +57,7 @@ export async function POST(request: NextRequest) {
     if (devBypass) {
       effectivePaymentId = `dev_bypass_${Date.now()}`;
     } else if (usingCoupon) {
+      await pool.query(`ALTER TABLE invite_codes ADD COLUMN IF NOT EXISTS credits INTEGER NOT NULL DEFAULT 0`);
       // Atomically redeem the coupon — only succeeds if still valid
       const redeemed = await pool.query(
         `UPDATE invite_codes

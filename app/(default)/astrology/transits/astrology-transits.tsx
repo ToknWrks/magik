@@ -18,6 +18,37 @@ interface Transit {
   description: string;
 }
 
+interface PersonalTransit {
+  transitPlanet: string;
+  natalPlanet: string;
+  aspect: string;
+  orb: number;
+  isApplying: boolean;
+}
+
+const PLANETS = ['Sun', 'Moon', 'Mercury', 'Venus', 'Mars', 'Jupiter', 'Saturn', 'Uranus', 'Neptune', 'Pluto'];
+const ASPECTS = [
+  { name: 'Conjunct', angle: 0 },
+  { name: 'Sextile', angle: 60 },
+  { name: 'Square', angle: 90 },
+  { name: 'Trine', angle: 120 },
+  { name: 'Opposite', angle: 180 },
+];
+
+function getPlanetPositions(date: Date): Record<string, number> {
+  const positions: Record<string, number> = {};
+  for (const planet of PLANETS) {
+    try {
+      const pos = Astronomy.GeoVector(planet as any, date, false);
+      const ecl = Astronomy.Ecliptic(pos);
+      positions[planet] = ecl.elon;
+    } catch {
+      // skip
+    }
+  }
+  return positions;
+}
+
 export default function AstrologyTransits() {
   const [transits, setTransits] = useState<Transit[]>([]);
   const [loading, setLoading] = useState(true);
@@ -27,51 +58,39 @@ export default function AstrologyTransits() {
   const [interpretationLoading, setInterpretationLoading] = useState(false);
   const [chartData, setChartData] = useState<{ labels: string[], data: number[] }>({ labels: [], data: [] });
 
+  const [mineMode, setMineMode] = useState(false);
+  const [personalTransits, setPersonalTransits] = useState<PersonalTransit[]>([]);
+  const [loadingMine, setLoadingMine] = useState(false);
+  const [mineError, setMineError] = useState('');
+  const [birthLabel, setBirthLabel] = useState('');
+
   useEffect(() => {
     calculateTransits();
   }, []);
 
   const calculateTransits = async () => {
     try {
-      const planets = ['Sun', 'Moon', 'Mercury', 'Venus', 'Mars', 'Jupiter', 'Saturn', 'Uranus', 'Neptune', 'Pluto'];
-      const aspects = [
-        { name: 'Conjunct', angle: 0 },
-        { name: 'Sextile', angle: 60 },
-        { name: 'Square', angle: 90 },
-        { name: 'Trine', angle: 120 },
-        { name: 'Opposite', angle: 180 },
-      ];
-
-      const positions: { [key: string]: number } = {};
-      const date = new Date();
-
-      // Calculate positions
-      for (const planet of planets) {
-        const pos = Astronomy.GeoVector(planet as any, date, false);
-        const ecl = Astronomy.Ecliptic(pos);
-        positions[planet] = ecl.elon;
-      }
-
+      const positions = getPlanetPositions(new Date());
       const transitList: Transit[] = [];
 
-      // Check pairwise aspects
-      for (let i = 0; i < planets.length; i++) {
-        for (let j = i + 1; j < planets.length; j++) {
-          const lon1 = positions[planets[i]];
-          const lon2 = positions[planets[j]];
+      for (let i = 0; i < PLANETS.length; i++) {
+        for (let j = i + 1; j < PLANETS.length; j++) {
+          const lon1 = positions[PLANETS[i]];
+          const lon2 = positions[PLANETS[j]];
+          if (lon1 === undefined || lon2 === undefined) continue;
           let diff = Math.abs(lon1 - lon2);
           diff = Math.min(diff, 360 - diff);
 
-          for (const asp of aspects) {
+          for (const asp of ASPECTS) {
             const orb = Math.abs(diff - asp.angle);
-            if (orb <= 15) { // 5 degree orb
+            if (orb <= 15) {
               transitList.push({
-                planet1: planets[i],
-                planet2: planets[j],
+                planet1: PLANETS[i],
+                planet2: PLANETS[j],
                 aspect: asp.name,
                 angle: diff,
-                orb: orb,
-                description: `The ${planets[i]} is ${asp.name} ${planets[j]}, creating a ${diff.toFixed(1)}° angle with ${orb.toFixed(1)}° orb.`,
+                orb,
+                description: `The ${PLANETS[i]} is ${asp.name} ${PLANETS[j]}, creating a ${diff.toFixed(1)}° angle with ${orb.toFixed(1)}° orb.`,
               });
             }
           }
@@ -83,6 +102,85 @@ export default function AstrologyTransits() {
     } catch (error) {
       console.error('Error calculating transits:', error);
       setLoading(false);
+    }
+  };
+
+  const handleMineToggle = async () => {
+    if (mineMode) {
+      setMineMode(false);
+      return;
+    }
+
+    setLoadingMine(true);
+    setMineError('');
+    try {
+      const res = await fetch('/api/astrology/readings', { credentials: 'include' });
+      if (res.status === 401) {
+        setMineError('Sign in and get a personal reading to see your transits.');
+        setMineMode(true);
+        return;
+      }
+      const data = await res.json();
+      if (!data.readings?.length) {
+        setMineError('No readings found. Get a personal reading first to see your natal transits.');
+        setMineMode(true);
+        return;
+      }
+
+      const reading = data.readings[0];
+      const birthDate = new Date(reading.birth_date);
+      if (reading.birth_time) {
+        const [h, m] = reading.birth_time.split(':').map(Number);
+        if (!isNaN(h)) birthDate.setHours(h, m || 0, 0, 0);
+      }
+
+      setBirthLabel(`${reading.birth_date}${reading.birth_time ? ' ' + reading.birth_time : ''} · ${reading.birth_location}`);
+
+      const natalPositions = getPlanetPositions(birthDate);
+      const today = new Date();
+      const tomorrow = new Date(today);
+      tomorrow.setDate(tomorrow.getDate() + 1);
+      const transitToday = getPlanetPositions(today);
+      const transitTomorrow = getPlanetPositions(tomorrow);
+
+      const results: PersonalTransit[] = [];
+      for (const tPlanet of PLANETS) {
+        for (const nPlanet of PLANETS) {
+          const tLon = transitToday[tPlanet];
+          const nLon = natalPositions[nPlanet];
+          if (tLon === undefined || nLon === undefined) continue;
+
+          let diff = Math.abs(tLon - nLon);
+          diff = Math.min(diff, 360 - diff);
+
+          for (const asp of ASPECTS) {
+            const orb = Math.abs(diff - asp.angle);
+            if (orb <= 15) {
+              // Check applying vs separating
+              const tLonTmrw = transitTomorrow[tPlanet] ?? tLon;
+              let diffTmrw = Math.abs(tLonTmrw - nLon);
+              diffTmrw = Math.min(diffTmrw, 360 - diffTmrw);
+              const orbTmrw = Math.abs(diffTmrw - asp.angle);
+              results.push({
+                transitPlanet: tPlanet,
+                natalPlanet: nPlanet,
+                aspect: asp.name,
+                orb,
+                isApplying: orbTmrw < orb,
+              });
+            }
+          }
+        }
+      }
+
+      results.sort((a, b) => a.orb - b.orb);
+      setPersonalTransits(results);
+      setMineMode(true);
+    } catch {
+      setMineError('Failed to load your birth data.');
+      setMineMode(true);
+    } finally {
+      setLoadingMine(false);
     }
   };
 
@@ -137,9 +235,62 @@ export default function AstrologyTransits() {
 
   return (
     <div className="p-6">
-      <h1 className="text-2xl font-bold mb-6">Current Astrological World Transits</h1>
-      
-      {loading ? (
+      <div className="flex items-center justify-between mb-6">
+        <div>
+          <h1 className="text-2xl font-bold">
+            {mineMode ? 'Your Personal Transits' : 'Current World Transits'}
+          </h1>
+          {mineMode && birthLabel && (
+            <p className="text-xs text-gray-400 mt-1">Natal chart: {birthLabel}</p>
+          )}
+        </div>
+        <button
+          onClick={handleMineToggle}
+          disabled={loadingMine}
+          className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors disabled:opacity-50 ${
+            mineMode
+              ? 'bg-yellow-700 text-white hover:bg-yellow-800'
+              : 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600'
+          }`}
+        >
+          {loadingMine ? '...' : mineMode ? 'World' : 'Mine'}
+        </button>
+      </div>
+
+      {mineMode ? (
+        mineError ? (
+          <div className="text-center py-16 text-gray-400 text-sm">{mineError}</div>
+        ) : personalTransits.length === 0 ? (
+          <div className="text-center py-16 text-gray-400 text-sm">No active personal transits found.</div>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {personalTransits.map((t, index) => (
+              <div key={index} className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6">
+                <div className="flex items-start justify-between mb-3">
+                  <h3 className="text-lg font-semibold">
+                    {t.transitPlanet} {t.aspect} natal {t.natalPlanet}
+                  </h3>
+                  <span className={`text-xs px-2 py-0.5 rounded font-medium ${
+                    t.isApplying
+                      ? 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400'
+                      : 'bg-gray-100 dark:bg-gray-700 text-gray-500 dark:text-gray-400'
+                  }`}>
+                    {t.isApplying ? 'applying' : 'separating'}
+                  </span>
+                </div>
+                <p className="text-sm text-gray-500 dark:text-gray-400 mb-3">
+                  Orb: {t.orb.toFixed(1)}°
+                </p>
+                <div className="flex gap-2 text-2xl astrology-symbol">
+                  <span>{astrologySymbols[t.transitPlanet]}</span>
+                  <span className="text-xl">{astrologySymbols[t.aspect]}</span>
+                  <span>{astrologySymbols[t.natalPlanet]}</span>
+                </div>
+              </div>
+            ))}
+          </div>
+        )
+      ) : loading ? (
         <div>Loading transits...</div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">

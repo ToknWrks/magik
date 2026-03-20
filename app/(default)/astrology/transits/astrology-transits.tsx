@@ -184,6 +184,18 @@ export default function AstrologyTransits() {
     }
   };
 
+  const openPersonalModal = (t: PersonalTransit) => {
+    const aspAngle = ASPECTS.find(a => a.name === t.aspect)?.angle ?? 0;
+    openModal({
+      planet1: t.transitPlanet,
+      planet2: t.natalPlanet,
+      aspect: t.aspect,
+      angle: aspAngle,
+      orb: t.orb,
+      description: `Transit ${t.transitPlanet} is ${t.aspect} your natal ${t.natalPlanet} with a ${t.orb.toFixed(1)}° orb (${t.isApplying ? 'applying' : 'separating'}).`,
+    });
+  };
+
   const openModal = async (transit: Transit) => {
     setSelectedTransit(transit);
     setShowModal(true);
@@ -270,25 +282,28 @@ export default function AstrologyTransits() {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {personalTransits.map((t, index) => (
               <div key={index} className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6">
-                <div className="flex items-start justify-between mb-3">
-                  <h3 className="text-lg font-semibold">
-                    {t.transitPlanet} {t.aspect} natal {t.natalPlanet}
-                  </h3>
-                  <span className={`text-xs px-2 py-0.5 rounded font-medium ${
-                    t.isApplying
-                      ? 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400'
-                      : 'bg-gray-100 dark:bg-gray-700 text-gray-500 dark:text-gray-400'
-                  }`}>
-                    {t.isApplying ? 'applying' : 'separating'}
-                  </span>
+                <div className="flex justify-between items-start mb-4">
+                  <div>
+                    <h3 className="text-lg font-semibold mb-2">
+                      {t.transitPlanet} {t.aspect} natal {t.natalPlanet}
+                    </h3>
+                    <p className="text-sm text-gray-600 dark:text-gray-400 mb-2">
+                      {t.orb.toFixed(1)}° orb · <span className={`font-medium ${t.isApplying ? 'text-green-600 dark:text-green-400' : 'text-gray-400'}`}>{t.isApplying ? 'applying' : 'separating'}</span>
+                    </p>
+                  </div>
+                  <button
+                    onClick={() => openPersonalModal(t)}
+                    className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
+                  >
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                  </button>
                 </div>
-                <p className="text-sm text-gray-500 dark:text-gray-400 mb-3">
-                  Orb: {t.orb.toFixed(1)}°
-                </p>
-                <div className="flex gap-2 text-2xl astrology-symbol">
-                  <span>{astrologySymbols[t.transitPlanet]}</span>
-                  <span className="text-xl">{astrologySymbols[t.aspect]}</span>
-                  <span>{astrologySymbols[t.natalPlanet]}</span>
+                <div className="flex justify-end gap-2">
+                  <span className="text-2xl astrology-symbol">{astrologySymbols[t.transitPlanet]}</span>
+                  <span className="text-xl astrology-symbol">{astrologySymbols[t.aspect]}</span>
+                  <span className="text-2xl astrology-symbol">{astrologySymbols[t.natalPlanet]}</span>
                 </div>
               </div>
             ))}

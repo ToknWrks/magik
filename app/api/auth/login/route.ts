@@ -32,9 +32,13 @@ export async function POST(request: NextRequest) {
       }, { status: 401 });
     }
     
-    // Check password
+    // Check password (support both column names: `password` and `password_hash`)
     console.log('Checking password...');
-    const isValidPassword = await bcrypt.compare(password, user.password);
+    const storedHash = user.password || user.password_hash;
+    if (!storedHash) {
+      return NextResponse.json({ success: false, error: 'Invalid email or password' }, { status: 401 });
+    }
+    const isValidPassword = await bcrypt.compare(password, storedHash);
     console.log('Password valid:', isValidPassword);
 
     if (!isValidPassword) {

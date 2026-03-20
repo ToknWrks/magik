@@ -592,7 +592,7 @@ function InnerSession({
             } else {
               // Out of credits — end session
               if (timerRef.current) clearInterval(timerRef.current);
-              onSessionEnd(creditsUsed, balance, elapsed, messages);
+              onSessionEnd(creditsUsed, balance, elapsed, messages, chatGroupIdRef.current);
             }
           } else {
             setCreditsUsed(prev => prev + additionalCredits);

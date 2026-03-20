@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState, Suspense } from 'react';
-import { useRouter, useSearchParams } from 'next/navigation';
+import { useRouter } from 'next/navigation';
 import { Boundary } from '@/components/ui/boundary';
 import dynamic from 'next/dynamic';
 
@@ -9,49 +9,43 @@ const SolomonSession = dynamic(() => import('./SolomonSession'), { ssr: false })
 
 function CoachingPageInner() {
   const router = useRouter();
-  const searchParams = useSearchParams();
   const [accessToken, setAccessToken] = useState<string | null>(null);
   const [balance, setBalance] = useState<number | null>(null);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(true);
-  const [initialResumeTranscript, setInitialResumeTranscript] = useState<any[] | null>(null);
-  const [initialResumeChatGroupId, setInitialResumeChatGroupId] = useState<string | null>(null);
-  const [initialResumeElapsed, setInitialResumeElapsed] = useState(0);
-  const [initialContentContext, setInitialContentContext] = useState<{ title: string; type: 'enlightenment' | 'mystery' } | null>(null);
-
-  useEffect(() => {
-    if (searchParams.get('resume') === 'true') {
-      try {
-        // Native Hume resume (new sessions)
-        const chatGroupId = sessionStorage.getItem('solomon_resume_chat_group_id');
-        if (chatGroupId) {
-          setInitialResumeChatGroupId(chatGroupId);
-          const elapsed = parseInt(sessionStorage.getItem('solomon_resume_elapsed') ?? '0', 10);
-          setInitialResumeElapsed(elapsed);
-          sessionStorage.removeItem('solomon_resume_chat_group_id');
-          sessionStorage.removeItem('solomon_resume_elapsed');
-        } else {
-          // Legacy fallback: transcript injection
-          const stored = sessionStorage.getItem('solomon_resume_transcript');
-          if (stored) {
-            setInitialResumeTranscript(JSON.parse(stored));
-            sessionStorage.removeItem('solomon_resume_transcript');
-          }
-        }
-      } catch {
-        // ignore
-      }
-    }
+  // Read sessionStorage synchronously at first render so props are correct before SolomonSession mounts
+  const [initialResumeChatGroupId] = useState<string | null>(() => {
+    if (typeof window === 'undefined') return null;
     try {
-      const ctx = sessionStorage.getItem('solomon_content_context');
-      if (ctx) {
-        setInitialContentContext(JSON.parse(ctx));
-        sessionStorage.removeItem('solomon_content_context');
-      }
-    } catch {
-      // ignore
-    }
-  }, []);
+      const id = sessionStorage.getItem('solomon_resume_chat_group_id');
+      if (id) { sessionStorage.removeItem('solomon_resume_chat_group_id'); return id; }
+    } catch {}
+    return null;
+  });
+  const [initialResumeElapsed] = useState<number>(() => {
+    if (typeof window === 'undefined') return 0;
+    try {
+      const v = sessionStorage.getItem('solomon_resume_elapsed');
+      if (v) { sessionStorage.removeItem('solomon_resume_elapsed'); return parseInt(v, 10); }
+    } catch {}
+    return 0;
+  });
+  const [initialResumeTranscript] = useState<any[] | null>(() => {
+    if (typeof window === 'undefined') return null;
+    try {
+      const v = sessionStorage.getItem('solomon_resume_transcript');
+      if (v) { sessionStorage.removeItem('solomon_resume_transcript'); return JSON.parse(v); }
+    } catch {}
+    return null;
+  });
+  const [initialContentContext] = useState<{ title: string; type: 'enlightenment' | 'mystery' } | null>(() => {
+    if (typeof window === 'undefined') return null;
+    try {
+      const v = sessionStorage.getItem('solomon_content_context');
+      if (v) { sessionStorage.removeItem('solomon_content_context'); return JSON.parse(v); }
+    } catch {}
+    return null;
+  });
 
   useEffect(() => {
     Promise.all([

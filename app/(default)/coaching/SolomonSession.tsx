@@ -91,11 +91,13 @@ const MessageList = forwardRef<ComponentRef<typeof motion.div>, Record<never, ne
 
 function SessionControls({
   elapsedSeconds,
+  resumedElapsedSeconds,
   creditsUsed,
   balance,
   onEnd,
 }: {
   elapsedSeconds: number;
+  resumedElapsedSeconds: number;
   creditsUsed: number;
   balance: number;
   onEnd: () => void;
@@ -104,6 +106,12 @@ function SessionControls({
 
   const mins = Math.floor(elapsedSeconds / 60);
   const secs = String(elapsedSeconds % 60).padStart(2, '0');
+
+  const totalElapsed = resumedElapsedSeconds + elapsedSeconds;
+  const prepaidRemaining = Math.max(0, 600 - totalElapsed);
+  const prepaidMins = Math.floor(prepaidRemaining / 60);
+  const prepaidSecs = String(prepaidRemaining % 60).padStart(2, '0');
+  const inPrepaidWindow = prepaidRemaining > 0;
 
   return (
     <AnimatePresence>
@@ -121,6 +129,22 @@ function SessionControls({
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z" />
               </svg>
               Low credits ({balance} remaining) — <Link href="/credits" className="underline font-medium">buy more</Link> to keep going
+            </div>
+          </div>
+        )}
+        {resumedElapsedSeconds > 0 && (
+          <div className="max-w-2xl mx-auto mb-2">
+            <div className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs ${
+              inPrepaidWindow
+                ? 'bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 text-green-700 dark:text-green-400'
+                : 'bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-gray-500 dark:text-gray-400'
+            }`}>
+              <svg className="w-3.5 h-3.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+              {inPrepaidWindow
+                ? `${prepaidMins}:${prepaidSecs} prepaid time remaining`
+                : 'Prepaid window used — billing at 10 credits/min'}
             </div>
           </div>
         )}
@@ -183,6 +207,7 @@ function StartScreen({
   previousSummary,
   isResume,
   resumedChatGroupId,
+  resumedElapsedSeconds,
 }: {
   balance: number;
   accessToken: string;
@@ -190,6 +215,7 @@ function StartScreen({
   previousSummary: string | null;
   isResume?: boolean;
   resumedChatGroupId?: string | null;
+  resumedElapsedSeconds?: number;
 }) {
   const { status, connect } = useVoice();
   const [connecting, setConnecting] = useState(false);
@@ -257,8 +283,20 @@ function StartScreen({
         </div>
         <div className="flex items-center justify-between text-sm">
           <span className="text-gray-500 dark:text-gray-400">Session cost</span>
-          <span className="font-semibold text-yellow-700 dark:text-yellow-500">100 credits (10 min min)</span>
+          {isResume ? (
+            <span className="font-semibold text-green-600 dark:text-green-400">No charge — resuming</span>
+          ) : (
+            <span className="font-semibold text-yellow-700 dark:text-yellow-500">100 credits (10 min min)</span>
+          )}
         </div>
+        {isResume && resumedElapsedSeconds !== undefined && resumedElapsedSeconds < 600 && (
+          <div className="flex items-center justify-between text-sm mt-2 pt-2 border-t border-gray-200 dark:border-gray-700">
+            <span className="text-gray-500 dark:text-gray-400">Prepaid time left</span>
+            <span className="font-semibold text-green-600 dark:text-green-400">
+              {Math.floor((600 - resumedElapsedSeconds) / 60)}m {String((600 - resumedElapsedSeconds) % 60).padStart(2, '0')}s
+            </span>
+          </div>
+        )}
       </div>
 
       {balance < MIN_CREDITS && !isResume && process.env.NODE_ENV !== 'development' ? (
@@ -282,9 +320,9 @@ function StartScreen({
             <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z" />
             </svg>
-            {connecting ? 'Connecting...' : 'Begin Session'}
+            {connecting ? 'Connecting...' : isResume ? 'Resume Session' : 'Begin Session'}
           </button>
-          <p className="text-xs text-gray-400">100 credits deducted when session starts · +10/min after 10 min</p>
+          <p className="text-xs text-gray-400">{isResume ? 'Continuing your session — only new time beyond 10 min is billed' : '100 credits deducted when session starts · +10/min after 10 min'}</p>
         </div>
       )}
     </motion.div>
@@ -623,6 +661,7 @@ function InnerSession({
             previousSummary={previousSummary}
             isResume={!!(resumeChatGroupId || resumeTranscript)}
             resumedChatGroupId={resumeChatGroupId}
+            resumedElapsedSeconds={resumedElapsedSeconds}
           />
         ) : (
           <MessageList key="messages" ref={messagesRef} />
@@ -631,6 +670,7 @@ function InnerSession({
 
       <SessionControls
         elapsedSeconds={elapsedSeconds}
+        resumedElapsedSeconds={resumedElapsedSeconds}
         creditsUsed={creditsUsed}
         balance={balance}
         onEnd={handleEnd}

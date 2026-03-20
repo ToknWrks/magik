@@ -445,13 +445,14 @@ export default function ProfileClient() {
           <div className="flex items-start gap-5">
             {/* Avatar */}
             <div className="relative flex-shrink-0">
-              <div className="w-20 h-20 rounded-full overflow-hidden bg-gray-100 dark:bg-gray-700 flex items-center justify-center">
+              <div className="w-20 h-20 rounded-full overflow-hidden bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 flex items-center justify-center">
                 {avatarSrc ? (
                   <img src={avatarSrc} alt="Profile" className="w-full h-full object-cover" />
                 ) : (
-                  <span className="text-3xl font-bold text-gray-400 dark:text-gray-500">
-                    {(user.username || user.email || '?').charAt(0).toUpperCase()}
-                  </span>
+                  <>
+                    <img src="/images/illuminati-logo.png" alt="Profile" className="w-full h-full object-cover dark:hidden" />
+                    <img src="/images/illuminati-logo-light.png" alt="Profile" className="w-full h-full object-cover hidden dark:block" />
+                  </>
                 )}
               </div>
               {editing && (

@@ -43,9 +43,9 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
 
     // Log transaction
     await pool.query(
-      `INSERT INTO credit_transactions (user_id, amount, description, balance_after)
+      `INSERT INTO credit_transactions (user_id, amount, type, description)
        VALUES ($1, $2, $3, $4)`,
-      [id, amount, description || (amount > 0 ? 'Admin credit' : 'Admin deduction'), newBalance]
+      [id, amount, 'admin_adjustment', description || (amount > 0 ? 'Admin credit' : 'Admin deduction')]
     );
 
     return NextResponse.json({ success: true, balance: newBalance });

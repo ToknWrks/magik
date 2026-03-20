@@ -263,6 +263,10 @@ export default function AstrologyTransits() {
         ) : personalTransits.length === 0 ? (
           <div className="text-center py-16 text-gray-400 text-sm">No active personal transits found.</div>
         ) : (
+          <div className="flex gap-4 mb-4 text-xs text-gray-500 dark:text-gray-400">
+            <span><span className="inline-block px-2 py-0.5 rounded bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 font-medium mr-1">applying</span>building toward exact — influence intensifying</span>
+            <span><span className="inline-block px-2 py-0.5 rounded bg-gray-100 dark:bg-gray-700 text-gray-500 dark:text-gray-400 font-medium mr-1">separating</span>past exact — influence waning</span>
+          </div>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {personalTransits.map((t, index) => (
               <div key={index} className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6">

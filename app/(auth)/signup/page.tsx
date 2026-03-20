@@ -12,7 +12,7 @@ export default function SignUp() {
         <AuthHeader />
         <div className="max-w-2xl mx-auto w-full px-4 py-8">
           <div className="mb-8 text-center">
-            <h1 className="text-3xl text-gray-800 dark:text-gray-100 font-bold mb-3">Create Your Account</h1>
+            <h2 className="text-xl text-gray-800 dark:text-gray-100 font-bold mb-3">Create Your Account</h2>
             <p className="text-gray-500 dark:text-gray-400 text-sm max-w-md mx-auto">
               Membership begins with a personal astrology reading. Purchase your reading below — your account is created automatically.
             </p>

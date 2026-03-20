@@ -16,6 +16,7 @@ interface Transit {
   angle: number;
   orb: number;
   description: string;
+  natalLon?: number; // set for personal transits — fixed natal longitude of planet2
 }
 
 interface PersonalTransit {
@@ -60,6 +61,7 @@ export default function AstrologyTransits() {
 
   const [mineMode, setMineMode] = useState(false);
   const [personalTransits, setPersonalTransits] = useState<PersonalTransit[]>([]);
+  const [natalPositions, setNatalPositions] = useState<Record<string, number>>({});
   const [loadingMine, setLoadingMine] = useState(false);
   const [mineError, setMineError] = useState('');
   const [birthLabel, setBirthLabel] = useState('');
@@ -175,6 +177,7 @@ export default function AstrologyTransits() {
 
       results.sort((a, b) => a.orb - b.orb);
       setPersonalTransits(results);
+      setNatalPositions(natalPositions);
       setMineMode(true);
     } catch {
       setMineError('Failed to load your birth data.');
@@ -193,6 +196,7 @@ export default function AstrologyTransits() {
       angle: aspAngle,
       orb: t.orb,
       description: `Transit ${t.transitPlanet} is ${t.aspect} your natal ${t.natalPlanet} with a ${t.orb.toFixed(1)}° orb (${t.isApplying ? 'applying' : 'separating'}).`,
+      natalLon: natalPositions[t.natalPlanet],
     });
   };
 
@@ -204,29 +208,40 @@ export default function AstrologyTransits() {
     // Calculate chart data
   const chartData = [];
   const labels = [];
-  const days = 200; // 200 days range to find aspect period
-  const step = 1; // every day
-  const aspectAngle = transit.angle; // The exact aspect angle
-  
-  for (let i = -days/2; i <= days/2; i += step) {
+  const days = 200;
+  const isPersonal = transit.natalLon !== undefined;
+  // Personal transits use wider orb (natal planet is fixed, so the window is well-defined).
+  // World transits use tight orb around the current measured angle.
+  const orbFilter = isPersonal ? 15 : 5;
+  const aspectAngle = transit.angle;
+
+  for (let i = -days/2; i <= days/2; i++) {
     const date = new Date();
     date.setDate(date.getDate() + i);
-    
-    const pos1 = Astronomy.GeoVector(transit.planet1 as any, date, false);
-    const pos2 = Astronomy.GeoVector(transit.planet2 as any, date, false);
-    const ecl1 = Astronomy.Ecliptic(pos1);
-    const ecl2 = Astronomy.Ecliptic(pos2);
-    
-    let diff = Math.abs(ecl1.elon - ecl2.elon);
-    diff = Math.min(diff, 360 - diff);
-    
-    // Only include points within 5 degrees of the aspect angle
-    if (Math.abs(diff - aspectAngle) <= 5) {
-      chartData.push(diff);
-      labels.push(date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }));
-    }
+
+    try {
+      const pos1 = Astronomy.GeoVector(transit.planet1 as any, date, false);
+      const ecl1 = Astronomy.Ecliptic(pos1);
+
+      let lon2: number;
+      if (isPersonal) {
+        // Use fixed natal longitude — don't recompute planet2 as moving
+        lon2 = transit.natalLon!;
+      } else {
+        const pos2 = Astronomy.GeoVector(transit.planet2 as any, date, false);
+        lon2 = Astronomy.Ecliptic(pos2).elon;
+      }
+
+      let diff = Math.abs(ecl1.elon - lon2);
+      diff = Math.min(diff, 360 - diff);
+
+      if (Math.abs(diff - aspectAngle) <= orbFilter) {
+        chartData.push(parseFloat(diff.toFixed(2)));
+        labels.push(date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }));
+      }
+    } catch { /* skip */ }
   }
-    
+
     setChartData({ labels, data: chartData });
     
     try {
@@ -393,12 +408,14 @@ export default function AstrologyTransits() {
                     responsive: true,
                     maintainAspectRatio: false,
                     plugins: { legend: { display: false } },
-                    scales: { 
-                      y: { 
+                    scales: {
+                      y: {
                         beginAtZero: false,
-                        min: Math.min(...chartData.data) - 5,
-                        max: Math.max(...chartData.data) + 5,
-                      } 
+                        ...(chartData.data.length > 0 && {
+                          min: Math.min(...chartData.data) - 2,
+                          max: Math.max(...chartData.data) + 2,
+                        }),
+                      }
                     },
                   }}
                 />

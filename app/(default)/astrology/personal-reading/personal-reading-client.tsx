@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect } from 'react';
 import { loadStripe } from '@stripe/stripe-js';
 import {
   Elements,
@@ -81,13 +81,6 @@ function getUnsignedOrb(lon1: number, lon2: number, aspectAngle: number): number
   return Math.abs(diff - aspectAngle);
 }
 
-function getSignedOrb(transitPlanet: string, natalLon: number, aspectAngle: number, date: Date): number {
-  const orb = getUnsignedOrb(getPlanetLon(transitPlanet, date), natalLon, aspectAngle);
-  const tomorrow = new Date(date.getTime() + 86_400_000);
-  const orbTomorrow = getUnsignedOrb(getPlanetLon(transitPlanet, tomorrow), natalLon, aspectAngle);
-  // applying = orb shrinking = negative
-  return orbTomorrow < orb ? -orb : orb;
-}
 
 function calculateNatalPositions(birthDate: string, birthTime?: string): Record<string, number> {
   const [year, month, day] = birthDate.split('-').map(Number);
@@ -129,212 +122,6 @@ function findActiveTransits(natalPositions: Record<string, number>): TransitAspe
   return transits.sort((a, b) => a.currentOrb - b.currentOrb);
 }
 
-function fmtDate(d: Date): string {
-  return d.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
-}
-
-function findTransitDates(transitPlanet: string, natalLon: number, aspectAngle: number) {
-  const today = new Date();
-
-  // Scan backward to find when this transit entered orb
-  let entryDate: Date | null = null;
-  for (let i = 0; i >= -365; i--) {
-    const date = new Date(today.getTime() + i * 86_400_000);
-    try {
-      const orb = getUnsignedOrb(getPlanetLon(transitPlanet, date), natalLon, aspectAngle);
-      if (orb > ORB_LIMIT) {
-        entryDate = new Date(today.getTime() + (i + 1) * 86_400_000);
-        break;
-      }
-    } catch { break; }
-  }
-
-  // Scan forward to find when this transit leaves orb
-  let exitDate: Date | null = null;
-  for (let i = 0; i <= 365; i++) {
-    const date = new Date(today.getTime() + i * 86_400_000);
-    try {
-      const orb = getUnsignedOrb(getPlanetLon(transitPlanet, date), natalLon, aspectAngle);
-      if (orb > ORB_LIMIT) {
-        exitDate = new Date(today.getTime() + (i - 1) * 86_400_000);
-        break;
-      }
-    } catch { break; }
-  }
-
-  // Find exact date (minimum orb) between entry and exit
-  let exactDate: Date | null = null;
-  let minOrb = Infinity;
-  const startI = entryDate ? Math.round((entryDate.getTime() - today.getTime()) / 86_400_000) : -30;
-  const endI = exitDate ? Math.round((exitDate.getTime() - today.getTime()) / 86_400_000) : 30;
-  for (let i = startI; i <= endI; i++) {
-    const date = new Date(today.getTime() + i * 86_400_000);
-    try {
-      const orb = getUnsignedOrb(getPlanetLon(transitPlanet, date), natalLon, aspectAngle);
-      if (orb < minOrb) { minOrb = orb; exactDate = date; }
-    } catch { /* skip */ }
-  }
-
-  return { entryDate, exactDate, exitDate };
-}
-
-function buildTransitDescription(
-  transitPlanet: string,
-  natalPlanet: string,
-  aspect: string,
-  entryDate: Date | null,
-  exactDate: Date | null,
-  exitDate: Date | null,
-): string {
-  const today = new Date();
-
-  const entryPast = entryDate && entryDate <= today;
-  const exactPast = exactDate && exactDate <= today;
-
-  let desc = '';
-
-  if (entryDate) {
-    desc += entryPast
-      ? `This transit entered orb on ${fmtDate(entryDate)}`
-      : `This transit will begin to make itself felt when it enters orb on ${fmtDate(entryDate)}`;
-  } else {
-    desc += 'This transit has been active for an extended period';
-  }
-
-  if (exactDate) {
-    desc += exactPast
-      ? `, was exact on ${fmtDate(exactDate)} (0°) — its peak intensity`
-      : ` and will be exact on ${fmtDate(exactDate)} (0°) where it will be most intense`;
-  }
-
-  if (exitDate) {
-    desc += `, and will diminish in intensity until ${fmtDate(exitDate)} when it leaves the orb of influence.`;
-  } else {
-    desc += '. This influence is long-lasting and may remain active for an extended period.';
-  }
-
-  return desc;
-}
-
-function generateChartData(transitPlanet: string, natalLon: number, aspectAngle: number) {
-  const labels: string[] = [];
-  const data: (number | null)[] = [];
-  const today = new Date();
-
-  for (let i = -30; i <= 30; i++) {
-    const date = new Date(today.getTime() + i * 86_400_000);
-    const label = date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
-    labels.push(label);
-    try {
-      const signed = getSignedOrb(transitPlanet, natalLon, aspectAngle, date);
-      // Plot -|orb| so 0 (exact) is at top, -7.5 at the edges → bell curve shape
-      data.push(Math.abs(signed) <= ORB_LIMIT ? parseFloat((-Math.abs(signed)).toFixed(2)) : null);
-    } catch {
-      data.push(null);
-    }
-  }
-  return { labels, data };
-}
-
-// ── TransitChart component ────────────────────────────────────────────────────
-
-function TransitChart({
-  transitPlanet,
-  natalPlanet,
-  aspect,
-  aspectAngle,
-  natalLon,
-  isDark,
-  interpretation,
-}: {
-  transitPlanet: string;
-  natalPlanet: string;
-  aspect: string;
-  aspectAngle: number;
-  natalLon: number;
-  isDark: boolean;
-  interpretation?: string;
-}) {
-  const { labels, data } = generateChartData(transitPlanet, natalLon, aspectAngle);
-  const hasData = data.some(d => d !== null);
-  if (!hasData) return null;
-
-  const { entryDate, exactDate, exitDate } = findTransitDates(transitPlanet, natalLon, aspectAngle);
-  const description = buildTransitDescription(transitPlanet, natalPlanet, aspect, entryDate, exactDate, exitDate);
-
-  const textColor = isDark ? '#9ca3af' : '#6b7280';
-  const gridColor = isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.05)';
-  const zeroLineColor = isDark ? 'rgba(99,102,241,0.6)' : 'rgba(99,102,241,0.5)';
-
-  return (
-    <div className="border border-gray-100 dark:border-gray-700 rounded-xl p-4">
-      <p className="font-semibold text-gray-800 dark:text-gray-200 mb-1">
-        Transit {transitPlanet} {aspect} Natal {natalPlanet}
-      </p>
-      {interpretation && (
-        <p className="text-sm text-gray-600 dark:text-gray-400 mb-3 leading-relaxed">{interpretation}</p>
-      )}
-      {!interpretation && (
-        <p className="text-xs text-gray-400 dark:text-gray-500 mb-3 italic">Loading interpretation...</p>
-      )}
-      <p className="text-xs text-gray-500 dark:text-gray-400 mb-3 leading-relaxed">{description}</p>
-      <div className="h-28">
-        <Line
-          data={{
-            labels,
-            datasets: [
-              {
-                data,
-                borderColor: 'rgb(99,102,241)',
-                backgroundColor: 'rgba(99,102,241,0.1)',
-                borderWidth: 2,
-                pointRadius: 0,
-                tension: 0.4,
-                fill: false,
-                spanGaps: false,
-              },
-            ],
-          }}
-          options={{
-            responsive: true,
-            maintainAspectRatio: false,
-            animation: false,
-            plugins: {
-              legend: { display: false },
-              tooltip: {
-                callbacks: { label: (ctx) => `${Math.abs(ctx.parsed.y as number).toFixed(1)}°` },
-              },
-            },
-            scales: {
-              x: {
-                ticks: { maxTicksLimit: 7, maxRotation: 0, color: textColor, font: { size: 10 } },
-                grid: { color: gridColor },
-              },
-              y: {
-                min: -(ORB_LIMIT + 1),
-                max: 0,
-                ticks: {
-                  stepSize: 5,
-                  color: textColor,
-                  font: { size: 10 },
-                  callback: (val) => `${Math.abs(val as number)}°`,
-                },
-                grid: {
-                  color: (ctx) => ctx.tick.value === 0 ? zeroLineColor : gridColor,
-                  lineWidth: (ctx) => (ctx.tick.value === 0 ? 2 : 1),
-                },
-              },
-            },
-          }}
-        />
-      </div>
-      <p className="text-xs text-center text-gray-400 dark:text-gray-500 mt-1">
-        0° = exact (peak intensity) · {ORB_LIMIT}° = edge of orb
-      </p>
-    </div>
-  );
-}
-
 // ── ReportDisplay ─────────────────────────────────────────────────────────────
 
 function ReportDisplay({
@@ -345,10 +132,13 @@ function ReportDisplay({
   onNew: () => void;
 }) {
   const [isDark, setIsDark] = useState(false);
-  const [interpretations, setInterpretations] = useState<Record<string, string>>({});
-  const sections = reading.report.split(/(?=## )/g).filter(Boolean);
+  const [selectedTransit, setSelectedTransit] = useState<TransitAspect | null>(null);
+  const [showModal, setShowModal] = useState(false);
+  const [interpretation, setInterpretation] = useState('');
+  const [interpretationLoading, setInterpretationLoading] = useState(false);
+  const [modalChartData, setModalChartData] = useState<{ labels: string[]; data: number[] }>({ labels: [], data: [] });
 
-  // Calculate natal positions and active transits
+  const sections = reading.report.split(/(?=## )/g).filter(Boolean);
   const natalPositions = calculateNatalPositions(reading.birth_date, reading.birth_time ?? undefined);
   const transits = findActiveTransits(natalPositions);
 
@@ -360,28 +150,46 @@ function ReportDisplay({
     return () => observer.disconnect();
   }, []);
 
-  // Fetch interpretations for each transit in parallel
-  useEffect(() => {
-    if (transits.length === 0) return;
-    Promise.all(
-      transits.slice(0, 6).map(async (t) => {
-        const key = `${t.transitPlanet}-${t.aspect}-${t.natalPlanet}`;
-        const transitInfo = `Transit ${t.transitPlanet} ${t.aspect} Natal ${t.natalPlanet} (orb: ${t.currentOrb}°). Use the Archetypal Astrology framework.`;
-        const res = await fetch('/api/astrology/interpretations', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ transitInfo }),
-        });
-        const data = await res.json();
-        return { key, text: data.interpretation || '' };
-      })
-    ).then(results => {
-      const map: Record<string, string> = {};
-      results.forEach(r => { map[r.key] = r.text; });
-      setInterpretations(map);
-    });
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [reading.id]);
+  const openTransitModal = async (t: TransitAspect) => {
+    const natalLon = natalPositions[t.natalPlanet];
+    setSelectedTransit(t);
+    setShowModal(true);
+    setInterpretation('');
+    setInterpretationLoading(true);
+
+    // Chart: transit planet vs fixed natal longitude over 200 days
+    const labels: string[] = [];
+    const data: number[] = [];
+    for (let i = -100; i <= 100; i++) {
+      const date = new Date();
+      date.setDate(date.getDate() + i);
+      try {
+        const lon1 = getPlanetLon(t.transitPlanet, date);
+        let diff = Math.abs(lon1 - natalLon);
+        diff = Math.min(diff, 360 - diff);
+        if (Math.abs(diff - t.aspectAngle) <= 15) {
+          data.push(parseFloat(diff.toFixed(2)));
+          labels.push(date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }));
+        }
+      } catch { /* skip */ }
+    }
+    setModalChartData({ labels, data });
+
+    try {
+      const transitInfo = `Transit ${t.transitPlanet} ${t.aspect} Natal ${t.natalPlanet} (orb: ${t.currentOrb}°). Use the Archetypal Astrology framework.`;
+      const res = await fetch('/api/astrology/interpretations', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ transitInfo }),
+      });
+      const json = await res.json();
+      setInterpretation(json.interpretation || '');
+    } catch {
+      setInterpretation('Error loading interpretation.');
+    } finally {
+      setInterpretationLoading(false);
+    }
+  };
 
   const handleDownload = () => {
     const blob = new Blob([reading.report], { type: 'text/plain' });
@@ -392,6 +200,9 @@ function ReportDisplay({
     a.click();
     URL.revokeObjectURL(url);
   };
+
+  const textColor = isDark ? '#9ca3af' : '#6b7280';
+  const gridColor = isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.05)';
 
   return (
     <div className="max-w-2xl mx-auto">
@@ -428,33 +239,43 @@ function ReportDisplay({
         })}
       </div>
 
-      {/* Dedicated personal transit charts — separate from Claude's text */}
+      {/* Personal transit cards — tap to explore */}
       {transits.length > 0 && (
-        <div className="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-sm border border-gray-100 dark:border-gray-700">
+        <div className="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-sm border border-gray-100 dark:border-gray-700 mt-6">
           <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-1">
-            Your Personal Transit Charts
+            Your Personal Transits
           </h3>
-          <p className="text-sm text-gray-500 dark:text-gray-400 mb-5">
-            Transiting planets aspecting your natal chart, within 15° orb — sorted by intensity.
+          <p className="text-sm text-gray-500 dark:text-gray-400 mb-4">
+            Transiting planets aspecting your natal chart, within 15° orb — sorted by intensity. Tap to explore.
           </p>
-          <div className="space-y-6">
+          <div className="space-y-2">
             {transits.slice(0, 6).map((t, ti) => (
-              <TransitChart
+              <button
                 key={ti}
-                transitPlanet={t.transitPlanet}
-                natalPlanet={t.natalPlanet}
-                aspect={t.aspect}
-                aspectAngle={t.aspectAngle}
-                natalLon={natalPositions[t.natalPlanet]}
-                isDark={isDark}
-                interpretation={interpretations[`${t.transitPlanet}-${t.aspect}-${t.natalPlanet}`]}
-              />
+                onClick={() => openTransitModal(t)}
+                className="w-full flex items-center justify-between p-4 border border-gray-100 dark:border-gray-700 rounded-xl hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors text-left"
+              >
+                <div>
+                  <p className="font-medium text-gray-800 dark:text-gray-200 text-sm">
+                    Transit {t.transitPlanet} {t.aspect} Natal {t.natalPlanet}
+                  </p>
+                  <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
+                    {t.currentOrb}° orb ·{' '}
+                    <span className={t.isApplying ? 'text-green-600 dark:text-green-400 font-medium' : ''}>
+                      {t.isApplying ? 'applying' : 'separating'}
+                    </span>
+                  </p>
+                </div>
+                <svg className="w-4 h-4 text-gray-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+              </button>
             ))}
           </div>
         </div>
       )}
 
-      <div className="p-4 bg-indigo-50 dark:bg-indigo-900/20 rounded-xl border border-indigo-100 dark:border-indigo-800">
+      <div className="p-4 bg-indigo-50 dark:bg-indigo-900/20 rounded-xl border border-indigo-100 dark:border-indigo-800 mt-6">
         <p className="text-sm text-indigo-800 dark:text-indigo-200">
           This reading is saved to your account. Access it anytime from{' '}
           <a href="/settings/readings" className="font-medium underline">Settings → My Readings</a>.
@@ -464,6 +285,94 @@ function ReportDisplay({
       <button onClick={onNew} className="mt-6 text-sm text-gray-500 dark:text-gray-400 hover:underline">
         Get another reading
       </button>
+
+      {/* Transit modal */}
+      {showModal && selectedTransit && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white dark:bg-gray-800 rounded-lg p-6 max-w-2xl w-full mx-4 max-h-[90vh] overflow-y-auto">
+            <h2 className="text-xl font-bold mb-1 text-gray-900 dark:text-gray-100">
+              Transit {selectedTransit.transitPlanet} {selectedTransit.aspect} Natal {selectedTransit.natalPlanet}
+            </h2>
+            <p className="text-sm text-gray-500 dark:text-gray-400 mb-4">
+              {selectedTransit.currentOrb}° orb ·{' '}
+              <span className={selectedTransit.isApplying ? 'text-green-600 dark:text-green-400 font-medium' : ''}>
+                {selectedTransit.isApplying ? 'applying' : 'separating'}
+              </span>
+            </p>
+
+            <div className="mb-4">
+              <h3 className="font-semibold mb-2 text-gray-900 dark:text-gray-100">Archetypal Interpretation:</h3>
+              <div className="max-h-40 overflow-y-auto text-sm text-gray-700 dark:text-gray-300">
+                {interpretationLoading ? (
+                  <p className="text-gray-400">Loading interpretation...</p>
+                ) : (
+                  <p>{interpretation}</p>
+                )}
+              </div>
+            </div>
+
+            <div className="mb-4">
+              <h3 className="font-semibold mb-2 text-gray-900 dark:text-gray-100">Aspect Chart:</h3>
+              <div className="h-48">
+                {modalChartData.data.length > 0 ? (
+                  <Line
+                    data={{
+                      labels: modalChartData.labels,
+                      datasets: [{
+                        label: `${selectedTransit.transitPlanet}–Natal ${selectedTransit.natalPlanet}`,
+                        data: modalChartData.data,
+                        borderColor: 'rgba(75, 192, 192, 1)',
+                        backgroundColor: 'rgba(75, 192, 192, 0.2)',
+                        tension: 0.4,
+                        fill: false,
+                        borderWidth: 2,
+                        pointRadius: 0,
+                      }],
+                    }}
+                    options={{
+                      responsive: true,
+                      maintainAspectRatio: false,
+                      animation: false,
+                      plugins: { legend: { display: false } },
+                      scales: {
+                        x: {
+                          ticks: { maxTicksLimit: 7, maxRotation: 0, color: textColor, font: { size: 10 } },
+                          grid: { color: gridColor },
+                        },
+                        y: {
+                          beginAtZero: false,
+                          ticks: { color: textColor, font: { size: 10 }, callback: (val) => `${val}°` },
+                          grid: { color: gridColor },
+                          ...(modalChartData.data.length > 0 && {
+                            min: Math.min(...modalChartData.data) - 1,
+                            max: Math.max(...modalChartData.data) + 1,
+                          }),
+                        },
+                      },
+                    }}
+                  />
+                ) : (
+                  <div className="flex items-center justify-center h-full text-sm text-gray-400">
+                    No chart data in the 200-day window.
+                  </div>
+                )}
+              </div>
+            </div>
+
+            <div className="flex justify-between text-sm text-gray-600 dark:text-gray-400 mb-4">
+              <span>Orb: {selectedTransit.currentOrb}°</span>
+              <span>Aspect angle: {selectedTransit.aspectAngle}°</span>
+            </div>
+
+            <button
+              onClick={() => setShowModal(false)}
+              className="px-4 py-2 bg-gray-200 dark:bg-gray-700 rounded hover:bg-gray-300 dark:hover:bg-gray-600 text-sm"
+            >
+              Close
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
@@ -835,7 +744,7 @@ export default function PersonalReadingClient() {
   return (
     <div className="p-6 max-w-xl mx-auto">
       <div className="mb-8">
-        <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100 mb-2">Personal Transit Reading</h1>
+        <h3 className="text-l font-bold text-gray-900 dark:text-gray-100 mb-2">Personal Transit Reading</h3>
         <p className="text-gray-500 dark:text-gray-400">
           A personalized archetypal astrology reading based on your natal chart and today's transits. One-time — $9.
         </p>

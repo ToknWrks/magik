@@ -57,6 +57,19 @@ export async function POST(request: NextRequest) {
     if (devBypass) {
       effectivePaymentId = `dev_bypass_${Date.now()}`;
     } else if (usingCoupon) {
+      await pool.query(`
+        CREATE TABLE IF NOT EXISTS invite_codes (
+          id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+          code TEXT NOT NULL UNIQUE,
+          description TEXT,
+          type TEXT NOT NULL DEFAULT 'free_reading',
+          max_uses INTEGER NOT NULL DEFAULT 1,
+          uses INTEGER NOT NULL DEFAULT 0,
+          credits INTEGER NOT NULL DEFAULT 0,
+          expires_at TIMESTAMPTZ,
+          created_at TIMESTAMPTZ DEFAULT NOW()
+        )
+      `);
       await pool.query(`ALTER TABLE invite_codes ADD COLUMN IF NOT EXISTS credits INTEGER NOT NULL DEFAULT 0`);
       // Atomically redeem the coupon — only succeeds if still valid
       const redeemed = await pool.query(

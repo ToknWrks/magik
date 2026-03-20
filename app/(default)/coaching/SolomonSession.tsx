@@ -255,7 +255,7 @@ function StartScreen({
         </div>
       </div>
 
-      {balance < MIN_CREDITS && process.env.NODE_ENV !== 'development' ? (
+      {balance < MIN_CREDITS && !isResume && process.env.NODE_ENV !== 'development' ? (
         <div className="space-y-3">
           <p className="text-sm text-red-600 dark:text-red-400">You need at least 100 credits to start a session.</p>
           <Link
@@ -444,6 +444,7 @@ function InnerSession({
   configId,
   previousSummary,
   resumeTranscript,
+  resumedElapsedSeconds = 0,
   onSessionEnd,
 }: {
   balance: number;
@@ -451,6 +452,7 @@ function InnerSession({
   configId: string;
   previousSummary: string | null;
   resumeTranscript: any[] | null;
+  resumedElapsedSeconds?: number;
   onSessionEnd: (creditsUsed: number, newBalance: number, elapsedSeconds: number, transcript: any[]) => void;
 }) {
   const { status, messages, sendSessionSettings } = useVoice();
@@ -506,10 +508,17 @@ function InnerSession({
 
         const isDev = process.env.NODE_ENV === 'development';
 
-        // Deduct minimum 100 credits once on connect
+        // Deduct minimum 100 credits once on connect (skip if resuming within prepaid window)
         if (!didDeductMinimum.current) {
           didDeductMinimum.current = true;
-          if (isDev) {
+          const prevMinutesPaid = Math.floor(resumedElapsedSeconds / 60);
+          const isResumingWithinPrepaid = resumedElapsedSeconds > 0 && prevMinutesPaid < 10;
+
+          if (isResumingWithinPrepaid) {
+            // Already paid for 10 min — no new charge, just resume billing from minute 10
+            setCreditsUsed(0);
+            lastMinuteCharged.current = 10;
+          } else if (isDev) {
             setCreditsUsed(100);
             lastMinuteCharged.current = 10;
           } else {
@@ -612,6 +621,8 @@ export default function SolomonSession({
   const [sessionKey, setSessionKey] = useState(0);
   const [previousSummary, setPreviousSummary] = useState<string | null>(null);
   const [resumeTranscript, setResumeTranscript] = useState<any[] | null>(initialResumeTranscript);
+  const [currentBalance, setCurrentBalance] = useState(initialBalance);
+  const [resumedElapsed, setResumedElapsed] = useState(0);
   const lastTranscriptRef = useRef<any[]>([]);
 
   useEffect(() => {
@@ -626,6 +637,7 @@ export default function SolomonSession({
 
   const handleSessionEnd = async (creditsUsed: number, balance: number, elapsed: number, transcript: any[]) => {
     lastTranscriptRef.current = transcript;
+    setCurrentBalance(balance);
     setSummaryData({ creditsUsed, balance, elapsed });
     setSessionSummary('');
     setPhase('summary');
@@ -661,6 +673,7 @@ export default function SolomonSession({
         summary={sessionSummary}
         savingSession={savingSession}
         onResume={() => {
+          setResumedElapsed(summaryData.elapsed);
           setResumeTranscript(lastTranscriptRef.current);
           setPhase('session');
           setSessionKey(k => k + 1);
@@ -685,11 +698,12 @@ export default function SolomonSession({
   return (
     <VoiceProvider key={sessionKey}>
       <InnerSession
-        balance={initialBalance}
+        balance={currentBalance}
         accessToken={accessToken}
         configId={configId}
         previousSummary={previousSummary}
         resumeTranscript={resumeTranscript}
+        resumedElapsedSeconds={resumeTranscript ? resumedElapsed : 0}
         onSessionEnd={handleSessionEnd}
       />
     </VoiceProvider>

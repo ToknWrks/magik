@@ -600,7 +600,7 @@ function PaymentForm({
         }),
       });
       const data = await res.json();
-      if (data.error) { setError(data.error); setLoading(false); return; }
+      if (data.error) { setError(data.details ? `${data.error}: ${data.details}` : data.error); setLoading(false); return; }
       onSuccess(data.reading, data.accountCreated);
     } catch {
       setError('An error occurred. Please try again.');

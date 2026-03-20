@@ -180,6 +180,20 @@ export default function Sidebar({
                               </span>
                             </SidebarLink>
                           </li>
+                          <li className="mb-1 last:mb-0">
+                            <SidebarLink href="/chakra-sound">
+                              <span className="text-sm font-medium lg:opacity-0 lg:sidebar-expanded:opacity-100 2xl:opacity-100 duration-200">
+                                Chakra Toner
+                              </span>
+                            </SidebarLink>
+                          </li>
+                          <li className="mb-1 last:mb-0">
+                            <SidebarLink href="/coaching">
+                              <span className="text-sm font-medium lg:opacity-0 lg:sidebar-expanded:opacity-100 2xl:opacity-100 duration-200">
+                                Solomon
+                              </span>
+                            </SidebarLink>
+                          </li>
                         </ul>
                       </div>
                     </>
@@ -230,7 +244,14 @@ export default function Sidebar({
                                 History
                               </span>
                             </SidebarLink>
-                          </li>         
+                          </li>
+                          <li className="mb-1 last:mb-0">
+                            <SidebarLink href="/coaching">
+                              <span className="text-sm font-medium lg:opacity-0 lg:sidebar-expanded:opacity-100 2xl:opacity-100 duration-200">
+                                Solomon
+                              </span>
+                            </SidebarLink>
+                          </li>
                         </ul>
                       </div>
                     </>
@@ -281,7 +302,13 @@ export default function Sidebar({
                               </span>
                             </SidebarLink>
                           </li>
-                              
+                          <li className="mb-1 last:mb-0">
+                            <SidebarLink href="/astrology/personal-reading">
+                              <span className="text-sm font-medium lg:opacity-0 lg:sidebar-expanded:opacity-100 2xl:opacity-100 duration-200">
+                                Reading
+                              </span>
+                            </SidebarLink>
+                          </li>
                         </ul>
                       </div>
                     </>

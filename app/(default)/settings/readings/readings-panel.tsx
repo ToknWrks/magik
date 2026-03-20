@@ -5,6 +5,7 @@ import Link from 'next/link';
 import * as Astronomy from 'astronomy-engine';
 import { Line } from 'react-chartjs-2';
 import { Chart as ChartJS, CategoryScale, LinearScale, PointElement, LineElement, Tooltip } from 'chart.js';
+import FormattedInterpretation from '@/components/FormattedInterpretation';
 
 ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Tooltip);
 
@@ -178,12 +179,12 @@ function ExpandedReading({ reading }: { reading: Reading }) {
             </p>
 
             <div className="mb-4">
-              <h3 className="font-semibold mb-2 text-gray-900 dark:text-gray-100">Archetypal Interpretation:</h3>
-              <div className="max-h-40 overflow-y-auto text-sm text-gray-700 dark:text-gray-300">
+              <h3 className="font-semibold mb-3 text-gray-900 dark:text-gray-100">Archetypal Interpretation:</h3>
+              <div className="text-sm">
                 {interpretationLoading ? (
-                  <p className="text-gray-400">Loading interpretation...</p>
+                  <p className="text-gray-400 italic">Loading interpretation...</p>
                 ) : (
-                  <p>{interpretation}</p>
+                  <FormattedInterpretation text={interpretation} />
                 )}
               </div>
             </div>

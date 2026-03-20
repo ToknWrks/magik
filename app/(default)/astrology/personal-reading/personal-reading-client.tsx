@@ -840,7 +840,7 @@ export default function PersonalReadingClient() {
 
         {/* Invite code */}
         <div className="border border-gray-200 dark:border-gray-700 rounded-xl p-5">
-          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Invite Code <span className="text-gray-400 font-normal">(optional — waives payment)</span></label>
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Invite Code <span className="text-gray-400 font-normal">(optional)</span></label>
           {couponApplied ? (
             <div className="flex items-center justify-between bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg px-4 py-3">
               <div className="flex items-center gap-2">

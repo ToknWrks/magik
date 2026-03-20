@@ -201,6 +201,7 @@ Write in second person ("you/your"), with depth and warmth. Be specific — refe
     return res;
   } catch (error) {
     console.error('Personal reading error:', error);
-    return NextResponse.json({ error: 'Failed to generate reading' }, { status: 500 });
+    const msg = error instanceof Error ? error.message : String(error);
+    return NextResponse.json({ error: 'Failed to generate reading', details: msg }, { status: 500 });
   }
 }

@@ -208,34 +208,25 @@ export default function ChakraSoundPage() {
         <p className="text-[10px] tracking-[0.5em] text-white/60 uppercase mb-0.5">Chakra Sound</p>
         <p className="text-[10px] text-white/45 tracking-widest mb-4">Sing a note to illuminate your energy centers</p>
 
-        {/* Note display */}
-        <div className="flex flex-col items-center justify-center mb-3" style={{ height: 90 }}>
-          {currentNote ? (
-            <>
-              <div
-                className="font-bold leading-none"
-                style={{
-                  fontSize: 96,
-                  color: activeChakra?.color ?? '#fff',
-                  filter: `drop-shadow(0 0 20px ${activeChakra?.color ?? '#fff'}) drop-shadow(0 0 50px ${activeChakra?.color ?? '#fff'}50)`,
-                  transition: 'color 0.2s ease, filter 0.2s ease',
-                }}
-              >
-                {currentNote}
-              </div>
-              <div className="text-xs text-white/40 mt-1.5 tracking-widest tabular-nums">
-                {frequency} Hz &nbsp;·&nbsp; {cents >= 0 ? '+' : ''}{cents} cents
-              </div>
-            </>
-          ) : (
-            <p
-              className="text-base tracking-widest"
-              style={{ color: 'rgba(255,255,255,0.55)' }}
+        {/* Note display — only takes space when a note is detected */}
+        {currentNote && (
+          <div className="flex flex-col items-center mb-3">
+            <div
+              className="font-bold leading-none"
+              style={{
+                fontSize: 96,
+                color: activeChakra?.color ?? '#fff',
+                filter: `drop-shadow(0 0 20px ${activeChakra?.color ?? '#fff'}) drop-shadow(0 0 50px ${activeChakra?.color ?? '#fff'}50)`,
+                transition: 'color 0.2s ease, filter 0.2s ease',
+              }}
             >
-              {listening ? '— listening —' : '— press begin —'}
-            </p>
-          )}
-        </div>
+              {currentNote}
+            </div>
+            <div className="text-xs text-white/40 mt-1.5 tracking-widest tabular-nums">
+              {frequency} Hz &nbsp;·&nbsp; {cents >= 0 ? '+' : ''}{cents} cents
+            </div>
+          </div>
+        )}
 
         {/* Chakra diagram */}
         <div className="flex items-stretch justify-center gap-4 mb-3" style={{ height: SVG_H }}>

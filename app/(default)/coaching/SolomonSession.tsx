@@ -457,7 +457,7 @@ function InnerSession({
   contentContext?: { title: string; type: 'enlightenment' | 'mystery' } | null;
   onSessionEnd: (creditsUsed: number, newBalance: number, elapsedSeconds: number, transcript: any[]) => void;
 }) {
-  const { status, messages, sendSessionSettings } = useVoice();
+  const { status, messages, sendSessionSettings, sendAssistantInput } = useVoice();
   const [elapsedSeconds, setElapsedSeconds] = useState(0);
   const [creditsUsed, setCreditsUsed] = useState(0);
   const [balance, setBalance] = useState(initialBalance);
@@ -491,6 +491,10 @@ function InnerSession({
           : '';
         sendSessionSettings({
           systemPrompt: `The user has just been reading "${contentContext.title}" — ${typeLabel}. Greet them warmly and invite them into dialogue about what they've read, what resonated, or any questions that arose.${previousCtx}`,
+        });
+        // Trigger Solomon to open immediately with a content-specific greeting
+        sendAssistantInput({
+          text: `Welcome. Today we're going to be exploring "${contentContext.title}". I'm here to go as deep as you'd like — what drew you to this, or what questions are alive in you after reading it?`,
         });
       } else if (previousSummary) {
         // New session with topic continuity

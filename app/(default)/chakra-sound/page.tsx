@@ -185,7 +185,7 @@ export default function ChakraSoundPage() {
   return (
     <div
       className="relative flex flex-col items-center min-h-[calc(100vh-4rem)] overflow-hidden select-none"
-      style={{ background: 'url(/images/Spirit9.png) center calc(50% - 2pt) / cover no-repeat' }}
+      style={{ background: 'url(/images/Spirit9.png) center calc(50% - 2pt) / cover no-repeat fixed' }}
     >
       {/* Dark overlay so UI stays readable over the background image */}
       <div className="absolute inset-0 pointer-events-none" style={{ background: 'rgba(0,0,0,0.55)' }} />
@@ -202,14 +202,14 @@ export default function ChakraSoundPage() {
       />
 
       {/* Content */}
-      <div className="relative z-10 flex flex-col items-center w-full max-w-2xl px-4 pt-8 pb-12">
+      <div className="relative z-10 flex flex-col items-center w-full max-w-2xl px-4 pt-4 pb-6">
 
         {/* Header */}
         <p className="text-[10px] tracking-[0.5em] text-white/60 uppercase mb-0.5">Chakra Sound</p>
-        <p className="text-[10px] text-white/45 tracking-widest mb-8">Sing a note to illuminate your energy centers</p>
+        <p className="text-[10px] text-white/45 tracking-widest mb-4">Sing a note to illuminate your energy centers</p>
 
         {/* Note display */}
-        <div className="flex flex-col items-center justify-center mb-4" style={{ height: 116 }}>
+        <div className="flex flex-col items-center justify-center mb-3" style={{ height: 90 }}>
           {currentNote ? (
             <>
               <div
@@ -238,7 +238,7 @@ export default function ChakraSoundPage() {
         </div>
 
         {/* Chakra diagram */}
-        <div className="flex items-stretch justify-center gap-4 mb-6" style={{ height: SVG_H }}>
+        <div className="flex items-stretch justify-center gap-4 mb-3" style={{ height: SVG_H }}>
 
           {/* Left: chakra names + note labels */}
           <div className="relative" style={{ width: 110 }}>
@@ -354,7 +354,7 @@ export default function ChakraSoundPage() {
         </div>
 
         {/* Color spectrum bar */}
-        <div className="w-full max-w-xs mb-2">
+        <div className="w-full max-w-xs mb-1">
           <div
             className="relative h-3 rounded-full overflow-visible"
             style={{ background: 'linear-gradient(to right, #F87171, #FB923C, #FDE047, #4ADE80, #22D3EE, #818CF8, #C084FC)' }}
@@ -377,7 +377,7 @@ export default function ChakraSoundPage() {
         </div>
 
         {/* Active chakra pill */}
-        <div className="h-16 flex items-center mb-5">
+        <div className="h-14 flex items-center mb-3">
           {activeChakra ? (
             <div className="flex flex-col items-center gap-1">
               <div
@@ -408,29 +408,27 @@ export default function ChakraSoundPage() {
           )}
         </div>
 
-        {/* Amplitude bars */}
-        {listening && (
-          <div className="flex gap-0.5 items-end h-8 mb-5">
-            {Array.from({ length: 18 }).map((_, i) => {
-              const threshold = i / 18;
-              const lit = amplitude > threshold;
-              return (
-                <div
-                  key={i}
-                  className="rounded-sm"
-                  style={{
-                    width: 5,
-                    height: lit ? Math.max(4, 3 + i * 1.4) : 3,
-                    background: lit
-                      ? (activeChakra?.color ?? '#818CF8')
-                      : 'rgba(255,255,255,0.07)',
-                    transition: 'height 0.06s ease, background 0.3s ease',
-                  }}
-                />
-              );
-            })}
-          </div>
-        )}
+        {/* Amplitude bars — always rendered to prevent layout shift */}
+        <div className="flex gap-0.5 items-end h-8 mb-3">
+          {Array.from({ length: 18 }).map((_, i) => {
+            const threshold = i / 18;
+            const lit = listening && amplitude > threshold;
+            return (
+              <div
+                key={i}
+                className="rounded-sm"
+                style={{
+                  width: 5,
+                  height: lit ? Math.max(4, 3 + i * 1.4) : 3,
+                  background: lit
+                    ? (activeChakra?.color ?? '#818CF8')
+                    : 'rgba(255,255,255,0.07)',
+                  transition: 'height 0.06s ease, background 0.3s ease',
+                }}
+              />
+            );
+          })}
+        </div>
 
         {/* Begin / End button */}
         <button

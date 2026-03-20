@@ -476,12 +476,14 @@ function PaymentForm({
   natalPositions,
   onSuccess,
   onBack,
+  couponApplied,
 }: {
   formData: FormData;
   transits: TransitAspect[];
   natalPositions: Record<string, number>;
   onSuccess: (reading: Reading, accountCreated: boolean) => void;
   onBack: () => void;
+  couponApplied: string;
 }) {
   const stripe = useStripe();
   const elements = useElements();
@@ -870,6 +872,7 @@ export default function PersonalReadingClient() {
               natalPositions={natalPositions}
               onSuccess={handleSuccess}
               onBack={() => setStep('form')}
+              couponApplied={couponApplied}
             />
           </Elements>
         ) : (

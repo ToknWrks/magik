@@ -182,14 +182,14 @@ function StartScreen({
   configId,
   previousSummary,
   isResume,
-  contentContext,
+  resumedChatGroupId,
 }: {
   balance: number;
   accessToken: string;
   configId: string;
   previousSummary: string | null;
   isResume?: boolean;
-  contentContext?: { title: string; type: 'enlightenment' | 'mystery' } | null;
+  resumedChatGroupId?: string | null;
 }) {
   const { status, connect } = useVoice();
   const [connecting, setConnecting] = useState(false);
@@ -199,17 +199,11 @@ function StartScreen({
     setConnecting(true);
     setError('');
     try {
-      // Pass system prompt at connect time so it's active before Hume's auto-greeting fires
-      let sessionSettings: Parameters<typeof connect>[1] | undefined;
-      if (contentContext) {
-        const typeLabel = contentContext.type === 'enlightenment'
-          ? 'a spiritual teaching on enlightenment'
-          : 'an esoteric mystery';
-        sessionSettings = {
-          systemPrompt: `The user has just been reading "${contentContext.title}" — ${typeLabel}. Open by welcoming them and letting them know you'll be exploring this topic together, then invite dialogue.`,
-        };
-      }
-      await connect({ auth: { type: 'accessToken', value: accessToken }, configId }, sessionSettings);
+      await connect({
+        auth: { type: 'accessToken', value: accessToken },
+        configId,
+        resumedChatGroupId: resumedChatGroupId ?? undefined,
+      });
     } catch {
       setError('Failed to connect. Please try again.');
     } finally {
@@ -455,6 +449,7 @@ function InnerSession({
   accessToken,
   configId,
   previousSummary,
+  resumeChatGroupId,
   resumeTranscript,
   resumedElapsedSeconds = 0,
   contentContext,
@@ -464,12 +459,13 @@ function InnerSession({
   accessToken: string;
   configId: string;
   previousSummary: string | null;
-  resumeTranscript: any[] | null;
+  resumeChatGroupId?: string | null;
+  resumeTranscript?: any[] | null;
   resumedElapsedSeconds?: number;
   contentContext?: { title: string; type: 'enlightenment' | 'mystery' } | null;
-  onSessionEnd: (creditsUsed: number, newBalance: number, elapsedSeconds: number, transcript: any[]) => void;
+  onSessionEnd: (creditsUsed: number, newBalance: number, elapsedSeconds: number, transcript: any[], chatGroupId: string | null) => void;
 }) {
-  const { status, messages, sendSessionSettings, sendAssistantInput } = useVoice();
+  const { status, messages, chatMetadata, sendSessionSettings, sendAssistantInput } = useVoice();
   const [elapsedSeconds, setElapsedSeconds] = useState(0);
   const [creditsUsed, setCreditsUsed] = useState(0);
   const [balance, setBalance] = useState(initialBalance);
@@ -478,46 +474,53 @@ function InnerSession({
   const lastMinuteCharged = useRef(0);
   const didDeductMinimum = useRef(false);
   const messagesRef = useRef<ComponentRef<typeof MessageList>>(null);
+  const chatGroupIdRef = useRef<string | null>(null);
+
+  // Capture chatGroupId from Hume metadata
+  useEffect(() => {
+    if (chatMetadata?.chatGroupId) {
+      chatGroupIdRef.current = chatMetadata.chatGroupId;
+    }
+  }, [chatMetadata]);
 
   // Inject context once connected
   const sentContextRef = useRef(false);
   useEffect(() => {
     if (status.value !== 'connected') {
       sentContextRef.current = false;
+      return;
     }
-  }, [status.value]);
-  useEffect(() => {
-    if (status.value === 'connected' && !sentContextRef.current) {
-      sentContextRef.current = true;
-      if (resumeTranscript && resumeTranscript.length > 0) {
-        // Resuming: inject the full transcript so Solomon picks up exactly where they left off
-        const formatted = resumeTranscript
-          .filter((m: any) => m.type === 'user_message' || m.type === 'assistant_message')
-          .map((m: any) => `${m.message.role === 'user' ? 'User' : 'Solomon'}: ${m.message.content}`)
-          .join('\n\n');
-        sendSessionSettings({
-          systemPrompt: `You are resuming a session that was just paused. Here is the conversation so far — pick up naturally where you left off, without any re-introduction:\n\n${formatted}`,
-        });
-      } else if (contentContext) {
-        // User came from an article — open with that context
-        const typeLabel = contentContext.type === 'enlightenment'
-          ? 'a spiritual teaching on enlightenment'
-          : 'an esoteric mystery';
-        const previousCtx = previousSummary
-          ? `\n\nContext from their previous session with you:\n${previousSummary}\n\nUse this for continuity where relevant.`
-          : '';
-        sendSessionSettings({
-          systemPrompt: `The user has just been reading "${contentContext.title}" — ${typeLabel}. Greet them warmly and invite them into dialogue about what they've read, what resonated, or any questions that arose.${previousCtx}`,
-        });
-        // Trigger Solomon to open immediately with a content-specific greeting
-        sendAssistantInput(`Welcome. Today we're going to be exploring "${contentContext.title}". I'm here to go as deep as you'd like — what drew you to this, or what questions are alive in you after reading it?`);
-      } else if (previousSummary) {
-        // New session with topic continuity
-        sendSessionSettings({
-          systemPrompt: `Context from the user's previous session with you:\n\n${previousSummary}\n\nUse this to provide continuity — reference themes, insights, or invitations from last time where relevant. Do not mention that you have been given a summary; simply be present and connected.`,
-        });
-      }
+    if (sentContextRef.current) return;
+    sentContextRef.current = true;
+
+    if (contentContext) {
+      // Content session: inject title-specific context and trigger the opening greeting
+      const typeLabel = contentContext.type === 'enlightenment'
+        ? 'a spiritual teaching on enlightenment'
+        : 'an esoteric mystery';
+      const previousCtx = previousSummary
+        ? `\n\nContext from their previous session: ${previousSummary}\n\nUse this for continuity where relevant.`
+        : '';
+      sendSessionSettings({
+        systemPrompt: `The user has just been reading "${contentContext.title}" — ${typeLabel}. Engage them deeply on this content.${previousCtx}`,
+      });
+      sendAssistantInput(`Welcome. I see you've been exploring "${contentContext.title}". I'm here to go as deep as you'd like — what drew you to this, or what questions came up as you read it?`);
+    } else if (previousSummary && !resumeChatGroupId) {
+      // New session (not resume) with a previous session — inject continuity context
+      sendSessionSettings({
+        systemPrompt: `Context from the user's previous session with you:\n\n${previousSummary}\n\nUse this to provide continuity. Do not mention that you have been given a summary; simply be present and connected.`,
+      });
+    } else if (resumeTranscript && resumeTranscript.length > 0) {
+      // Legacy fallback: old sessions without chatGroupId — inject transcript manually
+      const formatted = resumeTranscript
+        .filter((m: any) => m.type === 'user_message' || m.type === 'assistant_message')
+        .map((m: any) => `${m.message.role === 'user' ? 'User' : 'Solomon'}: ${m.message.content}`)
+        .join('\n\n');
+      sendSessionSettings({
+        systemPrompt: `You are resuming a session. Pick up naturally where you left off:\n\n${formatted}`,
+      });
     }
+    // Resume via chatGroupId: Hume handles it natively — no injection needed
   }, [status.value]);
 
   // Auto-scroll on new messages
@@ -605,7 +608,7 @@ function InnerSession({
 
   const handleEnd = () => {
     if (timerRef.current) clearInterval(timerRef.current);
-    onSessionEnd(creditsUsed, balance, elapsedSeconds, messages);
+    onSessionEnd(creditsUsed, balance, elapsedSeconds, messages, chatGroupIdRef.current);
   };
 
   return (
@@ -617,9 +620,9 @@ function InnerSession({
             balance={balance}
             accessToken={accessToken}
             configId={configId}
-            previousSummary={resumeTranscript ? null : previousSummary}
-            isResume={!!resumeTranscript}
-            contentContext={resumeTranscript ? null : contentContext}
+            previousSummary={previousSummary}
+            isResume={!!(resumeChatGroupId || resumeTranscript)}
+            resumedChatGroupId={resumeChatGroupId}
           />
         ) : (
           <MessageList key="messages" ref={messagesRef} />
@@ -638,15 +641,23 @@ function InnerSession({
 
 // ── Main export ────────────────────────────────────────────────────────────────
 
+const CONFIG_NEW = process.env.NEXT_PUBLIC_HUME_COACHING_CONFIG_ID ?? '';
+const CONFIG_RESUME = process.env.NEXT_PUBLIC_HUME_RESUME_CONFIG_ID ?? CONFIG_NEW;
+const CONFIG_CONTENT = process.env.NEXT_PUBLIC_HUME_CONTENT_CONFIG_ID ?? CONFIG_NEW;
+
 export default function SolomonSession({
   accessToken,
   initialBalance,
   initialResumeTranscript = null,
+  initialResumeChatGroupId = null,
+  initialResumeElapsed = 0,
   initialContentContext = null,
 }: {
   accessToken: string;
   initialBalance: number;
   initialResumeTranscript?: any[] | null;
+  initialResumeChatGroupId?: string | null;
+  initialResumeElapsed?: number;
   initialContentContext?: { title: string; type: 'enlightenment' | 'mystery' } | null;
 }) {
   const [phase, setPhase] = useState<'session' | 'summary'>('session');
@@ -656,8 +667,10 @@ export default function SolomonSession({
   const [sessionKey, setSessionKey] = useState(0);
   const [previousSummary, setPreviousSummary] = useState<string | null>(null);
   const [resumeTranscript, setResumeTranscript] = useState<any[] | null>(initialResumeTranscript);
+  const [resumeChatGroupId, setResumeChatGroupId] = useState<string | null>(initialResumeChatGroupId);
+  const [lastChatGroupId, setLastChatGroupId] = useState<string | null>(null);
   const [currentBalance, setCurrentBalance] = useState(initialBalance);
-  const [resumedElapsed, setResumedElapsed] = useState(0);
+  const [resumedElapsed, setResumedElapsed] = useState(initialResumeElapsed);
   const lastTranscriptRef = useRef<any[]>([]);
 
   useEffect(() => {
@@ -670,9 +683,10 @@ export default function SolomonSession({
       .catch(() => {});
   }, []);
 
-  const handleSessionEnd = async (creditsUsed: number, balance: number, elapsed: number, transcript: any[]) => {
+  const handleSessionEnd = async (creditsUsed: number, balance: number, elapsed: number, transcript: any[], chatGroupId: string | null) => {
     lastTranscriptRef.current = transcript;
     setCurrentBalance(balance);
+    setLastChatGroupId(chatGroupId);
     setSummaryData({ creditsUsed, balance, elapsed });
     setSessionSummary('');
     setPhase('summary');
@@ -684,7 +698,7 @@ export default function SolomonSession({
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           credentials: 'include',
-          body: JSON.stringify({ transcript, durationSeconds: elapsed, creditsUsed }),
+          body: JSON.stringify({ transcript, durationSeconds: elapsed, creditsUsed, chatGroupId }),
         });
         const data = await res.json();
         if (data.session?.summary) {
@@ -709,17 +723,25 @@ export default function SolomonSession({
         savingSession={savingSession}
         onResume={() => {
           setResumedElapsed(summaryData.elapsed);
-          setResumeTranscript(lastTranscriptRef.current);
+          if (lastChatGroupId) {
+            setResumeChatGroupId(lastChatGroupId);
+            setResumeTranscript(null);
+          } else {
+            setResumeTranscript(lastTranscriptRef.current);
+            setResumeChatGroupId(null);
+          }
           setPhase('session');
           setSessionKey(k => k + 1);
         }}
         onNew={() => {
           setResumeTranscript(null);
+          setResumeChatGroupId(null);
           setPhase('session');
           setSessionKey(k => k + 1);
         }}
         onFreshStart={() => {
           setResumeTranscript(null);
+          setResumeChatGroupId(null);
           setPreviousSummary(null);
           setPhase('session');
           setSessionKey(k => k + 1);
@@ -728,7 +750,12 @@ export default function SolomonSession({
     );
   }
 
-  const configId = process.env.NEXT_PUBLIC_HUME_COACHING_CONFIG_ID ?? '';
+  const isResume = !!(resumeChatGroupId || resumeTranscript);
+  const configId = isResume
+    ? CONFIG_RESUME
+    : initialContentContext
+    ? CONFIG_CONTENT
+    : CONFIG_NEW;
 
   return (
     <VoiceProvider key={sessionKey}>
@@ -737,9 +764,10 @@ export default function SolomonSession({
         accessToken={accessToken}
         configId={configId}
         previousSummary={previousSummary}
+        resumeChatGroupId={resumeChatGroupId}
         resumeTranscript={resumeTranscript}
-        resumedElapsedSeconds={resumeTranscript ? resumedElapsed : 0}
-        contentContext={resumeTranscript ? null : initialContentContext}
+        resumedElapsedSeconds={isResume ? resumedElapsed : 0}
+        contentContext={isResume ? null : initialContentContext}
         onSessionEnd={handleSessionEnd}
       />
     </VoiceProvider>

@@ -1,37 +1,29 @@
 'use client';
 import { useState } from 'react';
+import { useSearchParams } from 'next/navigation';
+import { Suspense } from 'react';
 import Link from 'next/link';
 import AuthHeader from '../auth-header';
 import AuthImage from '../auth-image';
 
-export default function SignIn() {
+function SignInForm() {
+  const searchParams = useSearchParams();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
 
-  interface User {
-    // Define user properties as needed, e.g., id: string; email: string; etc.
-    [key: string]: any;
-  }
-
-  interface LoginResponse {
-    success: boolean;
-    user?: User;
-    error?: string;
-  }
-
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>): Promise<void> => {
     e.preventDefault();
-    const res: Response = await fetch('/api/auth/login', {
+    const res = await fetch('/api/auth/login', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ email, password }),
     });
-    const data: LoginResponse = await res.json();
+    const data = await res.json();
     if (data.success) {
-      // Store user data and redirect
       localStorage.setItem('user', JSON.stringify(data.user));
-      window.location.href = '/';
+      const redirect = searchParams.get('redirect') ?? '/profile';
+      window.location.href = redirect;
     } else {
       setError(data.error ?? '');
     }
@@ -87,5 +79,13 @@ export default function SignIn() {
         <AuthImage />
       </div>
     </main>
+  );
+}
+
+export default function SignIn() {
+  return (
+    <Suspense>
+      <SignInForm />
+    </Suspense>
   );
 }

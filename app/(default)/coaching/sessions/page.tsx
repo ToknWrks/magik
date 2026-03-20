@@ -10,6 +10,7 @@ interface Session {
   summary: string | null;
   duration_seconds: number;
   credits_used: number;
+  hume_chat_group_id?: string | null;
   created_at: string;
 }
 
@@ -119,6 +120,19 @@ export default function CoachingSessionsPage() {
   };
 
   const handleResume = async (sessionId: string) => {
+    const session = sessions.find(s => s.id === sessionId);
+
+    // Native Hume resume: use chatGroupId if available (new sessions)
+    if (session?.hume_chat_group_id) {
+      try {
+        sessionStorage.setItem('solomon_resume_chat_group_id', session.hume_chat_group_id);
+        sessionStorage.setItem('solomon_resume_elapsed', String(session.duration_seconds ?? 0));
+      } catch { /* ignore */ }
+      router.push('/coaching?resume=true');
+      return;
+    }
+
+    // Legacy fallback: inject transcript for old sessions without chatGroupId
     setResuming(sessionId);
     try {
       let detail = sessionDetails[sessionId];

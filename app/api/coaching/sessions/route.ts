@@ -14,8 +14,12 @@ async function ensureTable() {
       summary TEXT,
       duration_seconds INTEGER,
       credits_used INTEGER,
+      hume_chat_group_id TEXT,
       created_at TIMESTAMPTZ DEFAULT NOW()
     )
+  `);
+  await pool.query(`
+    ALTER TABLE coaching_sessions ADD COLUMN IF NOT EXISTS hume_chat_group_id TEXT
   `);
 }
 
@@ -24,7 +28,7 @@ export async function POST(request: NextRequest) {
     const userId = request.cookies.get('user_id')?.value;
     if (!userId) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
-    const { transcript, durationSeconds, creditsUsed } = await request.json();
+    const { transcript, durationSeconds, creditsUsed, chatGroupId } = await request.json();
     if (!transcript?.length) return NextResponse.json({ error: 'No transcript provided' }, { status: 400 });
 
     await ensureTable();
@@ -57,10 +61,10 @@ ${formatted}`,
     const summary = response.content[0].type === 'text' ? response.content[0].text : '';
 
     const result = await pool.query(
-      `INSERT INTO coaching_sessions (user_id, transcript, summary, duration_seconds, credits_used)
-       VALUES ($1, $2, $3, $4, $5)
+      `INSERT INTO coaching_sessions (user_id, transcript, summary, duration_seconds, credits_used, hume_chat_group_id)
+       VALUES ($1, $2, $3, $4, $5, $6)
        RETURNING id, created_at`,
-      [userId, JSON.stringify(transcript), summary, durationSeconds, creditsUsed]
+      [userId, JSON.stringify(transcript), summary, durationSeconds, creditsUsed, chatGroupId ?? null]
     );
 
     return NextResponse.json({ session: { ...result.rows[0], summary } });
@@ -78,7 +82,7 @@ export async function GET(request: NextRequest) {
     await ensureTable();
 
     const result = await pool.query(
-      `SELECT id, summary, duration_seconds, credits_used, created_at
+      `SELECT id, summary, duration_seconds, credits_used, hume_chat_group_id, created_at
        FROM coaching_sessions
        WHERE user_id = $1
        ORDER BY created_at DESC

@@ -15,15 +15,28 @@ function CoachingPageInner() {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(true);
   const [initialResumeTranscript, setInitialResumeTranscript] = useState<any[] | null>(null);
+  const [initialResumeChatGroupId, setInitialResumeChatGroupId] = useState<string | null>(null);
+  const [initialResumeElapsed, setInitialResumeElapsed] = useState(0);
   const [initialContentContext, setInitialContentContext] = useState<{ title: string; type: 'enlightenment' | 'mystery' } | null>(null);
 
   useEffect(() => {
     if (searchParams.get('resume') === 'true') {
       try {
-        const stored = sessionStorage.getItem('solomon_resume_transcript');
-        if (stored) {
-          setInitialResumeTranscript(JSON.parse(stored));
-          sessionStorage.removeItem('solomon_resume_transcript');
+        // Native Hume resume (new sessions)
+        const chatGroupId = sessionStorage.getItem('solomon_resume_chat_group_id');
+        if (chatGroupId) {
+          setInitialResumeChatGroupId(chatGroupId);
+          const elapsed = parseInt(sessionStorage.getItem('solomon_resume_elapsed') ?? '0', 10);
+          setInitialResumeElapsed(elapsed);
+          sessionStorage.removeItem('solomon_resume_chat_group_id');
+          sessionStorage.removeItem('solomon_resume_elapsed');
+        } else {
+          // Legacy fallback: transcript injection
+          const stored = sessionStorage.getItem('solomon_resume_transcript');
+          if (stored) {
+            setInitialResumeTranscript(JSON.parse(stored));
+            sessionStorage.removeItem('solomon_resume_transcript');
+          }
         }
       } catch {
         // ignore
@@ -114,7 +127,14 @@ function CoachingPageInner() {
       </div>
 
       {/* Session */}
-      <SolomonSession accessToken={accessToken} initialBalance={balance} initialResumeTranscript={initialResumeTranscript} initialContentContext={initialContentContext} />
+      <SolomonSession
+        accessToken={accessToken}
+        initialBalance={balance}
+        initialResumeTranscript={initialResumeTranscript}
+        initialResumeChatGroupId={initialResumeChatGroupId}
+        initialResumeElapsed={initialResumeElapsed}
+        initialContentContext={initialContentContext}
+      />
     </div>
   );
 }

@@ -10,7 +10,7 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
     if (!userId) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
     const result = await pool.query(
-      `SELECT id, transcript, summary, duration_seconds, credits_used, created_at
+      `SELECT id, transcript, summary, duration_seconds, credits_used, hume_chat_group_id, created_at
        FROM coaching_sessions
        WHERE id = $1 AND user_id = $2`,
       [id, userId]

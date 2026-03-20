@@ -71,22 +71,20 @@ export async function POST(request: NextRequest) {
         )
       `);
       await pool.query(`ALTER TABLE invite_codes ADD COLUMN IF NOT EXISTS credits INTEGER NOT NULL DEFAULT 0`);
-      // Atomically redeem the coupon — only succeeds if still valid
-      const redeemed = await pool.query(
-        `UPDATE invite_codes
-         SET uses = uses + 1
+      // Validate only — do NOT increment yet so failed attempts don't consume uses
+      const valid = await pool.query(
+        `SELECT id, COALESCE(credits, 0) AS credits FROM invite_codes
          WHERE UPPER(code) = UPPER($1)
            AND type = 'free_reading'
            AND uses < max_uses
-           AND (expires_at IS NULL OR expires_at > NOW())
-         RETURNING id, COALESCE(credits, 0) AS credits`,
+           AND (expires_at IS NULL OR expires_at > NOW())`,
         [couponCode.trim()]
       );
-      if (redeemed.rows.length === 0) {
+      if (valid.rows.length === 0) {
         return NextResponse.json({ error: 'Invalid or already-used invite code' }, { status: 402 });
       }
       effectivePaymentId = `coupon_${couponCode.trim().toUpperCase()}_${Date.now()}`;
-      couponCredits = redeemed.rows[0].credits ?? 0;
+      couponCredits = valid.rows[0].credits ?? 0;
     } else {
       // Verify payment with Stripe
       const paymentIntent = await stripe.paymentIntents.retrieve(paymentIntentId);
@@ -185,6 +183,14 @@ Write in second person ("you/your"), with depth and warmth. Be specific — refe
     );
 
     const reading = result.rows[0];
+
+    // Increment coupon uses only after reading is successfully saved
+    if (usingCoupon) {
+      await pool.query(
+        `UPDATE invite_codes SET uses = uses + 1 WHERE UPPER(code) = UPPER($1)`,
+        [couponCode.trim()]
+      );
+    }
 
     const res = NextResponse.json({ reading, accountCreated });
 

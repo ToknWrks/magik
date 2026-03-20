@@ -490,10 +490,6 @@ function PaymentForm({
   const [error, setError] = useState('');
   const [isDark, setIsDark] = useState(false);
   const [cardComplete, setCardComplete] = useState({ number: false, expiry: false, cvc: false });
-  const [couponInput, setCouponInput] = useState('');
-  const [couponApplied, setCouponApplied] = useState('');
-  const [couponError, setCouponError] = useState('');
-  const [validatingCoupon, setValidatingCoupon] = useState(false);
 
   const isDev = process.env.NODE_ENV === 'development';
 
@@ -517,30 +513,7 @@ function PaymentForm({
     },
   };
 
-  const isReady = isDev || !!couponApplied || (cardComplete.number && cardComplete.expiry && cardComplete.cvc);
-
-  const handleApplyCoupon = async () => {
-    if (!couponInput.trim()) return;
-    setValidatingCoupon(true);
-    setCouponError('');
-    try {
-      const res = await fetch('/api/invite/validate', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ code: couponInput.trim() }),
-      });
-      const data = await res.json();
-      if (data.valid && data.type === 'free_reading') {
-        setCouponApplied(couponInput.trim());
-      } else {
-        setCouponError(data.error || 'Invalid code');
-      }
-    } catch {
-      setCouponError('Failed to validate code. Try again.');
-    } finally {
-      setValidatingCoupon(false);
-    }
-  };
+  const isReady = isDev || (cardComplete.number && cardComplete.expiry && cardComplete.cvc);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -771,6 +744,13 @@ export default function PersonalReadingClient() {
   const [accountCreated, setAccountCreated] = useState(false);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
 
+  const [couponInput, setCouponInput] = useState('');
+  const [couponApplied, setCouponApplied] = useState('');
+  const [couponError, setCouponError] = useState('');
+  const [validatingCoupon, setValidatingCoupon] = useState(false);
+  const [generatingReading, setGeneratingReading] = useState(false);
+  const [generateError, setGenerateError] = useState('');
+
   useEffect(() => {
     fetch('/api/auth/me', { credentials: 'include' })
       .then(r => r.json())
@@ -782,14 +762,27 @@ export default function PersonalReadingClient() {
       });
   }, []);
 
-  const handleFormSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    // Calculate natal positions and active transits before going to payment
-    const natal = calculateNatalPositions(formData.birthDate, formData.birthTime);
-    const active = findActiveTransits(natal);
-    setNatalPositions(natal);
-    setTransits(active);
-    setStep('payment');
+  const handleApplyCoupon = async () => {
+    if (!couponInput.trim()) return;
+    setValidatingCoupon(true);
+    setCouponError('');
+    try {
+      const res = await fetch('/api/invite/validate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ code: couponInput.trim() }),
+      });
+      const data = await res.json();
+      if (data.valid && data.type === 'free_reading') {
+        setCouponApplied(couponInput.trim());
+      } else {
+        setCouponError(data.error || 'Invalid code');
+      }
+    } catch {
+      setCouponError('Failed to validate. Try again.');
+    } finally {
+      setValidatingCoupon(false);
+    }
   };
 
   const handleSuccess = (r: Reading, created: boolean) => {
@@ -802,7 +795,53 @@ export default function PersonalReadingClient() {
     setFormData({ email: formData.email, password: '', birthDate: '', birthTime: '', birthLocation: '', focus: '' });
     setReading(null);
     setTransits([]);
+    setCouponApplied('');
+    setCouponInput('');
     setStep('form');
+  };
+
+  const handleFormSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    const natal = calculateNatalPositions(formData.birthDate, formData.birthTime);
+    const active = findActiveTransits(natal);
+    setNatalPositions(natal);
+    setTransits(active);
+
+    if (couponApplied) {
+      // Skip payment — generate directly like dev bypass
+      setGeneratingReading(true);
+      setGenerateError('');
+      try {
+        const res = await fetch('/api/astrology/personal-reading', {
+          method: 'POST',
+          credentials: 'include',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            couponCode: couponApplied,
+            birthDate: formData.birthDate,
+            birthTime: formData.birthTime,
+            birthLocation: formData.birthLocation,
+            focus: formData.focus,
+            email: formData.email,
+            password: formData.password || undefined,
+            transits: active,
+          }),
+        });
+        const data = await res.json();
+        if (!res.ok) {
+          setGenerateError(data.details ? `${data.error}: ${data.details}` : (data.error || 'Failed to generate reading'));
+          return;
+        }
+        handleSuccess(data.reading, data.accountCreated);
+      } catch (err: any) {
+        setGenerateError(err?.message || 'Failed to generate reading');
+      } finally {
+        setGeneratingReading(false);
+      }
+      return;
+    }
+
+    setStep('payment');
   };
 
   if (step === 'result' && reading) {
@@ -872,7 +911,7 @@ export default function PersonalReadingClient() {
               </label>
               <input
                 type="password"
-                required
+                required={!couponApplied}
                 minLength={6}
                 value={formData.password}
                 onChange={e => setFormData(p => ({ ...p, password: e.target.value }))}
@@ -937,11 +976,62 @@ export default function PersonalReadingClient() {
           />
         </div>
 
+        {/* Invite code */}
+        <div className="border border-gray-200 dark:border-gray-700 rounded-xl p-5">
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Invite Code <span className="text-gray-400 font-normal">(optional — waives payment)</span></label>
+          {couponApplied ? (
+            <div className="flex items-center justify-between bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg px-4 py-3">
+              <div className="flex items-center gap-2">
+                <svg className="w-4 h-4 text-green-600 dark:text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                </svg>
+                <span className="text-sm font-medium text-green-800 dark:text-green-200">Code applied: <span className="font-mono">{couponApplied.toUpperCase()}</span></span>
+              </div>
+              <button type="button" onClick={() => { setCouponApplied(''); setCouponInput(''); }} className="text-xs text-green-600 dark:text-green-400 hover:underline">Remove</button>
+            </div>
+          ) : (
+            <div className="flex gap-2">
+              <input
+                type="text"
+                value={couponInput}
+                onChange={e => { setCouponInput(e.target.value); setCouponError(''); }}
+                onKeyDown={e => e.key === 'Enter' && (e.preventDefault(), handleApplyCoupon())}
+                placeholder="Enter invite code"
+                className="flex-1 px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 text-sm uppercase tracking-wider placeholder:normal-case placeholder:tracking-normal"
+              />
+              <button
+                type="button"
+                onClick={handleApplyCoupon}
+                disabled={!couponInput.trim() || validatingCoupon}
+                className="px-4 py-2 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 disabled:opacity-40 text-gray-700 dark:text-gray-300 text-sm font-medium rounded-lg transition-colors"
+              >
+                {validatingCoupon ? '...' : 'Apply'}
+              </button>
+            </div>
+          )}
+          {couponError && <p className="text-xs text-red-500 mt-1">{couponError}</p>}
+        </div>
+
+        {generateError && (
+          <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-3">
+            <p className="text-sm text-red-800 dark:text-red-200">{generateError}</p>
+          </div>
+        )}
+
         <button
           type="submit"
-          className="w-full py-3 px-6 bg-gray-800 hover:bg-gray-900 text-yellow-700 font-semibold rounded-xl text-base transition-colors"
+          disabled={generatingReading}
+          className="w-full py-3 px-6 bg-gray-800 hover:bg-gray-900 disabled:opacity-50 text-yellow-700 font-semibold rounded-xl text-base transition-colors"
         >
-          Continue 
+          {generatingReading ? (
+            <span className="flex items-center justify-center gap-2">
+              <svg className="animate-spin h-5 w-5" viewBox="0 0 24 24">
+                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
+                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+              </svg>
+              Generating your reading...
+            </span>
+          ) : couponApplied ? 'Get My Free Reading' : 'Continue'}
         </button>
       </form>
     </div>

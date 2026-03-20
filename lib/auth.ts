@@ -37,14 +37,12 @@ export async function createUserAccount(email: string, password?: string) {
 
     // Create new user account
     const userId = randomUUID();
-    const walletAddress = `0x${randomUUID().replace(/-/g, '').slice(0, 40)}`;
-    const ownerAddress = `0x${randomUUID().replace(/-/g, '').slice(0, 40)}`;
 
     const newUser = await pool.query(
-      `INSERT INTO users (id, email, wallet_address, owner_wallet_address, password_hash, email_verified, created_at, updated_at)
-       VALUES ($1, $2, $3, $4, $5, true, NOW(), NOW())
+      `INSERT INTO users (id, email, password_hash, email_verified, created_at, updated_at)
+       VALUES ($1, $2, $3, true, NOW(), NOW())
        RETURNING *`,
-      [userId, email, walletAddress, ownerAddress, passwordHash]
+      [userId, email, passwordHash]
     );
 
     return newUser.rows[0];

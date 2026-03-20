@@ -450,7 +450,7 @@ export default function ProfileClient() {
                   <img src={avatarSrc} alt="Profile" className="w-full h-full object-cover" />
                 ) : (
                   <span className="text-3xl font-bold text-gray-400 dark:text-gray-500">
-                    {user.username.charAt(0).toUpperCase()}
+                    {(user.username || user.email || '?').charAt(0).toUpperCase()}
                   </span>
                 )}
               </div>

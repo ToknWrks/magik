@@ -575,7 +575,7 @@ function PaymentForm({
         }),
       });
       const data = await res.json();
-      if (data.error) { setError(data.details ? `${data.error}: ${data.details}` : data.error); setLoading(false); return; }
+      if (data.error) { setError(data.error); setLoading(false); return; }
       onSuccess(data.reading, data.accountCreated);
     } catch {
       setError('An error occurred. Please try again.');
@@ -781,7 +781,7 @@ export default function PersonalReadingClient() {
         });
         const data = await res.json();
         if (!res.ok) {
-          setGenerateError(data.details ? `${data.error}: ${data.details}` : (data.error || 'Failed to generate reading'));
+          setGenerateError(data.error || 'Failed to generate reading');
           return;
         }
         handleSuccess(data.reading, data.accountCreated);

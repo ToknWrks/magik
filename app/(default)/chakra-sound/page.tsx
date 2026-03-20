@@ -188,7 +188,7 @@ export default function ChakraSoundPage() {
       style={{ background: 'url(/images/Spirit9.png) center calc(50% - 2pt) / cover no-repeat fixed' }}
     >
       {/* Dark overlay so UI stays readable over the background image */}
-      <div className="absolute inset-0 pointer-events-none" style={{ background: 'rgba(0,0,0,0.55)' }} />
+      <div className="absolute inset-0 pointer-events-none" style={{ background: 'rgba(0,0,0,0.78)' }} />
 
       {/* Ambient background glow from active chakra */}
       <div

@@ -17,6 +17,7 @@ async function ensureTable() {
       created_at TIMESTAMPTZ DEFAULT NOW()
     )
   `);
+  await pool.query(`ALTER TABLE invite_codes ADD COLUMN IF NOT EXISTS credits INTEGER NOT NULL DEFAULT 0`);
 }
 
 export async function POST(request: NextRequest) {
@@ -35,9 +36,6 @@ export async function POST(request: NextRequest) {
     const { code, description, type = 'free_reading', maxUses = 1, credits = 0, expiresAt } = await request.json();
 
     if (!code) return NextResponse.json({ error: 'Code is required' }, { status: 400 });
-
-    // Add credits column if it doesn't exist yet (migration safety)
-    await pool.query(`ALTER TABLE invite_codes ADD COLUMN IF NOT EXISTS credits INTEGER NOT NULL DEFAULT 0`);
 
     const result = await pool.query(
       `INSERT INTO invite_codes (code, description, type, max_uses, credits, expires_at)

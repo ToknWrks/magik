@@ -97,8 +97,8 @@ function CoachingPageInner() {
       {/* Header */}
       <div className="flex items-center justify-between px-5 py-3 border-b border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 flex-shrink-0">
         <div className="flex items-center gap-3">
-          <div className="w-8 h-8 rounded-full bg-gradient-to-br from-yellow-800 to-yellow-600 flex items-center justify-center text-sm">
-            ⚕
+          <div className="w-8 h-8 rounded-full overflow-hidden">
+            <img src="/images/illuminati-logo.png" alt="Solomon" className="w-full h-full object-cover" />
           </div>
           <div>
             <p className="text-sm font-semibold text-gray-900 dark:text-gray-100">Solomon</p>

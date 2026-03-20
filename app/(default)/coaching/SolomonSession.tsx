@@ -182,12 +182,14 @@ function StartScreen({
   configId,
   previousSummary,
   isResume,
+  contentContext,
 }: {
   balance: number;
   accessToken: string;
   configId: string;
   previousSummary: string | null;
   isResume?: boolean;
+  contentContext?: { title: string; type: 'enlightenment' | 'mystery' } | null;
 }) {
   const { status, connect } = useVoice();
   const [connecting, setConnecting] = useState(false);
@@ -197,7 +199,17 @@ function StartScreen({
     setConnecting(true);
     setError('');
     try {
-      await connect({ auth: { type: 'accessToken', value: accessToken }, configId });
+      // Pass system prompt at connect time so it's active before Hume's auto-greeting fires
+      let sessionSettings: Parameters<typeof connect>[1] | undefined;
+      if (contentContext) {
+        const typeLabel = contentContext.type === 'enlightenment'
+          ? 'a spiritual teaching on enlightenment'
+          : 'an esoteric mystery';
+        sessionSettings = {
+          systemPrompt: `The user has just been reading "${contentContext.title}" — ${typeLabel}. Open by welcoming them and letting them know you'll be exploring this topic together, then invite dialogue.`,
+        };
+      }
+      await connect({ auth: { type: 'accessToken', value: accessToken }, configId }, sessionSettings);
     } catch {
       setError('Failed to connect. Please try again.');
     } finally {
@@ -216,8 +228,8 @@ function StartScreen({
     >
       {/* Solomon avatar */}
       <div className="relative mb-8">
-        <div className="w-28 h-28 rounded-full bg-gradient-to-br from-yellow-800 to-yellow-600 flex items-center justify-center shadow-lg">
-          <span className="text-5xl">⚕</span>
+        <div className="w-28 h-28 rounded-full overflow-hidden shadow-lg">
+          <img src="/images/illuminati-logo.png" alt="Solomon" className="w-full h-full object-cover" />
         </div>
         <div className="absolute -bottom-1 -right-1 w-6 h-6 bg-green-400 rounded-full border-2 border-white dark:border-gray-900" />
       </div>
@@ -470,6 +482,11 @@ function InnerSession({
   // Inject context once connected
   const sentContextRef = useRef(false);
   useEffect(() => {
+    if (status.value !== 'connected') {
+      sentContextRef.current = false;
+    }
+  }, [status.value]);
+  useEffect(() => {
     if (status.value === 'connected' && !sentContextRef.current) {
       sentContextRef.current = true;
       if (resumeTranscript && resumeTranscript.length > 0) {
@@ -493,9 +510,7 @@ function InnerSession({
           systemPrompt: `The user has just been reading "${contentContext.title}" — ${typeLabel}. Greet them warmly and invite them into dialogue about what they've read, what resonated, or any questions that arose.${previousCtx}`,
         });
         // Trigger Solomon to open immediately with a content-specific greeting
-        sendAssistantInput({
-          text: `Welcome. Today we're going to be exploring "${contentContext.title}". I'm here to go as deep as you'd like — what drew you to this, or what questions are alive in you after reading it?`,
-        });
+        sendAssistantInput(`Welcome. Today we're going to be exploring "${contentContext.title}". I'm here to go as deep as you'd like — what drew you to this, or what questions are alive in you after reading it?`);
       } else if (previousSummary) {
         // New session with topic continuity
         sendSessionSettings({
@@ -604,6 +619,7 @@ function InnerSession({
             configId={configId}
             previousSummary={resumeTranscript ? null : previousSummary}
             isResume={!!resumeTranscript}
+            contentContext={resumeTranscript ? null : contentContext}
           />
         ) : (
           <MessageList key="messages" ref={messagesRef} />

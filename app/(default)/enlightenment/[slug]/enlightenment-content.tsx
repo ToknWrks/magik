@@ -248,8 +248,8 @@ export function EnlightenmentContent({ slug }: EnlightenmentContentProps) {
         {/* Discuss with Solomon */}
         {isLoggedIn && (
           <div className="mt-10 p-5 bg-yellow-50 dark:bg-yellow-900/10 rounded-xl border border-yellow-200 dark:border-yellow-800 flex flex-col sm:flex-row items-center gap-4">
-            <div className="w-12 h-12 rounded-full bg-gradient-to-br from-yellow-800 to-yellow-600 flex items-center justify-center text-2xl flex-shrink-0">
-              ⚕
+            <div className="w-12 h-12 rounded-full overflow-hidden flex-shrink-0">
+              <img src="/images/illuminati-logo.png" alt="Solomon" className="w-full h-full object-cover" />
             </div>
             <div className="flex-1 text-center sm:text-left">
               <p className="font-semibold text-gray-900 dark:text-gray-100 text-sm">Discuss this teaching with Solomon</p>

@@ -5,6 +5,10 @@ import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { Boundary } from '@/components/ui/boundary'
 import * as Astronomy from 'astronomy-engine'
+import { Line } from 'react-chartjs-2'
+import { Chart as ChartJS, CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend } from 'chart.js'
+
+ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend)
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -122,6 +126,54 @@ function NatalChartSection({ reading }: { reading: Reading }) {
   const natal = calculateNatalPositions(reading.birth_date, reading.birth_time)
   const transits = findActiveTransits(natal)
 
+  const [selectedTransit, setSelectedTransit] = useState<typeof transits[0] | null>(null)
+  const [showModal, setShowModal] = useState(false)
+  const [claudeInterpretation, setClaudeInterpretation] = useState('')
+  const [interpretationLoading, setInterpretationLoading] = useState(false)
+  const [chartData, setChartData] = useState<{ labels: string[]; data: number[] }>({ labels: [], data: [] })
+
+  const openModal = async (t: typeof transits[0]) => {
+    setSelectedTransit(t)
+    setShowModal(true)
+    setInterpretationLoading(true)
+    setClaudeInterpretation('')
+
+    const aspAngle = ASPECTS.find(a => a.name === t.aspect)?.angle ?? 0
+    const natalLon = natal[t.natalPlanet] ?? 0
+    const days = 200
+    const labels: string[] = []
+    const data: number[] = []
+    for (let i = -days / 2; i <= days / 2; i++) {
+      const d = new Date()
+      d.setDate(d.getDate() + i)
+      try {
+        const tLon = getPlanetLon(t.transitPlanet, d)
+        let diff = Math.abs(tLon - natalLon)
+        diff = Math.min(diff, 360 - diff)
+        if (Math.abs(diff - aspAngle) <= 5) {
+          data.push(diff)
+          labels.push(d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }))
+        }
+      } catch { /* skip */ }
+    }
+    setChartData({ labels, data })
+
+    try {
+      const transitInfo = `Transit ${t.transitPlanet} is ${t.aspect} natal ${t.natalPlanet} with a ${t.orb.toFixed(1)}° orb`
+      const res = await fetch('/api/astrology/interpretations', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ transitInfo }),
+      })
+      const json = await res.json()
+      setClaudeInterpretation(json.interpretation)
+    } catch {
+      setClaudeInterpretation('Error loading interpretation.')
+    } finally {
+      setInterpretationLoading(false)
+    }
+  }
+
   return (
     <div className="space-y-4">
       {/* Natal Positions */}
@@ -163,12 +215,20 @@ function NatalChartSection({ reading }: { reading: Reading }) {
           <div className="divide-y divide-gray-100 dark:divide-gray-700">
             {transits.map((t, i) => (
               <div key={i} className="px-5 py-3 flex items-center justify-between">
-                <div>
-                  <span className="text-sm font-medium text-gray-900 dark:text-gray-100">
-                    {t.transitPlanet} {t.aspect} {t.natalPlanet}
-                  </span>
+                <span className="text-sm font-medium text-gray-900 dark:text-gray-100">
+                  {t.transitPlanet} {t.aspect} natal {t.natalPlanet}
+                </span>
+                <div className="flex items-center gap-3">
+                  <span className="text-xs text-gray-400 tabular-nums">{t.orb}° orb</span>
+                  <button
+                    onClick={() => openModal(t)}
+                    className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors"
+                  >
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                  </button>
                 </div>
-                <span className="text-xs text-gray-400 tabular-nums">{t.orb}° orb</span>
               </div>
             ))}
           </div>
@@ -176,6 +236,68 @@ function NatalChartSection({ reading }: { reading: Reading }) {
             <Link href="/settings/readings" className="text-xs text-yellow-700 dark:text-yellow-500 hover:underline font-medium">
               View full reading with charts →
             </Link>
+          </div>
+        </div>
+      )}
+
+      {/* Interpretation Modal */}
+      {showModal && selectedTransit && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white dark:bg-gray-800 rounded-lg p-6 max-w-2xl w-full mx-4 max-h-[90vh] overflow-y-auto">
+            <h2 className="text-xl font-bold mb-1">
+              {selectedTransit.transitPlanet} {selectedTransit.aspect} natal {selectedTransit.natalPlanet}
+            </h2>
+            <p className="text-sm text-gray-500 dark:text-gray-400 mb-4">
+              {selectedTransit.orb.toFixed(1)}° orb
+            </p>
+            <div className="mb-4">
+              <h3 className="font-semibold mb-2">Archetypal Interpretation:</h3>
+              <div className="max-h-40 overflow-y-auto text-sm">
+                {interpretationLoading ? (
+                  <p className="text-gray-400">Loading interpretation...</p>
+                ) : (
+                  <p>{claudeInterpretation}</p>
+                )}
+              </div>
+            </div>
+            {chartData.data.length > 0 && (
+              <div className="mb-4">
+                <h3 className="font-semibold mb-2">Aspect Chart:</h3>
+                <div className="h-48">
+                  <Line
+                    data={{
+                      labels: chartData.labels,
+                      datasets: [{
+                        label: `${selectedTransit.transitPlanet}–natal ${selectedTransit.natalPlanet}`,
+                        data: chartData.data,
+                        borderColor: 'rgba(75, 192, 192, 1)',
+                        backgroundColor: 'rgba(75, 192, 192, 0.2)',
+                        tension: 0.4,
+                        fill: false,
+                      }],
+                    }}
+                    options={{
+                      responsive: true,
+                      maintainAspectRatio: false,
+                      plugins: { legend: { display: false } },
+                      scales: {
+                        y: {
+                          beginAtZero: false,
+                          min: Math.min(...chartData.data) - 5,
+                          max: Math.max(...chartData.data) + 5,
+                        },
+                      },
+                    }}
+                  />
+                </div>
+              </div>
+            )}
+            <button
+              onClick={() => setShowModal(false)}
+              className="px-4 py-2 bg-gray-200 dark:bg-gray-700 rounded hover:bg-gray-300 dark:hover:bg-gray-600 text-sm"
+            >
+              Close
+            </button>
           </div>
         </div>
       )}

@@ -585,6 +585,7 @@ function PaymentForm({
       setLoadingMsg('Generating your reading...');
       const res = await fetch('/api/astrology/personal-reading', {
         method: 'POST',
+        credentials: 'include',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           paymentIntentId,

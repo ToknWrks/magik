@@ -33,7 +33,7 @@ function getNoteFromFreq(freq: number) {
   return { note: NOTE_NAMES[((rounded % 12) + 12) % 12], cents };
 }
 
-function autoCorrelate(buf: Float32Array, sampleRate: number): number {
+function autoCorrelate(buf: Float32Array<ArrayBuffer>, sampleRate: number): number {
   let rms = 0;
   for (let i = 0; i < buf.length; i++) rms += buf[i] * buf[i];
   if (Math.sqrt(rms / buf.length) < 0.015) return -1;
@@ -88,7 +88,7 @@ export default function ChakraSoundPage() {
   const analyserRef = useRef<AnalyserNode | null>(null);
   const streamRef = useRef<MediaStream | null>(null);
   const rafRef = useRef<number | null>(null);
-  const bufferRef = useRef<Float32Array | null>(null);
+  const bufferRef = useRef<Float32Array<ArrayBuffer> | null>(null);
   const confirmRef = useRef({ note: '', count: 0 });
   const lastTimeRef = useRef(0);
   const activeNoteRef = useRef<string | null>(null);
@@ -167,7 +167,7 @@ export default function ChakraSoundPage() {
       analyser.fftSize = 2048;
       analyser.smoothingTimeConstant = 0;
       analyserRef.current = analyser;
-      bufferRef.current = new Float32Array(analyser.fftSize);
+      bufferRef.current = new Float32Array(analyser.fftSize) as Float32Array<ArrayBuffer>;
       ctx.createMediaStreamSource(stream).connect(analyser);
       setListening(true);
       rafRef.current = requestAnimationFrame(loop);

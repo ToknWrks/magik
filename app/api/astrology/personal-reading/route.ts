@@ -52,6 +52,7 @@ export async function POST(request: NextRequest) {
     await ensureTable();
 
     let effectivePaymentId: string;
+    let couponCredits = 0;
 
     if (devBypass) {
       effectivePaymentId = `dev_bypass_${Date.now()}`;
@@ -64,13 +65,14 @@ export async function POST(request: NextRequest) {
            AND type = 'free_reading'
            AND uses < max_uses
            AND (expires_at IS NULL OR expires_at > NOW())
-         RETURNING id`,
+         RETURNING id, COALESCE(credits, 0) AS credits`,
         [couponCode.trim()]
       );
       if (redeemed.rows.length === 0) {
         return NextResponse.json({ error: 'Invalid or already-used invite code' }, { status: 402 });
       }
       effectivePaymentId = `coupon_${couponCode.trim().toUpperCase()}_${Date.now()}`;
+      couponCredits = redeemed.rows[0].credits ?? 0;
     } else {
       // Verify payment with Stripe
       const paymentIntent = await stripe.paymentIntents.retrieve(paymentIntentId);
@@ -103,6 +105,17 @@ export async function POST(request: NextRequest) {
       user = await createUserAccount(email, password);
       sessionToken = await createSession(user.id);
       accountCreated = true;
+    }
+
+    // Grant credits if coupon included them
+    if (couponCredits > 0) {
+      await pool.query(
+        `INSERT INTO user_credits (user_id, balance)
+         VALUES ($1, $2)
+         ON CONFLICT (user_id) DO UPDATE
+         SET balance = GREATEST(0, user_credits.balance + $2)`,
+        [user.id.toString(), couponCredits]
+      );
     }
 
     // Build Claude prompt

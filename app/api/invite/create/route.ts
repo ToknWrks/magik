@@ -12,6 +12,7 @@ async function ensureTable() {
       type TEXT NOT NULL DEFAULT 'free_reading',
       max_uses INTEGER NOT NULL DEFAULT 1,
       uses INTEGER NOT NULL DEFAULT 0,
+      credits INTEGER NOT NULL DEFAULT 0,
       expires_at TIMESTAMPTZ,
       created_at TIMESTAMPTZ DEFAULT NOW()
     )
@@ -31,15 +32,18 @@ export async function POST(request: NextRequest) {
 
     await ensureTable();
 
-    const { code, description, type = 'free_reading', maxUses = 1, expiresAt } = await request.json();
+    const { code, description, type = 'free_reading', maxUses = 1, credits = 0, expiresAt } = await request.json();
 
     if (!code) return NextResponse.json({ error: 'Code is required' }, { status: 400 });
 
+    // Add credits column if it doesn't exist yet (migration safety)
+    await pool.query(`ALTER TABLE invite_codes ADD COLUMN IF NOT EXISTS credits INTEGER NOT NULL DEFAULT 0`);
+
     const result = await pool.query(
-      `INSERT INTO invite_codes (code, description, type, max_uses, expires_at)
-       VALUES (UPPER($1), $2, $3, $4, $5)
+      `INSERT INTO invite_codes (code, description, type, max_uses, credits, expires_at)
+       VALUES (UPPER($1), $2, $3, $4, $5, $6)
        RETURNING *`,
-      [code.trim(), description || null, type, maxUses, expiresAt || null]
+      [code.trim(), description || null, type, maxUses, credits, expiresAt || null]
     );
 
     return NextResponse.json({ code: result.rows[0] });
@@ -65,7 +69,7 @@ export async function GET(request: NextRequest) {
     await ensureTable();
 
     const result = await pool.query(
-      `SELECT id, code, description, type, max_uses, uses, expires_at, created_at
+      `SELECT id, code, description, type, max_uses, uses, credits, expires_at, created_at
        FROM invite_codes
        ORDER BY created_at DESC`
     );

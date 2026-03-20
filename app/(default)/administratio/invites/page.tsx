@@ -11,6 +11,7 @@ interface InviteCode {
   type: string;
   max_uses: number;
   uses: number;
+  credits: number;
   expires_at: string | null;
   created_at: string;
 }
@@ -28,6 +29,7 @@ export default function InvitesPage() {
   const [newCode, setNewCode]         = useState('');
   const [newDesc, setNewDesc]         = useState('');
   const [newMaxUses, setNewMaxUses]   = useState('1');
+  const [newCredits, setNewCredits]   = useState('100');
   const [newExpiry, setNewExpiry]     = useState('');
   const [creating, setCreating]       = useState(false);
   const [createError, setCreateError] = useState('');
@@ -67,6 +69,7 @@ export default function InvitesPage() {
           code: newCode.trim(),
           description: newDesc.trim() || undefined,
           maxUses: parseInt(newMaxUses) || 1,
+          credits: parseInt(newCredits) || 0,
           expiresAt: newExpiry || undefined,
         }),
       });
@@ -75,6 +78,7 @@ export default function InvitesPage() {
       setNewCode('');
       setNewDesc('');
       setNewMaxUses('1');
+      setNewCredits('100');
       setNewExpiry('');
       await load();
     } catch {
@@ -135,6 +139,16 @@ export default function InvitesPage() {
             </div>
             <div className="grid grid-cols-2 gap-3">
               <div>
+                <label className="block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1">Credits Granted</label>
+                <input
+                  type="number"
+                  min="0"
+                  value={newCredits}
+                  onChange={e => setNewCredits(e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 text-sm"
+                />
+              </div>
+              <div>
                 <label className="block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1">Description</label>
                 <input
                   type="text"
@@ -182,6 +196,7 @@ export default function InvitesPage() {
                   <th className="text-left px-4 py-3 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide">Code</th>
                   <th className="text-left px-4 py-3 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide hidden sm:table-cell">Description</th>
                   <th className="text-center px-4 py-3 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide">Uses</th>
+                  <th className="text-center px-4 py-3 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide hidden sm:table-cell">Credits</th>
                   <th className="text-left px-4 py-3 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide hidden md:table-cell">Expires</th>
                   <th className="text-left px-4 py-3 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide hidden md:table-cell">Created</th>
                   <th className="px-4 py-3" />
@@ -211,6 +226,9 @@ export default function InvitesPage() {
                         <span className={`font-medium ${exhausted ? 'text-gray-400' : 'text-gray-900 dark:text-gray-100'}`}>
                           {code.uses}/{code.max_uses}
                         </span>
+                      </td>
+                      <td className="px-4 py-3 text-center text-gray-500 dark:text-gray-400 text-sm hidden sm:table-cell">
+                        {code.credits > 0 ? <span className="text-yellow-600 dark:text-yellow-500 font-medium">{code.credits}</span> : '—'}
                       </td>
                       <td className="px-4 py-3 text-gray-400 text-xs hidden md:table-cell">
                         {code.expires_at ? fmtDate(code.expires_at) : '—'}

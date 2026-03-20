@@ -31,7 +31,7 @@ function MemberGate({ slug }: { slug: string }) {
         </div>
         <h3 className="text-lg font-bold text-gray-900 dark:text-gray-100 mb-2">Members Only</h3>
         <p className="text-gray-600 dark:text-gray-400 text-sm mb-6 max-w-sm">
-          The full teaching is available to members. Sign in or create a free account to continue reading.
+          The full teaching is available to members. Sign in or create an account to continue reading.
         </p>
         <div className="flex flex-col sm:flex-row gap-3 w-full max-w-xs">
           <Link

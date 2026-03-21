@@ -441,7 +441,7 @@ export default function Sidebar({
               {/* Regen Network */}
               <li className="pl-4 pr-3 py-2 rounded-lg mb-0.5 last:mb-0">
                 <a
-                  href="https://compute.regen.network"
+                  href="https://compute.regen.network/r/ref_ddb8eb2401844f80"
                   target="_blank"
                   rel="noopener noreferrer"
                   className="block text-gray-800 dark:text-gray-100 truncate transition hover:text-gray-900 dark:hover:text-white"

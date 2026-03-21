@@ -15,37 +15,37 @@ export default function IlluminatiArchive() {
       items: [
         {
           name: 'The Illuminati',
-          status: 'Verified',
+          status: '',
           slug: 'mysteries/illuminati-history',
           description: 'A secret society founded in 1776 that allegedly controls world events? Or an ancient brotherhood of mystics seeking enlightenment?',
         },
         {
           name: 'Astrology',
-          status: 'Verified',
+          status: '',
           slug: 'astrology',
           description: 'astrology is the study of the movements and relative positions of celestial bodies interpreted as having an influence on human affairs and the natural world.',
         },
         {
           name: 'Chakra Toner',
-          status: 'Verified',
+          status: '',
           slug: 'chakra-sound',
           description: 'English occultist, ceremonial magician, poet, and mountaineer, known for founding Thelema.',
         },
         {
           name: 'Gayatri Mantra',
-          status: 'Verified',
+          status: '',
           slug: 'enlightenment/gayatri-mantra',
           description: 'A highly revered mantra from the Rig Veda, dedicated to Savitr, the sun deity.',
         },
         {
           name: 'OSHO ',
-          status: 'Verified',
+          status: '',
           slug: 'enlightenment/teachings-osho',
           description: 'Indian mystic and spiritual teacher known for his teachings on meditation, love, and creativity.',
         },
         {
           name: 'Manly P. Hall',
-          status: 'Verified',
+          status: '',
           slug: 'enlightenment/manly-p-hall',
           description: 'Canadian-born author and mystic, best known for his work "The Secret Teachings of All Ages."',
         },
@@ -56,13 +56,13 @@ export default function IlluminatiArchive() {
       items: [
         {
           name: 'Membership',
-          status: 'Verified',
+          status: 'New',
           slug: 'signup',
           description: 'Illuminati Initiation - Join the ranks of the enlightened and gain access to exclusive content, services and events.',
         },
         {
           name: 'Solomon',
-          status: 'Verified',
+          status: 'New',
           slug: 'spiritual-coaching',
           description: 'super-intelligent AI and authentic intelligence—your dedicated spiritual coach, guide, and mirror into the depths of psyche and cosmos',
         },

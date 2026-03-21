@@ -15,6 +15,21 @@ const ASPECTS = [
   { name: 'Conjunction', angle: 0 }, { name: 'Sextile', angle: 60 },
   { name: 'Square', angle: 90 }, { name: 'Trine', angle: 120 }, { name: 'Opposition', angle: 180 },
 ];
+const LUMINARIES = new Set(['Sun', 'Moon']);
+const NATAL_ASPECT_ORBS = [
+  { name: 'Conjunction', angle: 0,   orb: 10, orbLuminary: 15 },
+  { name: 'Opposition',  angle: 180, orb: 10, orbLuminary: 15 },
+  { name: 'Trine',       angle: 120, orb: 9,  orbLuminary: 12 },
+  { name: 'Square',      angle: 90,  orb: 9,  orbLuminary: 12 },
+  { name: 'Sextile',     angle: 60,  orb: 5,  orbLuminary: 7  },
+];
+
+interface NatalAspect {
+  p1: string;
+  p2: string;
+  aspect: string;
+  orb: number;
+}
 
 function getPlanetLon(planet: string, date: Date): number {
   return Astronomy.Ecliptic(Astronomy.GeoVector(planet as any, date, false)).elon;
@@ -31,6 +46,28 @@ function calcNatal(birthDate: string, birthTime?: string | null): Record<string,
   for (const p of PLANETS) { try { pos[p] = getPlanetLon(p, dt); } catch { /**/ } }
   return pos;
 }
+function findNatalAspects(natal: Record<string, number>): NatalAspect[] {
+  const planets = Object.keys(natal);
+  const results: NatalAspect[] = [];
+  for (let i = 0; i < planets.length; i++) {
+    for (let j = i + 1; j < planets.length; j++) {
+      const p1 = planets[i], p2 = planets[j];
+      let diff = Math.abs(natal[p1] - natal[p2]);
+      diff = Math.min(diff, 360 - diff);
+      const isLuminary = LUMINARIES.has(p1) || LUMINARIES.has(p2);
+      for (const asp of NATAL_ASPECT_ORBS) {
+        const maxOrb = isLuminary ? asp.orbLuminary : asp.orb;
+        const orb = Math.abs(diff - asp.angle);
+        if (orb <= maxOrb) {
+          results.push({ p1, p2, aspect: asp.name, orb: parseFloat(orb.toFixed(1)) });
+          break;
+        }
+      }
+    }
+  }
+  return results.sort((a, b) => a.orb - b.orb);
+}
+
 function findTransits(natal: Record<string, number>) {
   const today = new Date();
   const tmr = new Date(today.getTime() + 86_400_000);
@@ -57,6 +94,8 @@ interface Reading {
   birth_location: string;
   focus: string | null;
   report: string;
+  reading_type: string | null;
+  audio_url: string | null;
   created_at: string;
 }
 
@@ -69,7 +108,7 @@ function ExpandedReading({ reading }: { reading: Reading }) {
   const [audioUrl, setAudioUrl] = useState<string | null>(null);
   const [audioLoading, setAudioLoading] = useState(false);
   const [audioError, setAudioError] = useState('');
-  const [reportAudioUrl, setReportAudioUrl] = useState<string | null>(null);
+  const [reportAudioUrl, setReportAudioUrl] = useState<string | null>(reading.audio_url ?? null);
   const [reportAudioLoading, setReportAudioLoading] = useState(false);
   const [reportAudioError, setReportAudioError] = useState('');
   const [modalChartData, setModalChartData] = useState<{ labels: string[]; data: number[] }>({ labels: [], data: [] });
@@ -82,9 +121,36 @@ function ExpandedReading({ reading }: { reading: Reading }) {
     return () => observer.disconnect();
   }, []);
 
+  const [selectedAspect, setSelectedAspect] = useState<NatalAspect | null>(null);
+  const [showAspectModal, setShowAspectModal] = useState(false);
+  const [aspectInterpretation, setAspectInterpretation] = useState('');
+  const [aspectInterpretationLoading, setAspectInterpretationLoading] = useState(false);
+
+  const isBirthChart = reading.reading_type === 'birthchart';
   const natal = calcNatal(reading.birth_date, reading.birth_time);
-  const transits = findTransits(natal);
+  const transits = isBirthChart ? [] : findTransits(natal);
+  const natalAspects = isBirthChart ? findNatalAspects(natal) : [];
   const sections = reading.report.split(/(?=## )/g).filter(Boolean);
+
+  const openAspectModal = async (a: NatalAspect) => {
+    setSelectedAspect(a);
+    setShowAspectModal(true);
+    setAspectInterpretation('');
+    setAspectInterpretationLoading(true);
+    try {
+      const res = await fetch('/api/astrology/interpretations', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ transitInfo: `Natal ${a.p1} ${a.aspect} Natal ${a.p2} (orb: ${a.orb}°). This is a natal aspect in the birth chart. Use the Archetypal Astrology framework.` }),
+      });
+      const json = await res.json();
+      setAspectInterpretation(json.interpretation || '');
+    } catch {
+      setAspectInterpretation('Error loading interpretation.');
+    } finally {
+      setAspectInterpretationLoading(false);
+    }
+  };
 
   const openTransitModal = async (t: ReturnType<typeof findTransits>[number]) => {
     setSelectedTransit(t);
@@ -137,7 +203,7 @@ function ExpandedReading({ reading }: { reading: Reading }) {
         method: 'POST',
         credentials: 'include',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ text: reading.report }),
+        body: JSON.stringify({ text: reading.report, readingId: reading.id }),
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || 'Failed');
@@ -191,10 +257,36 @@ function ExpandedReading({ reading }: { reading: Reading }) {
         );
       })}
 
-      {transits.length > 0 && (
-        <div className="border-t border-gray-200 dark:border-gray-700 pt-4">
+      {isBirthChart && natalAspects.length > 0 && (
+        <div className="pt-2">
+          <p className="font-semibold text-gray-900 dark:text-gray-100 mb-1">Architecture of the Soul</p>
+          <p className="text-xs text-gray-500 dark:text-gray-400 mb-3">The fundamental planetary relationships in your birth chart — tap to explore.</p>
+          <div className="space-y-2">
+            {natalAspects.map((a, i) => (
+              <button
+                key={i}
+                onClick={() => openAspectModal(a)}
+                className="w-full flex items-center justify-between p-3 border border-gray-200 dark:border-gray-700 rounded-xl bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors text-left"
+              >
+                <div>
+                  <p className="font-medium text-gray-800 dark:text-gray-200 text-sm">
+                    {a.p1} {a.aspect} {a.p2}
+                  </p>
+                  <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">{a.orb}° orb</p>
+                </div>
+                <svg className="w-4 h-4 text-gray-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {!isBirthChart && transits.length > 0 && (
+        <div className="pt-2">
           <p className="font-semibold text-gray-900 dark:text-gray-100 mb-1">Your Personal Transits</p>
-          <p className="text-xs text-gray-500 dark:text-gray-400 mb-3">Transiting planets aspecting your natal chart, within 15° orb — tap to explore.</p>
+          <p className="text-xs text-gray-500 dark:text-gray-400 mb-3">Transiting planets aspecting your natal chart — tap to explore.</p>
           <div className="space-y-2">
             {transits.map((t, ti) => (
               <button
@@ -218,6 +310,33 @@ function ExpandedReading({ reading }: { reading: Reading }) {
                 </svg>
               </button>
             ))}
+          </div>
+        </div>
+      )}
+
+      {showAspectModal && selectedAspect && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white dark:bg-gray-800 rounded-lg p-6 max-w-2xl w-full mx-4 max-h-[90vh] overflow-y-auto">
+            <h2 className="text-xl font-bold mb-1 text-gray-900 dark:text-gray-100">
+              {selectedAspect.p1} {selectedAspect.aspect} {selectedAspect.p2}
+            </h2>
+            <p className="text-sm text-gray-500 dark:text-gray-400 mb-4">{selectedAspect.orb}° orb · natal aspect</p>
+            <div className="mb-4">
+              <h3 className="font-semibold mb-2 text-gray-900 dark:text-gray-100">Archetypal Interpretation:</h3>
+              <div className="text-sm text-gray-700 dark:text-gray-300">
+                {aspectInterpretationLoading ? (
+                  <p className="text-gray-400 italic">Loading interpretation...</p>
+                ) : (
+                  <FormattedInterpretation text={aspectInterpretation} />
+                )}
+              </div>
+            </div>
+            <button
+              onClick={() => setShowAspectModal(false)}
+              className="px-4 py-2 bg-gray-200 dark:bg-gray-700 rounded hover:bg-gray-300 dark:hover:bg-gray-600 text-sm text-gray-700 dark:text-gray-300"
+            >
+              Close
+            </button>
           </div>
         </div>
       )}

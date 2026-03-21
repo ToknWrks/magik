@@ -11,9 +11,10 @@ export async function GET(request: NextRequest) {
     }
 
     await pool.query(`ALTER TABLE astrology_readings ADD COLUMN IF NOT EXISTS reading_type TEXT DEFAULT 'transit'`);
+    await pool.query(`ALTER TABLE astrology_readings ADD COLUMN IF NOT EXISTS audio_url TEXT`);
 
     const result = await pool.query(
-      `SELECT id, birth_date, birth_time, birth_location, focus, report, reading_type, created_at
+      `SELECT id, birth_date, birth_time, birth_location, focus, report, reading_type, audio_url, created_at
        FROM astrology_readings
        WHERE user_id = $1
        ORDER BY created_at DESC`,

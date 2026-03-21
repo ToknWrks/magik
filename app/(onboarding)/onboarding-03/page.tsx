@@ -15,6 +15,8 @@ import Link from 'next/link';
 import OnboardingHeader from '../onboarding-header';
 import OnboardingImage from '../onboarding-image';
 import OnboardingProgress from '../onboarding-progress';
+import { useLanguage } from '@/hooks/useLanguage';
+import LanguageSelector from '@/components/LanguageSelector';
 
 const stripePromise = process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY
   ? loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY)
@@ -79,12 +81,14 @@ function PaymentForm({
   natalPositions,
   onSuccess,
   onBack,
+  language = 'en',
 }: {
   formData: any;
   transits: any[];
   natalPositions: Record<string, number>;
   onSuccess: (birthChartReading: any, transitReading: any, accountCreated: boolean) => void;
   onBack: () => void;
+  language?: string;
 }) {
   const stripe = useStripe();
   const elements = useElements();
@@ -164,6 +168,7 @@ function PaymentForm({
           password: formData.password || undefined,
           transits,
           natalPositions,
+          language,
         }),
       });
       const data = await res.json();
@@ -373,6 +378,7 @@ function ReadingResult({
 // ── Main ──────────────────────────────────────────────────────────────────────
 
 export default function Onboarding03() {
+  const { language, setLanguage } = useLanguage();
   const [step, setStep] = useState<'form' | 'payment' | 'result'>('form');
   const [formData, setFormData] = useState({
     email: '',
@@ -415,7 +421,21 @@ export default function Onboarding03() {
     setStep('result');
   };
 
-  const showProgress = step !== 'result';
+  // Full-width result layout — no onboarding chrome
+  if (step === 'result' && (birthChartReading || transitReading)) {
+    return (
+      <main className="min-h-screen bg-white dark:bg-gray-900">
+        <div className="max-w-3xl mx-auto px-4 py-10">
+          <ReadingResult
+            birthChartReading={birthChartReading}
+            transitReading={transitReading}
+            accountCreated={accountCreated}
+            email={formData.email}
+          />
+        </div>
+      </main>
+    );
+  }
 
   return (
     <main className="bg-white dark:bg-gray-900">
@@ -424,21 +444,20 @@ export default function Onboarding03() {
           <div className="min-h-[100dvh] h-full flex flex-col after:flex-1">
             <div className="flex-1">
               <OnboardingHeader />
-              {showProgress && <OnboardingProgress step={3} total={3} />}
+              <OnboardingProgress step={3} total={3} />
             </div>
 
             <div className="px-4 py-8">
               <div className="max-w-md mx-auto">
 
-                {step === 'result' && (birthChartReading || transitReading) ? (
-                  <ReadingResult birthChartReading={birthChartReading} transitReading={transitReading} accountCreated={accountCreated} email={formData.email} />
-                ) : step === 'payment' ? (
+                {step === 'payment' ? (
                   stripePromise ? (
                     <Elements stripe={stripePromise}>
                       <PaymentForm
                         formData={formData}
                         transits={transits}
                         natalPositions={natalPositions}
+                        language={language}
                         onSuccess={handleSuccess}
                         onBack={() => setStep('form')}
                       />
@@ -448,7 +467,10 @@ export default function Onboarding03() {
                   )
                 ) : (
                   <>
-                    <h1 className="text-3xl text-gray-800 dark:text-gray-100 font-bold mb-2">Full Initiation</h1>
+                    <div className="flex items-start justify-between gap-4 mb-2">
+                      <h1 className="text-3xl text-gray-800 dark:text-gray-100 font-bold">Full Initiation</h1>
+                      <LanguageSelector value={language} onChange={setLanguage} className="flex-shrink-0 mt-2" />
+                    </div>
                     <p className="text-gray-500 dark:text-gray-400 text-sm mb-8">
                       Your complete birth chart interpretation plus a personal transit reading. One-time — $23.
                     </p>

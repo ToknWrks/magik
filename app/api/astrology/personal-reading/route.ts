@@ -3,6 +3,7 @@ import Anthropic from '@anthropic-ai/sdk';
 import Stripe from 'stripe';
 import { Pool } from '@neondatabase/serverless';
 import { createUserAccount, createSession } from '@/lib/auth';
+import { languagePromptSuffix } from '@/lib/language';
 
 const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, { apiVersion: '2025-11-17.clover' });
@@ -36,6 +37,7 @@ export async function POST(request: NextRequest) {
       email,
       password,
       transits,
+      language = 'en',
     } = await request.json();
 
     const isDev = process.env.NODE_ENV === 'development';
@@ -164,7 +166,7 @@ What the next 30 days look like energetically — key turning points, when major
 ## Guidance & Integration
 Practical archetypal guidance for working with these energies consciously. What to lean into, what to be mindful of.
 
-Write in second person ("you/your"), with depth and warmth. Be specific — reference the actual planets and aspects. Avoid generic platitudes. Total length: 600-900 words.`;
+Write in second person ("you/your"), with depth and warmth. Be specific — reference the actual planets and aspects. Avoid generic platitudes. Total length: 600-900 words.${languagePromptSuffix(language)}`;
 
     const response = await anthropic.messages.create({
       model: 'claude-sonnet-4-6',

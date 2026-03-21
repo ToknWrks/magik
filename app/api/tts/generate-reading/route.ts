@@ -12,7 +12,7 @@ export async function POST(request: NextRequest) {
     const userId = request.cookies.get('user_id')?.value;
     if (!userId) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
-    const { text } = await request.json();
+    const { text, readingId } = await request.json();
     if (!text) return NextResponse.json({ error: 'text is required' }, { status: 400 });
 
     // Check and deduct credits
@@ -46,6 +46,14 @@ export async function POST(request: NextRequest) {
       contentType: tts.contentType,
       addRandomSuffix: false,
     });
+
+    // Persist URL so the user can replay without regenerating
+    if (readingId) {
+      await pool.query(
+        `UPDATE astrology_readings SET audio_url = $1 WHERE id = $2 AND user_id = $3`,
+        [blob.url, readingId, userId]
+      );
+    }
 
     const newBalance = balance - CREDIT_COST;
     return NextResponse.json({ audioUrl: blob.url, balance: newBalance });

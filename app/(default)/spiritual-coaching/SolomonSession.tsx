@@ -5,6 +5,7 @@ import { useEffect, useRef, useState } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
+import { languagePromptSuffix } from '@/hooks/useLanguage';
 
 const CREDITS_PER_MINUTE = 10;
 const MIN_CREDITS = 100; // 10 min minimum
@@ -555,6 +556,7 @@ function InnerSession({
   resumedElapsedSeconds = 0,
   contentContext,
   onSessionEnd,
+  language = 'en',
 }: {
   balance: number;
   accessToken: string;
@@ -565,6 +567,7 @@ function InnerSession({
   resumedElapsedSeconds?: number;
   contentContext?: { title: string; type: 'enlightenment' | 'mystery' } | null;
   onSessionEnd: (creditsUsed: number, newBalance: number, elapsedSeconds: number, transcript: any[], chatGroupId: string | null) => void;
+  language?: string;
 }) {
   const { status, messages, chatMetadata, sendSessionSettings, sendAssistantInput } = useVoice();
   const [elapsedSeconds, setElapsedSeconds] = useState(0);
@@ -602,13 +605,13 @@ function InnerSession({
         ? `\n\nContext from their previous session: ${previousSummary}\n\nUse this for continuity where relevant.`
         : '';
       sendSessionSettings({
-        systemPrompt: `The user has just been reading "${contentContext.title}" — ${typeLabel}. Engage them deeply on this content.${previousCtx}`,
+        systemPrompt: `The user has just been reading "${contentContext.title}" — ${typeLabel}. Engage them deeply on this content.${previousCtx}${languagePromptSuffix(language)}`,
       });
       sendAssistantInput(`Welcome. I see you've been exploring "${contentContext.title}". I'm here to go as deep as you'd like — what drew you to this, or what questions came up as you read it?`);
     } else if (previousSummary && !resumeChatGroupId) {
       // New session (not resume) with a previous session — inject continuity context
       sendSessionSettings({
-        systemPrompt: `Context from the user's previous session with you:\n\n${previousSummary}\n\nUse this to provide continuity. Do not mention that you have been given a summary; simply be present and connected.`,
+        systemPrompt: `Context from the user's previous session with you:\n\n${previousSummary}\n\nUse this to provide continuity. Do not mention that you have been given a summary; simply be present and connected.${languagePromptSuffix(language)}`,
       });
     } else if (resumeTranscript && resumeTranscript.length > 0) {
       // Legacy fallback: old sessions without chatGroupId — inject transcript manually
@@ -617,8 +620,11 @@ function InnerSession({
         .map((m: any) => `${m.message.role === 'user' ? 'User' : 'Solomon'}: ${m.message.content}`)
         .join('\n\n');
       sendSessionSettings({
-        systemPrompt: `You are resuming a session. Pick up naturally where you left off:\n\n${formatted}`,
+        systemPrompt: `You are resuming a session. Pick up naturally where you left off:\n\n${formatted}${languagePromptSuffix(language)}`,
       });
+    } else if (language !== 'en') {
+      // Fresh session with no prior context — only inject if non-English
+      sendSessionSettings({ systemPrompt: languagePromptSuffix(language).trim() });
     }
     // Resume via chatGroupId: Hume handles it natively — no injection needed
   }, [status.value]);
@@ -747,6 +753,7 @@ export default function SolomonSession({
   initialResumeChatGroupId = null,
   initialResumeElapsed = 0,
   initialContentContext = null,
+  language = 'en',
 }: {
   accessToken: string;
   initialBalance: number;
@@ -754,6 +761,7 @@ export default function SolomonSession({
   initialResumeChatGroupId?: string | null;
   initialResumeElapsed?: number;
   initialContentContext?: { title: string; type: 'enlightenment' | 'mystery' } | null;
+  language?: string;
 }) {
   const [phase, setPhase] = useState<'session' | 'summary'>('session');
   const [summaryData, setSummaryData] = useState({ creditsUsed: 0, balance: initialBalance, elapsed: 0 });
@@ -864,6 +872,7 @@ export default function SolomonSession({
         resumedElapsedSeconds={isResume ? resumedElapsed : 0}
         contentContext={isResume ? null : initialContentContext}
         onSessionEnd={handleSessionEnd}
+        language={language}
       />
     </VoiceProvider>
   );

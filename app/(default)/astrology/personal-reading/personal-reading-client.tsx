@@ -12,6 +12,8 @@ import {
 } from '@stripe/react-stripe-js';
 import * as Astronomy from 'astronomy-engine';
 import FormattedInterpretation from '@/components/FormattedInterpretation';
+import { useLanguage } from '@/hooks/useLanguage';
+import LanguageSelector from '@/components/LanguageSelector';
 import { Line } from 'react-chartjs-2';
 import {
   Chart as ChartJS,
@@ -407,6 +409,7 @@ function PaymentForm({
   onSuccess,
   onBack,
   couponApplied,
+  language = 'en',
 }: {
   formData: FormData;
   transits: TransitAspect[];
@@ -414,6 +417,7 @@ function PaymentForm({
   onSuccess: (reading: Reading, accountCreated: boolean) => void;
   onBack: () => void;
   couponApplied: string;
+  language?: string;
 }) {
   const stripe = useStripe();
   const elements = useElements();
@@ -502,6 +506,7 @@ function PaymentForm({
           email: formData.email,
           password: formData.password || undefined,
           transits,
+          language,
         }),
       });
       const data = await res.json();
@@ -611,6 +616,7 @@ function PaymentForm({
 // ── Main component ────────────────────────────────────────────────────────────
 
 export default function PersonalReadingClient() {
+  const { language, setLanguage } = useLanguage();
   const [step, setStep] = useState<'form' | 'payment' | 'result'>('form');
   const [formData, setFormData] = useState<FormData>({
     email: '',
@@ -707,6 +713,7 @@ export default function PersonalReadingClient() {
             email: formData.email,
             password: formData.password || undefined,
             transits: active,
+            language,
           }),
         });
         const data = await res.json();
@@ -753,6 +760,7 @@ export default function PersonalReadingClient() {
               onSuccess={handleSuccess}
               onBack={() => setStep('form')}
               couponApplied={couponApplied}
+              language={language}
             />
           </Elements>
         ) : (
@@ -764,11 +772,14 @@ export default function PersonalReadingClient() {
 
   return (
     <div className="p-6 max-w-xl mx-auto">
-      <div className="mb-8">
-        <h3 className="text-l font-bold text-gray-900 dark:text-gray-100 mb-2">Personal Transit Reading</h3>
-        <p className="text-gray-500 dark:text-gray-400">
-          A personalized archetypal astrology reading based on your natal chart and today's transits. One-time — $9.
-        </p>
+      <div className="mb-8 flex items-start justify-between gap-4">
+        <div>
+          <h3 className="text-l font-bold text-gray-900 dark:text-gray-100 mb-2">Personal Transit Reading</h3>
+          <p className="text-gray-500 dark:text-gray-400">
+            A personalized archetypal astrology reading based on your natal chart and today's transits. One-time — $9.
+          </p>
+        </div>
+        <LanguageSelector value={language} onChange={setLanguage} className="flex-shrink-0 mt-1" />
       </div>
 
       <form onSubmit={handleFormSubmit} className="space-y-5">

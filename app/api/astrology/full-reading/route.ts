@@ -3,6 +3,7 @@ import Anthropic from '@anthropic-ai/sdk';
 import Stripe from 'stripe';
 import { Pool } from '@neondatabase/serverless';
 import { createUserAccount, createSession } from '@/lib/auth';
+import { languagePromptSuffix } from '@/lib/language';
 
 const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, { apiVersion: '2025-11-17.clover' });
@@ -63,6 +64,7 @@ export async function POST(request: NextRequest) {
       password,
       transits,
       natalPositions,
+      language = 'en',
     } = await request.json();
 
     const isDev = process.env.NODE_ENV === 'development';
@@ -173,7 +175,7 @@ From the planetary positions, identify the dominant elements (Fire, Earth, Air, 
 ## Your Soul's Signature
 A synthesizing reflection — the overall soul blueprint, the central themes woven through this lifetime, and the evolutionary invitation encoded in this chart. What is this person here to learn, to offer, to become?
 
-Write in second person ("you/your"), with depth, warmth, and astrological precision. Be specific — reference the actual planetary placements and aspects by name. Total length: 1100–1400 words.`;
+Write in second person ("you/your"), with depth, warmth, and astrological precision. Be specific — reference the actual planetary placements and aspects by name. Total length: 1100–1400 words.${languagePromptSuffix(language)}`;
 
     const birthChartResponse = await anthropic.messages.create({
       model: 'claude-sonnet-4-6',
@@ -209,7 +211,7 @@ What the next 30 days look like energetically — key turning points, when major
 ## Guidance & Integration
 Practical archetypal guidance for working with these energies consciously. What to lean into, what to be mindful of, and how to navigate this season with awareness.
 
-Write in second person ("you/your"), with depth and warmth. Be specific. Total length: 500–700 words.`;
+Write in second person ("you/your"), with depth and warmth. Be specific. Total length: 500–700 words.${languagePromptSuffix(language)}`;
 
     const transitResponse = await anthropic.messages.create({
       model: 'claude-sonnet-4-6',

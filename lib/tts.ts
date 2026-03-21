@@ -1,5 +1,7 @@
 // Shared Hume eTTS helper with SSML <break> support.
 const VALID_VOICES = ['Meditation Female', 'Meditation Male'];
+const HUME_MAX_CHARS = 4800; // Hume limit is 5000; leave buffer
+
 // Splits text on <break time="Xs"/> tags, calls Hume per segment (WAV),
 // inserts PCM silence, and stitches into a single WAV file.
 
@@ -25,6 +27,52 @@ function parseSegments(text: string): Segment[] {
 
 function stripTags(s: string): string {
   return s.replace(/<[^>]+>/g, '').trim();
+}
+
+function stripMarkdown(s: string): string {
+  return s
+    .replace(/^#{1,6}\s+/gm, '')       // headings
+    .replace(/\*\*(.+?)\*\*/g, '$1')   // bold
+    .replace(/\*(.+?)\*/g, '$1')       // italic
+    .replace(/^---+$/gm, '')           // horizontal rules
+    .replace(/\[(.+?)\]\(.+?\)/g, '$1') // links
+    .replace(/`(.+?)`/g, '$1')         // inline code
+    .trim();
+}
+
+// Split cleaned text into chunks ≤ HUME_MAX_CHARS, breaking at paragraph/sentence boundaries
+function splitIntoChunks(text: string): string[] {
+  if (text.length <= HUME_MAX_CHARS) return [text];
+  const chunks: string[] = [];
+  const paragraphs = text.split(/\n\n+/);
+  let current = '';
+  for (const para of paragraphs) {
+    const addition = current ? '\n\n' + para : para;
+    if ((current + addition).length > HUME_MAX_CHARS) {
+      if (current) chunks.push(current.trim());
+      // If a single paragraph is too long, split at sentence boundaries
+      if (para.length > HUME_MAX_CHARS) {
+        const sentences = para.split(/(?<=[.!?])\s+/);
+        let sub = '';
+        for (const sentence of sentences) {
+          if ((sub + ' ' + sentence).length > HUME_MAX_CHARS) {
+            if (sub) chunks.push(sub.trim());
+            sub = sentence;
+          } else {
+            sub = sub ? sub + ' ' + sentence : sentence;
+          }
+        }
+        if (sub) current = sub;
+        else current = '';
+      } else {
+        current = para;
+      }
+    } else {
+      current = current + addition;
+    }
+  }
+  if (current.trim()) chunks.push(current.trim());
+  return chunks.filter(Boolean);
 }
 
 function wavToPCM(wav: Buffer): { pcm: Buffer; sampleRate: number; channels: number; bitDepth: number } {
@@ -67,9 +115,13 @@ function silencePCM(seconds: number, sampleRate: number, channels: number, bitDe
   return Buffer.alloc(bytes, 0);
 }
 
-async function humeAPICall(text: string, voice?: string, format: 'mp3' | 'wav' = 'mp3'): Promise<Buffer> {
-  const utterance: Record<string, unknown> = { text };
-  if (voice && VALID_VOICES.includes(voice)) utterance.voice = { name: voice };
+async function humeAPICall(texts: string | string[], voice?: string, format: 'mp3' | 'wav' = 'mp3'): Promise<Buffer> {
+  const chunks = Array.isArray(texts) ? texts : [texts];
+  const utterances = chunks.map(text => {
+    const u: Record<string, unknown> = { text };
+    if (voice && VALID_VOICES.includes(voice)) u.voice = { name: voice };
+    return u;
+  });
 
   const res = await fetch('https://api.hume.ai/v0/tts', {
     method: 'POST',
@@ -78,7 +130,7 @@ async function humeAPICall(text: string, voice?: string, format: 'mp3' | 'wav' =
       'Content-Type': 'application/json',
     },
     body: JSON.stringify({
-      utterances: [utterance],
+      utterances,
       format: { type: format },
     }),
   });
@@ -101,7 +153,10 @@ export async function generateTTS(text: string, voice?: string): Promise<TTSResu
   BREAK_RE.lastIndex = 0;
 
   if (!hasBreaks) {
-    const buffer = await humeAPICall(text, voice, 'mp3');
+    const clean = stripMarkdown(text);
+    const chunks = splitIntoChunks(clean);
+    // Single chunk or multiple utterances in one request
+    const buffer = await humeAPICall(chunks, voice, 'mp3');
     return { buffer, ext: 'mp3', contentType: 'audio/mpeg' };
   }
 
@@ -114,7 +169,7 @@ export async function generateTTS(text: string, voice?: string): Promise<TTSResu
     if (seg.type === 'break') {
       pcmChunks.push(silencePCM(seg.seconds, fmt.sampleRate, fmt.channels, fmt.bitDepth));
     } else {
-      const wav = await humeAPICall(seg.content, voice, 'wav');
+      const wav = await humeAPICall(stripMarkdown(seg.content), voice, 'wav');
       const parsed = wavToPCM(wav);
       fmt = { sampleRate: parsed.sampleRate, channels: parsed.channels, bitDepth: parsed.bitDepth };
       pcmChunks.push(parsed.pcm);

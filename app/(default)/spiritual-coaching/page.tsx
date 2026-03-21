@@ -4,6 +4,8 @@ import { useEffect, useState, Suspense } from 'react';
 import { useRouter } from 'next/navigation';
 import { Boundary } from '@/components/ui/boundary';
 import dynamic from 'next/dynamic';
+import { useLanguage } from '@/hooks/useLanguage';
+import LanguageSelector from '@/components/LanguageSelector';
 
 const SolomonSession = dynamic(() => import('./SolomonSession'), { ssr: false });
 
@@ -13,6 +15,7 @@ function CoachingPageInner() {
   const [balance, setBalance] = useState<number | null>(null);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(true);
+  const { language, setLanguage } = useLanguage();
   // Read sessionStorage synchronously at first render so props are correct before SolomonSession mounts
   const [initialResumeChatGroupId] = useState<string | null>(() => {
     if (typeof window === 'undefined') return null;
@@ -112,11 +115,14 @@ function CoachingPageInner() {
             <p className="text-xs text-gray-400">Authentic Intelligence Spiritual Coach</p>
           </div>
         </div>
-        <div className="flex items-center gap-1.5 px-2.5 py-1 bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg">
-          <svg className="w-3.5 h-3.5 text-yellow-600 dark:text-yellow-500" fill="currentColor" viewBox="0 0 20 20">
-            <path d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" />
-          </svg>
-          <span className="text-xs font-semibold text-yellow-700 dark:text-yellow-500">{balance} tokens</span>
+        <div className="flex items-center gap-2">
+          <LanguageSelector value={language} onChange={setLanguage} />
+          <div className="flex items-center gap-1.5 px-2.5 py-1 bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg">
+            <svg className="w-3.5 h-3.5 text-yellow-600 dark:text-yellow-500" fill="currentColor" viewBox="0 0 20 20">
+              <path d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" />
+            </svg>
+            <span className="text-xs font-semibold text-yellow-700 dark:text-yellow-500">{balance} tokens</span>
+          </div>
         </div>
       </div>
 
@@ -128,6 +134,7 @@ function CoachingPageInner() {
         initialResumeChatGroupId={initialResumeChatGroupId}
         initialResumeElapsed={initialResumeElapsed}
         initialContentContext={initialContentContext}
+        language={language}
       />
     </div>
   );

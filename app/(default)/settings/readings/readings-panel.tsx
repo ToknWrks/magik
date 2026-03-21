@@ -6,6 +6,7 @@ import * as Astronomy from 'astronomy-engine';
 import { Line } from 'react-chartjs-2';
 import { Chart as ChartJS, CategoryScale, LinearScale, PointElement, LineElement, Tooltip } from 'chart.js';
 import FormattedInterpretation from '@/components/FormattedInterpretation';
+import AudioPlayer from '@/components/AudioPlayer';
 
 ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Tooltip);
 
@@ -65,6 +66,12 @@ function ExpandedReading({ reading }: { reading: Reading }) {
   const [showModal, setShowModal] = useState(false);
   const [interpretation, setInterpretation] = useState('');
   const [interpretationLoading, setInterpretationLoading] = useState(false);
+  const [audioUrl, setAudioUrl] = useState<string | null>(null);
+  const [audioLoading, setAudioLoading] = useState(false);
+  const [audioError, setAudioError] = useState('');
+  const [reportAudioUrl, setReportAudioUrl] = useState<string | null>(null);
+  const [reportAudioLoading, setReportAudioLoading] = useState(false);
+  const [reportAudioError, setReportAudioError] = useState('');
   const [modalChartData, setModalChartData] = useState<{ labels: string[]; data: number[] }>({ labels: [], data: [] });
 
   useEffect(() => {
@@ -84,6 +91,8 @@ function ExpandedReading({ reading }: { reading: Reading }) {
     setShowModal(true);
     setInterpretation('');
     setInterpretationLoading(true);
+    setAudioUrl(null);
+    setAudioError('');
 
     const labels: string[] = [], data: number[] = [];
     for (let i = -100; i <= 100; i++) {
@@ -120,8 +129,56 @@ function ExpandedReading({ reading }: { reading: Reading }) {
   const textColor = isDark ? '#9ca3af' : '#6b7280';
   const gridColor = isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.05)';
 
+  const generateReportAudio = async () => {
+    setReportAudioLoading(true);
+    setReportAudioError('');
+    try {
+      const res = await fetch('/api/tts/generate-reading', {
+        method: 'POST',
+        credentials: 'include',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ text: reading.report }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Failed');
+      setReportAudioUrl(data.audioUrl);
+    } catch (e) {
+      setReportAudioError(e instanceof Error ? e.message : 'Error');
+    } finally {
+      setReportAudioLoading(false);
+    }
+  };
+
   return (
     <div className="border-t border-gray-200 dark:border-gray-700 p-6 bg-gray-50 dark:bg-gray-900 space-y-4">
+
+      {/* Full reading audio */}
+      <div>
+        {reportAudioUrl ? (
+          <AudioPlayer url={reportAudioUrl} label="Your Full Reading" />
+        ) : (
+          <div className="flex items-center gap-3">
+            <button
+              onClick={generateReportAudio}
+              disabled={reportAudioLoading}
+              className="flex items-center gap-2 px-4 py-2 rounded-lg border border-amber-300 dark:border-amber-700 text-amber-700 dark:text-amber-400 text-sm font-medium hover:bg-amber-50 dark:hover:bg-amber-900/20 disabled:opacity-50 transition-colors"
+            >
+              {reportAudioLoading ? (
+                <svg className="w-4 h-4 animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                </svg>
+              ) : (
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z" />
+                </svg>
+              )}
+              {reportAudioLoading ? 'Generating audio...' : 'Listen to Full Reading (50 credits)'}
+            </button>
+            {reportAudioError && <p className="text-red-500 text-xs">{reportAudioError}</p>}
+          </div>
+        )}
+      </div>
+
       {sections.map((section, i) => {
         const lines = section.trim().split('\n');
         const heading = lines[0].replace('## ', '');
@@ -188,6 +245,53 @@ function ExpandedReading({ reading }: { reading: Reading }) {
                 )}
               </div>
             </div>
+
+            {/* Audio reading */}
+            {!interpretationLoading && interpretation && (
+              <div className="mb-4">
+                {audioUrl ? (
+                  <AudioPlayer url={audioUrl} label="Audio Reading" />
+                ) : (
+                  <div className="flex items-center gap-3">
+                    <button
+                      onClick={async () => {
+                        setAudioLoading(true);
+                        setAudioError('');
+                        try {
+                          const res = await fetch('/api/tts/generate-reading', {
+                            method: 'POST',
+                            credentials: 'include',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ text: interpretation }),
+                          });
+                          const data = await res.json();
+                          if (!res.ok) throw new Error(data.error || 'Failed');
+                          setAudioUrl(data.audioUrl);
+                        } catch (e) {
+                          setAudioError(e instanceof Error ? e.message : 'Error');
+                        } finally {
+                          setAudioLoading(false);
+                        }
+                      }}
+                      disabled={audioLoading}
+                      className="flex items-center gap-2 px-4 py-2 rounded-lg border border-amber-300 dark:border-amber-700 text-amber-700 dark:text-amber-400 text-sm font-medium hover:bg-amber-50 dark:hover:bg-amber-900/20 disabled:opacity-50 transition-colors"
+                    >
+                      {audioLoading ? (
+                        <svg className="w-4 h-4 animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                        </svg>
+                      ) : (
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.536 8.464a5 5 0 010 7.072M12 9.5l-3 3m0 0l3 3m-3-3h7.5M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                      )}
+                      {audioLoading ? 'Generating audio...' : 'Listen to Reading (50 credits)'}
+                    </button>
+                    {audioError && <p className="text-red-500 text-xs">{audioError}</p>}
+                  </div>
+                )}
+              </div>
+            )}
 
             <div className="mb-4">
               <h3 className="font-semibold mb-2 text-gray-900 dark:text-gray-100">Aspect Chart:</h3>

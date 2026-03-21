@@ -6,6 +6,7 @@ import { Boundary } from '@/components/ui/boundary';
 import Link from 'next/link';
 import ShareToX from '@/components/ShareToX';
 import AutoLinkMarkdown from '@/components/AutoLinkMarkdown';
+import AudioPlayer from '@/components/AudioPlayer';
 
 interface EnlightenmentContentProps {
   slug: string;
@@ -179,6 +180,13 @@ export function EnlightenmentContent({ slug }: EnlightenmentContentProps) {
             hashtags={['realilluminati', 'enlightenment', 'wisdom', 'spirituality']}
           />
         </div>
+
+        {/* Audio player — shown to logged-in members when audio exists */}
+        {isLoggedIn && content.audio_url && (
+          <div className="mb-6">
+            <AudioPlayer url={content.audio_url} label={`Listen: ${content.title}`} />
+          </div>
+        )}
 
         {/* Key Teachings */}
         {content.key_teachings?.length > 0 && (

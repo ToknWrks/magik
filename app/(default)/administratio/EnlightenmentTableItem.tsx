@@ -1,7 +1,10 @@
 // app/(default)/administratio/EnlightenmentTableItem.tsx
+'use client'
+import { useState } from 'react'
 import { EnlightenmentTemplate } from './EnlightenmentFormModal'
-import { EnlightenmentProperties } from './EnlightenmentTableProperties' 
+import { EnlightenmentProperties } from './EnlightenmentTableProperties'
 import Link from 'next/link'
+import GenerateAudioButton from '@/components/admin/GenerateAudioButton'
 
 interface EnlightenmentTableItemProps {
   template: EnlightenmentTemplate
@@ -116,8 +119,14 @@ export default function EnlightenmentTableItem({
       </td>
       <td className="px-2 first:pl-5 last:pr-5 py-3 whitespace-nowrap w-px">
         <div className="flex items-center space-x-2">
-          <button 
-            onClick={handleEdit} 
+          <GenerateAudioButton
+            contentId={template.id}
+            contentType="enlightenment"
+            text={template.article_content || template.description || template.title}
+            existingUrl={template.audio_url}
+          />
+          <button
+            onClick={handleEdit}
             className="text-gray-400 hover:text-purple-500 dark:text-gray-500 dark:hover:text-purple-400 p-1 rounded hover:bg-purple-50 dark:hover:bg-purple-900/20"
             title="Edit"
           >

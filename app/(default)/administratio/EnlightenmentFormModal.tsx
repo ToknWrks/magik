@@ -36,6 +36,7 @@ export interface EnlightenmentTemplate {
   is_active?: boolean
   content_type?: string
   article_content?: string
+  audio_url?: string | null
   created_at: string
   type: 'enlightenment'
 }

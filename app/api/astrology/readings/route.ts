@@ -3,6 +3,26 @@ import { Pool } from '@neondatabase/serverless';
 
 const pool = new Pool({ connectionString: process.env.DATABASE_URL, ssl: true });
 
+export async function DELETE(request: NextRequest) {
+  try {
+    const userId = request.cookies.get('user_id')?.value;
+    if (!userId) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+
+    const { id } = await request.json();
+    if (!id) return NextResponse.json({ error: 'Reading ID required' }, { status: 400 });
+
+    await pool.query(
+      `DELETE FROM astrology_readings WHERE id = $1 AND user_id = $2`,
+      [id, userId]
+    );
+
+    return NextResponse.json({ success: true });
+  } catch (error) {
+    console.error('Delete reading error:', error);
+    return NextResponse.json({ error: 'Failed to delete reading' }, { status: 500 });
+  }
+}
+
 export async function GET(request: NextRequest) {
   try {
     const userId = request.cookies.get('user_id')?.value;

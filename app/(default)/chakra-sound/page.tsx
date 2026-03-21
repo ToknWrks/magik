@@ -205,7 +205,7 @@ export default function ChakraSoundPage() {
       <div className="relative z-10 flex flex-col items-center w-full max-w-2xl px-4 pt-4 pb-6">
 
         {/* Header */}
-        <p className="text-[12px] tracking-[0.5em] text-white/60 uppercase mb-1.5">Chakra Sound</p>
+        <p className="text-[12px] tracking-[0.5em] text-white/60 uppercase mb-1.5">Chakra Toner</p>
         <p className="text-[12px] text-white/45 tracking-widest mb-4">Sing a note to illuminate your energy centers</p>
 
         {/* Note display — only takes space when a note is detected */}

@@ -482,6 +482,24 @@ export default function ReadingsPanel() {
   const [readings, setReadings] = useState<Reading[]>([]);
   const [loading, setLoading] = useState(true);
   const [expanded, setExpanded] = useState<string | null>(null);
+  const [confirmDelete, setConfirmDelete] = useState<string | null>(null);
+  const [deleting, setDeleting] = useState<string | null>(null);
+
+  const handleDelete = async (id: string) => {
+    setDeleting(id);
+    try {
+      await fetch('/api/astrology/readings', {
+        method: 'DELETE',
+        credentials: 'include',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id }),
+      });
+      setReadings(prev => prev.filter(r => r.id !== id));
+      setConfirmDelete(null);
+      if (expanded === id) setExpanded(null);
+    } catch { /* leave UI unchanged */ }
+    finally { setDeleting(null); }
+  };
 
   useEffect(() => {
     fetch('/api/astrology/readings', { credentials: 'include' })
@@ -569,6 +587,33 @@ export default function ReadingsPanel() {
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
                 </svg>
               </button>
+              {confirmDelete === reading.id ? (
+                <div className="flex items-center gap-1">
+                  <button
+                    onClick={() => handleDelete(reading.id)}
+                    disabled={deleting === reading.id}
+                    className="px-2.5 py-1.5 bg-red-600 hover:bg-red-700 disabled:opacity-50 text-white text-xs font-medium rounded-lg"
+                  >
+                    {deleting === reading.id ? '...' : 'Delete'}
+                  </button>
+                  <button
+                    onClick={() => setConfirmDelete(null)}
+                    className="px-2.5 py-1.5 text-gray-500 text-xs font-medium hover:text-gray-700 dark:hover:text-gray-300"
+                  >
+                    Cancel
+                  </button>
+                </div>
+              ) : (
+                <button
+                  onClick={() => setConfirmDelete(reading.id)}
+                  className="p-2 text-gray-400 hover:text-red-500 dark:hover:text-red-400 transition-colors"
+                  title="Delete"
+                >
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                  </svg>
+                </button>
+              )}
               <button
                 onClick={() => setExpanded(expanded === reading.id ? null : reading.id)}
                 className="p-2 text-gray-500 hover:text-gray-700 dark:hover:text-gray-300"

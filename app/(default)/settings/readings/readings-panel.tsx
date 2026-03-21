@@ -172,7 +172,7 @@ function ExpandedReading({ reading }: { reading: Reading }) {
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z" />
                 </svg>
               )}
-              {reportAudioLoading ? 'Generating audio...' : 'Listen to Full Reading (50 credits)'}
+              {reportAudioLoading ? 'Generating audio...' : 'Listen to Full Reading (50 tokens)'}
             </button>
             {reportAudioError && <p className="text-red-500 text-xs">{reportAudioError}</p>}
           </div>
@@ -285,7 +285,7 @@ function ExpandedReading({ reading }: { reading: Reading }) {
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.536 8.464a5 5 0 010 7.072M12 9.5l-3 3m0 0l3 3m-3-3h7.5M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                         </svg>
                       )}
-                      {audioLoading ? 'Generating audio...' : 'Listen to Reading (50 credits)'}
+                      {audioLoading ? 'Generating audio...' : 'Listen to Reading (50 tokens)'}
                     </button>
                     {audioError && <p className="text-red-500 text-xs">{audioError}</p>}
                   </div>

@@ -194,15 +194,13 @@ Write in second person ("you/your"), with depth and warmth. Be specific — refe
 
     const res = NextResponse.json({ reading, accountCreated });
 
-    if (sessionToken) {
-      res.cookies.set('user_id', user.id, {
-        httpOnly: true,
-        secure: process.env.NODE_ENV === 'production',
-        sameSite: 'lax',
-        maxAge: 60 * 60 * 24 * 7,
-        path: '/',
-      });
-    }
+    res.cookies.set('user_id', user.id, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'lax',
+      maxAge: 60 * 60 * 24 * 7,
+      path: '/',
+    });
 
     return res;
   } catch (error) {

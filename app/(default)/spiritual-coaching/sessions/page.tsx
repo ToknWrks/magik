@@ -75,7 +75,7 @@ export default function CoachingSessionsPage() {
     fetch('/api/auth/me', { credentials: 'include' })
       .then(r => r.json())
       .then(d => {
-        if (!d.user) { router.push('/signin?redirect=/coaching/sessions'); return; }
+        if (!d.user) { router.push('/signin?redirect=/spiritual-coaching/sessions'); return; }
         return fetch('/api/coaching/sessions', { credentials: 'include' }).then(r => r.json());
       })
       .then(d => d && setSessions(d.sessions || []))
@@ -128,7 +128,7 @@ export default function CoachingSessionsPage() {
         sessionStorage.setItem('solomon_resume_chat_group_id', session.hume_chat_group_id);
         sessionStorage.setItem('solomon_resume_elapsed', String(session.duration_seconds ?? 0));
       } catch { /* ignore */ }
-      router.push('/coaching?resume=true');
+      router.push('/spiritual-coaching?resume=true');
       return;
     }
 
@@ -144,7 +144,7 @@ export default function CoachingSessionsPage() {
       }
       if (detail?.transcript) {
         sessionStorage.setItem('solomon_resume_transcript', JSON.stringify(detail.transcript));
-        router.push('/coaching?resume=true');
+        router.push('/spiritual-coaching?resume=true');
       }
     } catch {
       setResuming(null);
@@ -168,7 +168,7 @@ export default function CoachingSessionsPage() {
         <div className="flex items-center justify-between">
           <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">My Sessions</h1>
           <Link
-            href="/coaching"
+            href="/spiritual-coaching"
             className="inline-flex items-center gap-2 px-4 py-2 bg-yellow-700 hover:bg-yellow-800 text-white text-sm font-medium rounded-lg transition-colors"
           >
             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -187,7 +187,7 @@ export default function CoachingSessionsPage() {
             </div>
             <p className="text-sm text-gray-500 dark:text-gray-400 mb-4">No sessions yet.</p>
             <Link
-              href="/coaching"
+              href="/spiritual-coaching"
               className="inline-flex items-center gap-2 px-5 py-2.5 bg-yellow-700 hover:bg-yellow-800 text-white text-sm font-medium rounded-lg transition-colors"
             >
               Begin your first session

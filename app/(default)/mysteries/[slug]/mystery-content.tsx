@@ -273,7 +273,7 @@ export function MysteryContent({ slug }: MysteryContentProps) {
                 try {
                   sessionStorage.setItem('solomon_content_context', JSON.stringify({ title: content.title, type: 'mystery' }));
                 } catch { /* ignore */ }
-                window.location.href = '/coaching';
+                window.location.href = '/spiritual-coaching';
               }}
               className="flex-shrink-0 inline-flex items-center gap-2 px-5 py-2.5 bg-yellow-700 hover:bg-yellow-800 text-white font-medium rounded-xl text-sm transition-colors"
             >

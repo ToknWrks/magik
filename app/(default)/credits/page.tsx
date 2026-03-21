@@ -151,7 +151,7 @@ function CheckoutForm({
           <h2 className="font-bold text-gray-900 dark:text-gray-100 text-lg">{pkg.label}</h2>
           <span className="text-2xl font-bold text-gray-900 dark:text-gray-100">${pkg.price}</span>
         </div>
-        <p className="text-sm text-gray-500 dark:text-gray-400">{pkg.credits} credits · {pkg.description}</p>
+        <p className="text-sm text-gray-500 dark:text-gray-400">{pkg.credits} tokens · {pkg.description}</p>
       </div>
 
       {error && (
@@ -199,7 +199,7 @@ function CheckoutForm({
               : 'bg-yellow-700 hover:bg-yellow-800 text-white'
           }`}
         >
-          {loading ? 'Processing...' : `Pay $${pkg.price} · Get ${pkg.credits} Credits`}
+          {loading ? 'Processing...' : `Pay $${pkg.price} · Get ${pkg.credits} Tokens`}
         </button>
 
         <p className="text-xs text-center text-gray-400 flex items-center justify-center gap-1">
@@ -243,9 +243,9 @@ export default function CreditsPage() {
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
             </svg>
           </div>
-          <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-2">Credits Added!</h2>
+          <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-2">Tokens Added!</h2>
           <p className="text-gray-500 dark:text-gray-400 mb-2">Your new balance:</p>
-          <p className="text-4xl font-bold text-yellow-700 dark:text-yellow-500 mb-8">{newBalance} credits</p>
+          <p className="text-4xl font-bold text-yellow-700 dark:text-yellow-500 mb-8">{newBalance} tokens</p>
           <div className="flex flex-col sm:flex-row gap-3 justify-center">
             <button
               onClick={() => setPurchased(false)}
@@ -288,7 +288,7 @@ export default function CreditsPage() {
           <div>
             <p className="text-sm text-gray-500 dark:text-gray-400 mb-1">Your balance</p>
             <p className="text-4xl font-bold text-gray-900 dark:text-gray-100">
-              {balance !== null ? balance : '—'} <span className="text-xl font-medium text-gray-400">credits</span>
+              {balance !== null ? balance : '—'} <span className="text-xl font-medium text-gray-400">tokens</span>
             </p>
           </div>
           <svg className="w-10 h-10 text-yellow-200 dark:text-yellow-900" fill="currentColor" viewBox="0 0 20 20">
@@ -299,14 +299,14 @@ export default function CreditsPage() {
         {/* What credits buy */}
         <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 overflow-hidden">
           <div className="px-5 py-4 border-b border-gray-100 dark:border-gray-700">
-            <h2 className="font-semibold text-gray-900 dark:text-gray-100">What credits unlock</h2>
+            <h2 className="font-semibold text-gray-900 dark:text-gray-100">What tokens unlock</h2>
           </div>
           <div className="divide-y divide-gray-100 dark:divide-gray-700">
             {FEATURE_COSTS.map(f => (
               <div key={f.label} className="px-5 py-3 flex items-center justify-between">
                 <span className="text-sm text-gray-700 dark:text-gray-300">{f.label}</span>
                 <div className="text-right">
-                  <span className="text-sm font-semibold text-gray-900 dark:text-gray-100">{f.credits} credits</span>
+                  <span className="text-sm font-semibold text-gray-900 dark:text-gray-100">{f.credits} tokens</span>
                   <span className="text-xs text-gray-400 ml-2">{f.duration}</span>
                 </div>
               </div>
@@ -340,7 +340,7 @@ export default function CreditsPage() {
                 )}
                 <p className="font-bold text-gray-900 dark:text-gray-100 text-lg mb-0.5">${pkg.price}</p>
                 <p className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">{pkg.label}</p>
-                <p className="text-xs text-yellow-700 dark:text-yellow-500 font-semibold mb-2">{pkg.credits} credits</p>
+                <p className="text-xs text-yellow-700 dark:text-yellow-500 font-semibold mb-2">{pkg.credits} tokens</p>
                 <p className="text-xs text-gray-500 dark:text-gray-400">{pkg.description}</p>
               </button>
             ))}

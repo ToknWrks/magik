@@ -188,7 +188,7 @@ export default function Sidebar({
                             </SidebarLink>
                           </li>
                           <li className="mb-1 last:mb-0">
-                            <SidebarLink href="/coaching">
+                            <SidebarLink href="/spiritual-coaching">
                               <span className="text-sm font-medium lg:opacity-0 lg:sidebar-expanded:opacity-100 2xl:opacity-100 duration-200">
                                 Solomon
                               </span>
@@ -246,7 +246,7 @@ export default function Sidebar({
                             </SidebarLink>
                           </li>
                           <li className="mb-1 last:mb-0">
-                            <SidebarLink href="/coaching">
+                            <SidebarLink href="/spiritual-coaching">
                               <span className="text-sm font-medium lg:opacity-0 lg:sidebar-expanded:opacity-100 2xl:opacity-100 duration-200">
                                 Solomon
                               </span>
@@ -437,8 +437,26 @@ export default function Sidebar({
                   )
                 }}
               </SidebarLinkGroup>
-             
-             
+
+              {/* Regen Network */}
+              <li className="pl-4 pr-3 py-2 rounded-lg mb-0.5 last:mb-0">
+                <a
+                  href="https://compute.regen.network"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="block text-gray-800 dark:text-gray-100 truncate transition hover:text-gray-900 dark:hover:text-white"
+                >
+                  <div className="flex items-center">
+                    <svg className="shrink-0 fill-current text-gray-400 dark:text-gray-500" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24">
+                      <path d="M12 6v3l4-4-4-4v3c-4.42 0-8 3.58-8 8 0 1.57.46 3.03 1.24 4.26L6.7 14.8c-.45-.83-.7-1.79-.7-2.8 0-3.31 2.69-6 6-6zm6.76 1.74L17.3 9.2c.44.84.7 1.79.7 2.8 0 3.31-2.69 6-6 6v-3l-4 4 4 4v-3c4.42 0 8-3.58 8-8 0-1.57-.46-3.03-1.24-4.26z" />
+                    </svg>
+                    <span className="text-sm font-medium ml-4 lg:opacity-0 lg:sidebar-expanded:opacity-100 2xl:opacity-100 duration-200">
+                      Regen Network
+                    </span>
+                  </div>
+                </a>
+              </li>
+
             </ul>
           </div>
         </div>

@@ -55,10 +55,10 @@ export default function IlluminatiArchive() {
       name: 'More',
       items: [
         {
-          name: 'Official Merchandise',
+          name: 'Membership',
           status: 'Verified',
           slug: 'store',
-          description: 'Premium Illuminati merchandise and collectibles.',
+          description: 'Illuminati Initiation - Join the ranks of the enlightened and gain access to exclusive content, services and events.',
         },
         {
           name: 'Spirit Voices',

@@ -1,7 +1,7 @@
 'use client';
 
 import { useVoice, VoiceProvider } from '@humeai/voice-react';
-import { useEffect, useRef, useState, forwardRef, ComponentRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
@@ -36,56 +36,119 @@ function MicFFT({ fft }: { fft: number[] }) {
   );
 }
 
-// ── Message list ───────────────────────────────────────────────────────────────
+// ── Audio Visualizer ───────────────────────────────────────────────────────────
 
-const MessageList = forwardRef<ComponentRef<typeof motion.div>, Record<never, never>>(
-  function MessageList(_, ref) {
-    const { messages } = useVoice();
+function AudioVisualizer() {
+  const { micFft, messages } = useVoice();
+  const [activeSpeaker, setActiveSpeaker] = useState<'solomon' | 'user' | 'idle'>('idle');
+  const [solomonBars, setSolomonBars] = useState<number[]>(Array(40).fill(0));
+  const idleTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const animFrameRef = useRef<number | null>(null);
+  const phaseRef = useRef(0);
 
-    return (
-      <motion.div
-        ref={ref}
-        layoutScroll
-        className="flex-1 overflow-y-auto px-4 py-6 space-y-4"
-      >
-        <div className="max-w-2xl mx-auto space-y-3">
-          <AnimatePresence mode="popLayout">
-            {messages.map((msg, i) => {
-              if (msg.type !== 'user_message' && msg.type !== 'assistant_message') return null;
-              const isUser = msg.type === 'user_message';
-              return (
-                <motion.div
-                  key={msg.type + i}
-                  initial={{ opacity: 0, y: 8 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0 }}
-                  className={`flex ${isUser ? 'justify-end' : 'justify-start'}`}
-                >
-                  <div className={`max-w-[80%] px-4 py-3 rounded-2xl text-sm leading-relaxed ${
-                    isUser
-                      ? 'bg-yellow-700 text-white rounded-br-sm'
-                      : 'bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-gray-800 dark:text-gray-200 rounded-bl-sm'
-                  }`}>
-                    {!isUser && (
-                      <p className="text-xs font-semibold text-yellow-600 dark:text-yellow-500 mb-1 uppercase tracking-wide">Solomon</p>
-                    )}
-                    <p>{msg.message.content}</p>
-                  </div>
-                </motion.div>
-              );
-            })}
-          </AnimatePresence>
+  const scheduleIdle = (delayMs: number) => {
+    if (idleTimerRef.current) clearTimeout(idleTimerRef.current);
+    idleTimerRef.current = setTimeout(() => setActiveSpeaker('idle'), delayMs);
+  };
 
-          {messages.length === 0 && (
-            <div className="text-center py-12 text-gray-400 dark:text-gray-600">
-              <p className="text-sm">Solomon is listening...</p>
-            </div>
-          )}
+  // Detect user speaking from mic FFT
+  const micAvg = micFft.length > 0 ? micFft.slice(0, 20).reduce((a, b) => a + b, 0) / 20 : 0;
+  useEffect(() => {
+    if (micAvg > 2) {
+      setActiveSpeaker('user');
+      scheduleIdle(600);
+    }
+  }, [micFft]);
+
+  // Detect Solomon speaking from messages
+  const msgCount = messages.length;
+  useEffect(() => {
+    const last = messages[messages.length - 1];
+    if (!last) return;
+    if (last.type === 'assistant_message') {
+      setActiveSpeaker('solomon');
+      scheduleIdle(2500);
+    }
+  }, [msgCount]);
+
+  // Animate Solomon's bars with a smooth sine wave
+  useEffect(() => {
+    if (activeSpeaker !== 'solomon') {
+      if (animFrameRef.current) cancelAnimationFrame(animFrameRef.current);
+      setSolomonBars(Array(40).fill(0));
+      return;
+    }
+    const animate = () => {
+      phaseRef.current += 0.055;
+      const t = phaseRef.current;
+      setSolomonBars(Array.from({ length: 40 }, (_, i) => {
+        const a = Math.sin(t + i * 0.38) * 0.5 + 0.5;
+        const b = Math.sin(t * 1.4 + i * 0.65) * 0.3 + 0.3;
+        return (a + b) / 1.7;
+      }));
+      animFrameRef.current = requestAnimationFrame(animate);
+    };
+    animFrameRef.current = requestAnimationFrame(animate);
+    return () => { if (animFrameRef.current) cancelAnimationFrame(animFrameRef.current); };
+  }, [activeSpeaker]);
+
+  const isSolomon = activeSpeaker === 'solomon';
+  const isUser = activeSpeaker === 'user';
+  const BAR_COUNT = 40;
+
+  return (
+    <div className="flex-1 flex flex-col items-center justify-center bg-gray-950 gap-8 px-8 overflow-hidden">
+
+      {/* Solomon avatar with glow ring */}
+      <div className="relative flex items-center justify-center">
+        <div className={`absolute -inset-4 rounded-full transition-all duration-700 ease-out ${
+          isSolomon
+            ? 'opacity-100 ring-2 ring-green-500/50 shadow-[0_0_50px_rgba(34,197,94,0.25)]'
+            : isUser
+            ? 'opacity-100 ring-1 ring-white/15 shadow-[0_0_30px_rgba(255,255,255,0.08)]'
+            : 'opacity-0'
+        }`} />
+        <div className="relative w-24 h-24 rounded-full overflow-hidden z-10">
+          <img src="/images/illuminati-logo.png" alt="Solomon" className="w-full h-full object-cover" />
         </div>
-      </motion.div>
-    );
-  }
-);
+      </div>
+
+      {/* Speaker label */}
+      <p className={`text-xs font-medium tracking-widest uppercase transition-all duration-400 ${
+        isSolomon ? 'text-green-400' : isUser ? 'text-gray-400' : 'text-gray-800 dark:text-gray-800 select-none'
+      }`}>
+        {isSolomon ? 'Solomon' : isUser ? 'You' : '·'}
+      </p>
+
+      {/* Bar visualizer */}
+      <svg viewBox="0 0 320 80" className="w-full max-w-xs h-20" preserveAspectRatio="none">
+        {Array.from({ length: BAR_COUNT }).map((_, i) => {
+          const raw = isSolomon
+            ? solomonBars[i] ?? 0
+            : isUser
+            ? Math.min((micFft[i] ?? 0) / 220, 1)
+            : 0.03;
+          const h = Math.max(raw * 72, 3);
+          const y = 40 - h / 2;
+          const fill = isSolomon ? '#22c55e' : isUser ? '#ffffff' : '#1f2937';
+          return (
+            <motion.rect
+              key={i}
+              x={1 + i * 8}
+              y={y}
+              width={5}
+              height={h}
+              rx={2.5}
+              fill={fill}
+              animate={{ height: h, y, fill }}
+              transition={{ duration: 0.08 }}
+            />
+          );
+        })}
+      </svg>
+    </div>
+  );
+}
 
 // ── Session Controls ───────────────────────────────────────────────────────────
 
@@ -128,7 +191,7 @@ function SessionControls({
               <svg className="w-3.5 h-3.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z" />
               </svg>
-              Low credits ({balance} remaining) — <Link href="/credits" className="underline font-medium">buy more</Link> to keep going
+              Low tokens ({balance} remaining) — <Link href="/credits" className="underline font-medium">buy more</Link> to keep going
             </div>
           </div>
         )}
@@ -144,7 +207,7 @@ function SessionControls({
               </svg>
               {inPrepaidWindow
                 ? `${prepaidMins}:${prepaidSecs} prepaid time remaining`
-                : 'Prepaid window used — billing at 10 credits/min'}
+                : 'Prepaid window used — billing at 10 tokens/min'}
             </div>
           </div>
         )}
@@ -152,7 +215,7 @@ function SessionControls({
             {/* Timer + credits */}
             <div className="flex-shrink-0 text-center min-w-[72px]">
               <p className="text-lg font-mono font-bold text-gray-900 dark:text-gray-100">{mins}:{secs}</p>
-              <p className="text-xs text-gray-400">{creditsUsed} credits</p>
+              <p className="text-xs text-gray-400">{creditsUsed} tokens</p>
             </div>
 
             {/* Waveform */}
@@ -279,14 +342,14 @@ function StartScreen({
       <div className="bg-gray-50 dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-4 mb-8 w-full max-w-xs">
         <div className="flex items-center justify-between text-sm mb-2">
           <span className="text-gray-500 dark:text-gray-400">Your balance</span>
-          <span className="font-semibold text-gray-900 dark:text-gray-100">{balance} credits</span>
+          <span className="font-semibold text-gray-900 dark:text-gray-100">{balance} tokens</span>
         </div>
         <div className="flex items-center justify-between text-sm">
           <span className="text-gray-500 dark:text-gray-400">Session cost</span>
           {isResume ? (
             <span className="font-semibold text-green-600 dark:text-green-400">No charge — resuming</span>
           ) : (
-            <span className="font-semibold text-yellow-700 dark:text-yellow-500">100 credits (10 min min)</span>
+            <span className="font-semibold text-yellow-700 dark:text-yellow-500">100 tokens (10 min min)</span>
           )}
         </div>
         {isResume && resumedElapsedSeconds !== undefined && resumedElapsedSeconds < 600 && (
@@ -301,12 +364,12 @@ function StartScreen({
 
       {balance < MIN_CREDITS && !isResume && process.env.NODE_ENV !== 'development' ? (
         <div className="space-y-3">
-          <p className="text-sm text-red-600 dark:text-red-400">You need at least 100 credits to start a session.</p>
+          <p className="text-sm text-red-600 dark:text-red-400">You need at least 100 tokens to start a session.</p>
           <Link
             href="/credits"
             className="inline-flex items-center gap-2 px-6 py-3 bg-yellow-700 hover:bg-yellow-800 text-white font-semibold rounded-xl transition-colors"
           >
-            Buy Credits
+            Buy Tokens
           </Link>
         </div>
       ) : (
@@ -322,7 +385,7 @@ function StartScreen({
             </svg>
             {connecting ? 'Connecting...' : isResume ? 'Resume Session' : 'Begin Session'}
           </button>
-          <p className="text-xs text-gray-400">{isResume ? 'Continuing your session — only new time beyond 10 min is billed' : '100 credits deducted when session starts · +10/min after 10 min'}</p>
+          <p className="text-xs text-gray-400">{isResume ? 'Continuing your session — only new time beyond 10 min is billed' : '100 tokens deducted when session starts · +10/min after 10 min'}</p>
         </div>
       )}
     </motion.div>
@@ -377,7 +440,7 @@ function SessionSummary({
           </div>
           <div>
             <p className="text-lg font-bold text-gray-900 dark:text-gray-100">{creditsUsed}</p>
-            <p className="text-xs text-gray-500 dark:text-gray-400">Credits used</p>
+            <p className="text-xs text-gray-500 dark:text-gray-400">Tokens used</p>
           </div>
           <div>
             <p className="text-lg font-bold text-yellow-700 dark:text-yellow-500">{balance}</p>
@@ -396,7 +459,7 @@ function SessionSummary({
                 {unusedMinutes} prepaid {unusedMinutes === 1 ? 'minute' : 'minutes'} remaining
               </p>
               <p className="text-xs text-yellow-700 dark:text-yellow-400 mt-0.5">
-                Resume this session to use your full 10 minutes, or start fresh — credits stay in your balance either way.
+                Resume this session to use your full 10 minutes, or start fresh — tokens stay in your balance either way.
               </p>
             </div>
           </div>
@@ -462,7 +525,7 @@ function SessionSummary({
 
           <div className="flex gap-3 pt-1">
             <Link
-              href="/coaching/sessions"
+              href="/spiritual-coaching/sessions"
               className="flex-1 py-2.5 text-gray-500 dark:text-gray-400 text-sm text-center hover:text-gray-700 dark:hover:text-gray-300 transition-colors"
             >
               All Sessions
@@ -511,7 +574,6 @@ function InnerSession({
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const lastMinuteCharged = useRef(0);
   const didDeductMinimum = useRef(false);
-  const messagesRef = useRef<ComponentRef<typeof MessageList>>(null);
   const chatGroupIdRef = useRef<string | null>(null);
 
   // Capture chatGroupId from Hume metadata
@@ -560,13 +622,6 @@ function InnerSession({
     }
     // Resume via chatGroupId: Hume handles it natively — no injection needed
   }, [status.value]);
-
-  // Auto-scroll on new messages
-  const scrollToBottom = () => {
-    if (messagesRef.current) {
-      messagesRef.current.scrollTo({ top: messagesRef.current.scrollHeight, behavior: 'smooth' });
-    }
-  };
 
   // Start timer when connected
   useEffect(() => {
@@ -664,7 +719,7 @@ function InnerSession({
             resumedElapsedSeconds={resumedElapsedSeconds}
           />
         ) : (
-          <MessageList key="messages" ref={messagesRef} />
+          <AudioVisualizer key="visualizer" />
         )}
       </AnimatePresence>
 

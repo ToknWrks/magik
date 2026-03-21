@@ -100,10 +100,10 @@ function EditPanel({
       setCreditBalance(data.balance);
       setCreditAmount('');
       setCreditDesc('');
-      setCreditSuccess(`Balance updated to ${data.balance} credits`);
+      setCreditSuccess(`Balance updated to ${data.balance} tokens`);
       setTimeout(() => setCreditSuccess(''), 3000);
     } catch {
-      setCreditError('Failed to adjust credits.');
+      setCreditError('Failed to adjust tokens.');
     } finally {
       setCreditSaving(false);
     }
@@ -152,7 +152,7 @@ function EditPanel({
           {/* Stats */}
           <div className="grid grid-cols-3 gap-3">
             {[
-              { label: 'Credits', value: creditBalance },
+              { label: 'Tokens', value: creditBalance },
               { label: 'Readings', value: user.reading_count },
               { label: 'Sessions', value: user.session_count },
             ].map(s => (
@@ -208,7 +208,7 @@ function EditPanel({
 
           {/* Credits */}
           <div className="space-y-3">
-            <h3 className="text-sm font-semibold text-gray-900 dark:text-gray-100">Adjust Credits</h3>
+            <h3 className="text-sm font-semibold text-gray-900 dark:text-gray-100">Adjust Tokens</h3>
             <p className="text-xs text-gray-500 dark:text-gray-400">Use positive numbers to add, negative to deduct.</p>
             <div className="flex gap-2">
               <input
@@ -366,7 +366,7 @@ export default function AdminUsersPage() {
                 <tr className="border-b border-gray-100 dark:border-gray-700 bg-gray-50 dark:bg-gray-800/50">
                   <th className="text-left px-4 py-3 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide">User</th>
                   <th className="text-left px-4 py-3 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide">Role</th>
-                  <th className="text-right px-4 py-3 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide">Credits</th>
+                  <th className="text-right px-4 py-3 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide">Tokens</th>
                   <th className="text-right px-4 py-3 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide hidden sm:table-cell">Readings</th>
                   <th className="text-right px-4 py-3 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide hidden sm:table-cell">Sessions</th>
                   <th className="text-right px-4 py-3 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide hidden md:table-cell">Joined</th>

@@ -27,6 +27,7 @@ interface Reading {
   birth_time: string | null
   birth_location: string
   report: string
+  reading_type: string | null
   created_at: string
 }
 
@@ -120,9 +121,37 @@ function compressImage(file: File, maxSize = 200): Promise<string> {
   })
 }
 
+// ── Planet → birth chart section mapping ─────────────────────────────────────
+
+const PLANET_SECTION_KEYWORDS: Record<string, string> = {
+  Sun: 'Sun',
+  Moon: 'Moon',
+  Mercury: 'Mercury',
+  Venus: 'Mercury',
+  Mars: 'Mercury',
+  Jupiter: 'Outer Planets',
+  Saturn: 'Outer Planets',
+  Uranus: 'Outer Planets',
+  Neptune: 'Outer Planets',
+  Pluto: 'Outer Planets',
+}
+
+function getPlanetSection(planet: string, report: string): { heading: string; body: string } | null {
+  const keyword = PLANET_SECTION_KEYWORDS[planet]
+  if (!keyword) return null
+  const sections = report.split(/(?=## )/g).filter(Boolean)
+  const section = sections.find(s => s.includes(keyword))
+  if (!section) return null
+  const lines = section.trim().split('\n')
+  return {
+    heading: lines[0].replace(/^##\s*/, ''),
+    body: lines.slice(1).join('\n').trim(),
+  }
+}
+
 // ── Section: Natal Chart ──────────────────────────────────────────────────────
 
-function NatalChartSection({ reading }: { reading: Reading }) {
+function NatalChartSection({ reading, birthChartReading }: { reading: Reading; birthChartReading: Reading | null }) {
   const natal = calculateNatalPositions(reading.birth_date, reading.birth_time)
   const transits = findActiveTransits(natal)
 
@@ -131,6 +160,8 @@ function NatalChartSection({ reading }: { reading: Reading }) {
   const [claudeInterpretation, setClaudeInterpretation] = useState('')
   const [interpretationLoading, setInterpretationLoading] = useState(false)
   const [chartData, setChartData] = useState<{ labels: string[]; data: number[] }>({ labels: [], data: [] })
+  const [planetModal, setPlanetModal] = useState<{ planet: string; heading: string; body: string } | null>(null)
+  const [showUpsell, setShowUpsell] = useState(false)
 
   const openModal = async (t: typeof transits[0]) => {
     setSelectedTransit(t)
@@ -174,6 +205,17 @@ function NatalChartSection({ reading }: { reading: Reading }) {
     }
   }
 
+  const handlePlanetClick = (planet: string) => {
+    if (birthChartReading) {
+      const section = getPlanetSection(planet, birthChartReading.report)
+      if (section) {
+        setPlanetModal({ planet, ...section })
+      }
+    } else {
+      setShowUpsell(true)
+    }
+  }
+
   return (
     <div className="space-y-4">
       {/* Natal Positions */}
@@ -190,17 +232,37 @@ function NatalChartSection({ reading }: { reading: Reading }) {
             const pos = natal[planet]
             if (pos === undefined) return null
             const z = lonToZodiac(pos)
+            const hasSection = birthChartReading ? !!getPlanetSection(planet, birthChartReading.report) : false
             return (
-              <div key={planet} className="flex items-center gap-2">
+              <button
+                key={planet}
+                onClick={() => handlePlanetClick(planet)}
+                className={`flex items-center gap-2 text-left rounded-lg px-2 py-1.5 -mx-2 transition-colors ${
+                  birthChartReading
+                    ? 'hover:bg-yellow-50 dark:hover:bg-yellow-900/10 cursor-pointer'
+                    : 'hover:bg-gray-50 dark:hover:bg-gray-700/50 cursor-pointer'
+                }`}
+                title={birthChartReading ? `View ${planet} interpretation` : 'Get a Birth Chart Reading'}
+              >
                 <span className="text-lg leading-none text-gray-300 dark:text-gray-600 w-6 text-center select-none">{z.symbol}</span>
-                <div>
-                  <p className="text-xs font-medium text-gray-900 dark:text-gray-100 leading-tight">{planet}</p>
+                <div className="flex-1 min-w-0">
+                  <p className="text-xs font-medium text-gray-900 dark:text-gray-100 leading-tight flex items-center gap-1">
+                    {planet}
+                    {hasSection && <span className="text-yellow-500 text-xs">✦</span>}
+                  </p>
                   <p className="text-xs text-gray-500 dark:text-gray-400">{z.name} {z.degree}°</p>
                 </div>
-              </div>
+              </button>
             )
           })}
         </div>
+        {!birthChartReading && (
+          <div className="px-5 py-3 bg-gray-50 dark:bg-gray-800/50 border-t border-gray-100 dark:border-gray-700">
+            <Link href="/onboarding-03" className="text-xs text-yellow-700 dark:text-yellow-500 hover:underline font-medium">
+              ✦ Get a Birth Chart Reading to unlock planet interpretations →
+            </Link>
+          </div>
+        )}
       </div>
 
       {/* Active Transits */}
@@ -240,7 +302,73 @@ function NatalChartSection({ reading }: { reading: Reading }) {
         </div>
       )}
 
-      {/* Interpretation Modal */}
+      {/* Planet section modal */}
+      {planetModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-end sm:items-center justify-center z-50 p-4">
+          <div className="bg-white dark:bg-gray-800 rounded-xl w-full max-w-lg max-h-[80vh] flex flex-col shadow-xl">
+            <div className="flex items-center justify-between px-5 py-4 border-b border-gray-100 dark:border-gray-700 flex-shrink-0">
+              <div>
+                <h2 className="font-semibold text-gray-900 dark:text-gray-100 text-base">{planetModal.planet}</h2>
+                <p className="text-xs text-yellow-700 dark:text-yellow-500 mt-0.5">{planetModal.heading}</p>
+              </div>
+              <button
+                onClick={() => setPlanetModal(null)}
+                className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors ml-4 flex-shrink-0"
+              >
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+            <div className="px-5 py-4 overflow-y-auto">
+              <p className="text-sm text-gray-700 dark:text-gray-300 leading-relaxed whitespace-pre-line">{planetModal.body}</p>
+            </div>
+            <div className="px-5 py-3 border-t border-gray-100 dark:border-gray-700 flex-shrink-0">
+              <Link
+                href="/settings/readings"
+                onClick={() => setPlanetModal(null)}
+                className="text-xs text-yellow-700 dark:text-yellow-500 hover:underline font-medium"
+              >
+                View full Birth Chart Reading →
+              </Link>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Upsell modal — no birth chart reading */}
+      {showUpsell && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-end sm:items-center justify-center z-50 p-4">
+          <div className="bg-white dark:bg-gray-800 rounded-xl w-full max-w-sm shadow-xl p-6 text-center">
+            <div className="w-12 h-12 bg-yellow-100 dark:bg-yellow-900/30 rounded-full flex items-center justify-center mx-auto mb-4">
+              <svg className="w-6 h-6 text-yellow-700 dark:text-yellow-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z" />
+              </svg>
+            </div>
+            <h3 className="font-bold text-gray-900 dark:text-gray-100 mb-1">Unlock Your Birth Chart</h3>
+            <p className="text-sm text-gray-500 dark:text-gray-400 mb-5">
+              A Full Initiation includes a deep interpretation of every planet in your chart — who you are at your core, not just what's happening now.
+            </p>
+            <div className="flex flex-col gap-2">
+              <Link
+                href="/onboarding-03"
+                onClick={() => setShowUpsell(false)}
+                className="w-full py-2.5 bg-yellow-700 hover:bg-yellow-800 text-white font-medium rounded-lg text-sm transition-colors text-center"
+              >
+                Get Full Initiation — $23
+              </Link>
+              <button
+                onClick={() => setShowUpsell(false)}
+                className="w-full py-2.5 border border-gray-200 dark:border-gray-700 text-gray-600 dark:text-gray-400 text-sm rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors"
+              >
+                Maybe later
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Transit Interpretation Modal */}
       {showModal && selectedTransit && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
           <div className="bg-white dark:bg-gray-800 rounded-lg p-6 max-w-2xl w-full mx-4 max-h-[90vh] overflow-y-auto">
@@ -314,6 +442,7 @@ export default function ProfileClient() {
   const [user, setUser] = useState<User | null>(null)
   const [loading, setLoading] = useState(true)
   const [latestReading, setLatestReading] = useState<Reading | null>(null)
+  const [birthChartReading, setBirthChartReading] = useState<Reading | null>(null)
   const [credits, setCredits] = useState<number | null>(null)
 
   // Edit state
@@ -344,7 +473,10 @@ export default function ProfileClient() {
         router.push('/signin')
       }
       if (readingsData.readings?.length > 0) {
-        setLatestReading(readingsData.readings[0])
+        const readings: Reading[] = readingsData.readings
+        setBirthChartReading(readings.find(r => r.reading_type === 'birthchart') ?? null)
+        // Use the most recent reading with birth_date for chart positions
+        setLatestReading(readings[0])
       }
       setLoading(false)
     }).catch(() => {
@@ -539,7 +671,7 @@ export default function ProfileClient() {
                         <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
                           <path d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" />
                         </svg>
-                        {credits} credits
+                        {credits} tokens
                       </Link>
                     )}
                   </div>
@@ -550,7 +682,7 @@ export default function ProfileClient() {
         </div>
 
         {/* ── Natal Chart + Active Transits ── */}
-        {latestReading && <NatalChartSection reading={latestReading} />}
+        {latestReading && <NatalChartSection reading={latestReading} birthChartReading={birthChartReading} />}
 
         {!latestReading && (
           <div className="bg-white dark:bg-gray-800 rounded-xl border border-dashed border-gray-200 dark:border-gray-700 p-6 text-center">
@@ -601,14 +733,14 @@ export default function ProfileClient() {
               </svg>
             </Link>
 
-            <Link href="/coaching" className="flex items-center justify-between px-5 py-4 hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors">
+            <Link href="/spiritual-coaching" className="flex items-center justify-between px-5 py-4 hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors">
               <div className="flex items-center gap-3">
                 <svg className="w-5 h-5 text-gray-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z" />
                 </svg>
                 <div>
                   <p className="text-sm font-medium text-gray-900 dark:text-gray-100">Session with Solomon</p>
-                  <p className="text-xs text-gray-500 dark:text-gray-400">Voice coaching · 100 credits / 10 min</p>
+                  <p className="text-xs text-gray-500 dark:text-gray-400">Voice coaching · 100 tokens / 10 min</p>
                 </div>
               </div>
               <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -616,7 +748,7 @@ export default function ProfileClient() {
               </svg>
             </Link>
 
-            <Link href="/coaching/sessions" className="flex items-center justify-between px-5 py-4 hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors">
+            <Link href="/spiritual-coaching/sessions" className="flex items-center justify-between px-5 py-4 hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors">
               <div className="flex items-center gap-3">
                 <svg className="w-5 h-5 text-gray-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
@@ -637,9 +769,9 @@ export default function ProfileClient() {
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                 </svg>
                 <div>
-                  <p className="text-sm font-medium text-gray-900 dark:text-gray-100">Credits</p>
+                  <p className="text-sm font-medium text-gray-900 dark:text-gray-100">Tokens</p>
                   <p className="text-xs text-gray-500 dark:text-gray-400">
-                    {credits !== null ? `${credits} credits remaining` : 'Buy credits for coaching & dialogue'}
+                    {credits !== null ? `${credits} tokens remaining` : 'Buy tokens for coaching & dialogue'}
                   </p>
                 </div>
               </div>

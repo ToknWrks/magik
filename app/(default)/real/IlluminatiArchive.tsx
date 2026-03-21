@@ -26,9 +26,9 @@ export default function IlluminatiArchive() {
           description: 'astrology is the study of the movements and relative positions of celestial bodies interpreted as having an influence on human affairs and the natural world.',
         },
         {
-          name: 'Aleister Crowley',
+          name: 'Chakra Toner',
           status: 'Verified',
-          slug: 'enlightenment/aleister-crowley',
+          slug: 'chakra-sound',
           description: 'English occultist, ceremonial magician, poet, and mountaineer, known for founding Thelema.',
         },
         {
@@ -52,19 +52,19 @@ export default function IlluminatiArchive() {
       ],
     },
     {
-      name: 'More',
+      name: 'Service',
       items: [
         {
           name: 'Membership',
           status: 'Verified',
-          slug: 'store',
+          slug: 'signup',
           description: 'Illuminati Initiation - Join the ranks of the enlightened and gain access to exclusive content, services and events.',
         },
         {
-          name: 'Spirit Voices',
+          name: 'Solomon',
           status: 'Verified',
-          slug: 'spirit-voices',
-          description: 'An ode to the "Song of Zazen" by Hakuin Zenji, this collection invites you to explore the depths of Zen practice and philosophy.',
+          slug: 'spiritual-coaching',
+          description: 'super-intelligent AI and authentic intelligence—your dedicated spiritual coach, guide, and mirror into the depths of psyche and cosmos',
         },
       ],
     },

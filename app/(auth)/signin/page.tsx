@@ -72,6 +72,14 @@ function SignInForm() {
                     Sign In
                   </button>
                 </div>
+                <div className="pt-5 mt-6 border-t border-gray-100 dark:border-gray-700/60 text-center">
+                  <div className="text-sm text-gray-500 dark:text-gray-400">
+                    Don't have an account?{' '}
+                    <Link className="font-medium text-yellow-700 hover:text-yellow-800 dark:hover:text-yellow-800" href="/signup">
+                      Create Account
+                    </Link>
+                  </div>
+                </div>
               </form>
             </div>
           </div>

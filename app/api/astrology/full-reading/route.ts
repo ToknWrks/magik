@@ -9,10 +9,42 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, { apiVersion: '2025-11
 const pool = new Pool({ connectionString: process.env.DATABASE_URL, ssl: true });
 
 const ZODIAC_SIGNS = ['Aries', 'Taurus', 'Gemini', 'Cancer', 'Leo', 'Virgo', 'Libra', 'Scorpio', 'Sagittarius', 'Capricorn', 'Aquarius', 'Pisces'];
+const LUMINARIES = new Set(['Sun', 'Moon']);
+
+const NATAL_ASPECTS = [
+  { name: 'Conjunction', angle: 0,   orb: 10, orbLuminary: 15 },
+  { name: 'Opposition',  angle: 180, orb: 10, orbLuminary: 15 },
+  { name: 'Trine',       angle: 120, orb: 9,  orbLuminary: 12 },
+  { name: 'Square',      angle: 90,  orb: 9,  orbLuminary: 12 },
+  { name: 'Sextile',     angle: 60,  orb: 5,  orbLuminary: 7  },
+];
 
 function lonToSign(lon: number): string {
   const n = ((lon % 360) + 360) % 360;
   return `${ZODIAC_SIGNS[Math.floor(n / 30)]} ${(n % 30).toFixed(1)}°`;
+}
+
+function calcNatalAspects(positions: Record<string, number>): string {
+  const planets = Object.keys(positions);
+  const results: string[] = [];
+  for (let i = 0; i < planets.length; i++) {
+    for (let j = i + 1; j < planets.length; j++) {
+      const p1 = planets[i];
+      const p2 = planets[j];
+      let diff = Math.abs(positions[p1] - positions[p2]);
+      diff = Math.min(diff, 360 - diff);
+      const isLuminary = LUMINARIES.has(p1) || LUMINARIES.has(p2);
+      for (const asp of NATAL_ASPECTS) {
+        const maxOrb = isLuminary ? asp.orbLuminary : asp.orb;
+        const orb = Math.abs(diff - asp.angle);
+        if (orb <= maxOrb) {
+          results.push(`- ${p1} ${asp.name} ${p2} (orb: ${orb.toFixed(1)}°)`);
+          break;
+        }
+      }
+    }
+  }
+  return results.length > 0 ? results.join('\n') : 'None within orb';
 }
 
 async function ensureSchema() {
@@ -97,10 +129,16 @@ export async function POST(request: NextRequest) {
     const todayStr = new Date().toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
     const focusLine = focus ? `\n\nThe person has a specific focus or question: "${focus}"` : '';
 
-    // Format natal positions for prompts
+    // Format natal positions and aspects for prompts
     const PLANET_ORDER = ['Sun', 'Moon', 'Mercury', 'Venus', 'Mars', 'Jupiter', 'Saturn', 'Uranus', 'Neptune', 'Pluto'];
-    const natalSection = natalPositions && Object.keys(natalPositions).length > 0
-      ? `\n\nNatal Planetary Positions:\n${PLANET_ORDER.filter(p => natalPositions[p] !== undefined).map(p => `- ${p}: ${lonToSign(natalPositions[p])}`).join('\n')}`
+    const orderedPositions = natalPositions
+      ? Object.fromEntries(PLANET_ORDER.filter(p => natalPositions[p] !== undefined).map(p => [p, natalPositions[p]]))
+      : {};
+    const natalSection = Object.keys(orderedPositions).length > 0
+      ? `\n\nNatal Planetary Positions:\n${Object.entries(orderedPositions).map(([p, lon]) => `- ${p}: ${lonToSign(lon)}`).join('\n')}`
+      : '';
+    const aspectsSection = Object.keys(orderedPositions).length > 0
+      ? `\n\nNatal Aspects (major only):\n${calcNatalAspects(orderedPositions)}`
       : '';
 
     // ── Birth Chart Reading ───────────────────────────────────────────────────
@@ -108,9 +146,11 @@ export async function POST(request: NextRequest) {
 
 Birth Date: ${birthDate}
 Birth Time: ${birthTime || 'Unknown (chart calculated for noon)'}
-Birth Location: ${birthLocation}${focusLine}${natalSection}
+Birth Location: ${birthLocation}${focusLine}${natalSection}${aspectsSection}
 
-Using the natal planetary positions above, provide a rich and personal Birth Chart Reading:
+Aspect orb guidelines used: Conjunction/Opposition up to 15° for Sun/Moon (10° others); Trine/Square up to 12° for Sun/Moon (9° others); Sextile up to 7° for Sun/Moon (5° others). Treat orbs as a spectrum of influence — tighter orbs carry more weight.
+
+Using the natal planetary positions and aspects above, provide a rich and personal Birth Chart Reading:
 
 ## The Sun: Your Core Identity
 Interpret the natal sun placement — the fundamental character, ego expression, and life purpose this person is here to embody. What is the essential nature of this solar energy and how does it want to shine?
@@ -124,17 +164,20 @@ Focused interpretation of Mercury (communication, thinking style, how the mind w
 ## The Outer Planets: Growth & Mastery
 Interpret Jupiter and Saturn placements — where this person is called to expand and grow, and where they face their deepest disciplines and greatest potential for mastery. Brief note on outer planet generational signatures.
 
+## Your Aspects: The Architecture of the Soul
+Interpret the most significant natal aspects listed above. Focus especially on tight conjunctions, squares, and oppositions as points of intensity and potential; trines and sextiles as natural gifts and flow. Weave these into the portrait of the person — how do these planetary relationships create tension, synergy, and the deeper story of who they are?
+
 ## Your Elemental Nature
 From the planetary positions, identify the dominant elements (Fire, Earth, Air, Water) and modalities (Cardinal, Fixed, Mutable). What do these reveal about this person's temperament, natural gifts, and potential blind spots?
 
 ## Your Soul's Signature
 A synthesizing reflection — the overall soul blueprint, the central themes woven through this lifetime, and the evolutionary invitation encoded in this chart. What is this person here to learn, to offer, to become?
 
-Write in second person ("you/your"), with depth, warmth, and astrological precision. Be specific — reference the actual planetary placements by sign and what they mean. Total length: 900–1200 words.`;
+Write in second person ("you/your"), with depth, warmth, and astrological precision. Be specific — reference the actual planetary placements and aspects by name. Total length: 1100–1400 words.`;
 
     const birthChartResponse = await anthropic.messages.create({
       model: 'claude-sonnet-4-6',
-      max_tokens: 1800,
+      max_tokens: 2200,
       messages: [{ role: 'user', content: birthChartPrompt }],
     });
     const birthChartReport = birthChartResponse.content[0].type === 'text' ? birthChartResponse.content[0].text : '';
@@ -143,7 +186,7 @@ Write in second person ("you/your"), with depth, warmth, and astrological precis
     const transitList = Array.isArray(transits) && transits.length > 0
       ? `\n\nActive transits to natal chart (within 15° orb, sorted tightest first):\n${
           transits.map((t: any) =>
-            `- Transit ${t.transitPlanet} ${t.aspect} Natal ${t.natalPlanet} (orb: ${t.currentOrb}°, ${t.isApplying ? 'applying' : 'separating'})`
+            `- Transiting ${t.transitPlanet} ${t.aspect} Natal ${t.natalPlanet} (orb: ${t.currentOrb}°, ${t.isApplying ? 'applying' : 'separating'})`
           ).join('\n')
         }`
       : '';

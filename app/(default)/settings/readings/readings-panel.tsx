@@ -150,7 +150,7 @@ function ExpandedReading({ reading }: { reading: Reading }) {
   };
 
   return (
-    <div className="border-t border-gray-200 dark:border-gray-700 p-6 bg-gray-50 dark:bg-gray-900 space-y-4">
+    <div className="p-6 bg-gray-50 dark:bg-gray-900 space-y-4">
 
       {/* Full reading audio */}
       <div>
@@ -184,9 +184,9 @@ function ExpandedReading({ reading }: { reading: Reading }) {
         const heading = lines[0].replace('## ', '');
         const body = lines.slice(1).join('\n').trim();
         return (
-          <div key={i}>
-            <h4 className="font-semibold text-gray-900 dark:text-gray-100 mb-2">{heading}</h4>
-            <p className="text-gray-700 dark:text-gray-300 text-sm leading-relaxed whitespace-pre-line">{body}</p>
+          <div key={i} className="bg-white dark:bg-gray-800 rounded-xl p-5">
+            <h3 className="text-base font-semibold text-gray-900 dark:text-gray-100 mb-2">{heading}</h3>
+            <p className="text-sm text-gray-700 dark:text-gray-300 leading-relaxed whitespace-pre-line">{body}</p>
           </div>
         );
       })}
@@ -428,7 +428,7 @@ export default function ReadingsPanel() {
       {readings.map(reading => (
         <div
           key={reading.id}
-          className="border border-gray-200 dark:border-gray-900 rounded-xl overflow-hidden"
+          className="border-t border-x border-gray-200 dark:border-gray-900 rounded-xl overflow-hidden"
         >
           <div className="flex items-center justify-between p-4 bg-white dark:bg-gray-800">
             <div>

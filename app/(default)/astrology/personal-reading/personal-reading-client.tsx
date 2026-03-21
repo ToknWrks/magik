@@ -40,7 +40,24 @@ const ASPECTS = [
   { name: 'Trine', angle: 120 },
   { name: 'Opposition', angle: 180 },
 ];
-const ORB_LIMIT = 15;
+// Dynamic orb limits per planet/aspect rules
+function getMaxOrb(transitPlanet: string, natalPlanet: string, aspectName: string, isApplying: boolean): number {
+  // Saturn return (Saturn conjunct natal Saturn)
+  if (transitPlanet === 'Saturn' && natalPlanet === 'Saturn' && aspectName === 'Conjunction') return 20;
+  // Saturn opposing itself
+  if (transitPlanet === 'Saturn' && natalPlanet === 'Saturn' && aspectName === 'Opposition') return 10;
+  // Saturn transits to any planet: 7° applying and separating
+  if (transitPlanet === 'Saturn') return 7;
+  // Mars transits: 9° applying, 5° separating
+  if (transitPlanet === 'Mars') return isApplying ? 9 : 5;
+  // Uranus return or opposition to itself
+  if (transitPlanet === 'Uranus' && natalPlanet === 'Uranus' &&
+    (aspectName === 'Conjunction' || aspectName === 'Opposition')) return 10;
+  // Transiting planet aspecting itself (same planet) — activates earlier
+  if (transitPlanet === natalPlanet) return 7;
+  // Default
+  return 5;
+}
 
 interface TransitAspect {
   transitPlanet: string;
@@ -105,15 +122,18 @@ function findActiveTransits(natalPositions: Record<string, number>): TransitAspe
     for (const [natalPlanet, natalLon] of Object.entries(natalPositions)) {
       for (const aspect of ASPECTS) {
         const orb = getUnsignedOrb(lon, natalLon, aspect.angle);
-        if (orb <= ORB_LIMIT) {
-          const orbTomorrow = getUnsignedOrb(getPlanetLon(transitPlanet, tomorrow), natalLon, aspect.angle);
+        if (orb > 20) continue; // quick early rejection (20° = max possible orb, Saturn return)
+        const orbTomorrow = getUnsignedOrb(getPlanetLon(transitPlanet, tomorrow), natalLon, aspect.angle);
+        const isApplying = orbTomorrow < orb;
+        const maxOrb = getMaxOrb(transitPlanet, natalPlanet, aspect.name, isApplying);
+        if (orb <= maxOrb) {
           transits.push({
             transitPlanet,
             natalPlanet,
             aspect: aspect.name,
             aspectAngle: aspect.angle,
             currentOrb: parseFloat(orb.toFixed(2)),
-            isApplying: orbTomorrow < orb,
+            isApplying,
           });
         }
       }
@@ -177,7 +197,7 @@ function ReportDisplay({
     setModalChartData({ labels, data });
 
     try {
-      const transitInfo = `Transit ${t.transitPlanet} ${t.aspect} Natal ${t.natalPlanet} (orb: ${t.currentOrb}°). Use the Archetypal Astrology framework.`;
+      const transitInfo = `Transiting ${t.transitPlanet} ${t.aspect} Natal ${t.natalPlanet} (orb: ${t.currentOrb}°). Use the Archetypal Astrology framework.`;
       const res = await fetch('/api/astrology/interpretations', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -247,7 +267,7 @@ function ReportDisplay({
             Your Personal Transits
           </h3>
           <p className="text-sm text-gray-500 dark:text-gray-400 mb-4">
-            Transiting planets aspecting your natal chart, within 15° orb — sorted by intensity. Tap to explore.
+            Transiting planets aspecting your natal chart, within 5° orb — sorted by intensity. Tap to explore.
           </p>
           <div className="space-y-2">
             {transits.slice(0, 6).map((t, ti) => (
@@ -258,7 +278,7 @@ function ReportDisplay({
               >
                 <div>
                   <p className="font-medium text-gray-800 dark:text-gray-200 text-sm">
-                    Transit {t.transitPlanet} {t.aspect} Natal {t.natalPlanet}
+                    Transiting {t.transitPlanet} {t.aspect} Natal {t.natalPlanet}
                   </p>
                   <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
                     {t.currentOrb}° orb ·{' '}
@@ -292,7 +312,7 @@ function ReportDisplay({
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
           <div className="bg-white dark:bg-gray-800 rounded-lg p-6 max-w-2xl w-full mx-4 max-h-[90vh] overflow-y-auto">
             <h2 className="text-xl font-bold mb-1 text-gray-900 dark:text-gray-100">
-              Transit {selectedTransit.transitPlanet} {selectedTransit.aspect} Natal {selectedTransit.natalPlanet}
+              Transiting {selectedTransit.transitPlanet} {selectedTransit.aspect} Natal {selectedTransit.natalPlanet}
             </h2>
             <p className="text-sm text-gray-500 dark:text-gray-400 mb-4">
               {selectedTransit.currentOrb}° orb ·{' '}
@@ -510,7 +530,7 @@ function PaymentForm({
         <p><span className="text-gray-500 dark:text-gray-400">Location:</span><span className="text-gray-900 dark:text-gray-100 ml-2">{formData.birthLocation}</span></p>
         {transits.length > 0 && (
           <p className="text-indigo-600 dark:text-indigo-400 pt-1">
-            {transits.length} active transit{transits.length !== 1 ? 's' : ''} found within 15° orb
+            {transits.length} active transit{transits.length !== 1 ? 's' : ''} found within 5° orb
           </p>
         )}
       </div>

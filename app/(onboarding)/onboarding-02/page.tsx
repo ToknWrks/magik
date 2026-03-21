@@ -55,6 +55,7 @@ export default function Onboarding02() {
                             'Complete natal chart interpretation',
                             'Current planetary transits on your chart',
                             'Deep dive into your core archetypal energies',
+                            '100 Solomon coaching tokens included',
                           ].map(f => (
                             <p key={f} className="text-xs text-gray-400 flex items-center gap-1.5">
                               <span className="text-yellow-600 dark:text-yellow-500 flex-shrink-0">✦</span>{f}

@@ -109,7 +109,7 @@ function CoachingPageInner() {
           </div>
           <div>
             <p className="text-sm font-semibold text-gray-900 dark:text-gray-100">Solomon</p>
-            <p className="text-xs text-gray-400">Spiritual Coach</p>
+            <p className="text-xs text-gray-400">Authentic Intelligence Spiritual Coach</p>
           </div>
         </div>
         <div className="flex items-center gap-1.5 px-2.5 py-1 bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg">

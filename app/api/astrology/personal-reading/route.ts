@@ -136,9 +136,9 @@ export async function POST(request: NextRequest) {
     const focusLine = focus ? `\n\nThe person has a specific focus or question: "${focus}"` : '';
 
     const transitList = Array.isArray(transits) && transits.length > 0
-      ? `\n\nCalculated active transits to natal chart (within 15° orb, sorted tightest first — ONLY reference these, do not mention any other transits):\n${
+      ? `\n\nCalculated active transits to natal chart (variable orbs applied — ONLY reference these, do not mention any other transits):\nOrb guidelines: Saturn transits 7° (Saturn return 20°, Saturn opposition self 10°); Mars 9° applying / 5° separating; Uranus return/opposition self 10°; same-planet transits 7°; all others 5°. Applying transits are building in strength; separating are releasing.\n${
           transits.map((t: any) =>
-            `- Transit ${t.transitPlanet} ${t.aspect} Natal ${t.natalPlanet} (orb: ${t.currentOrb}°, ${t.isApplying ? 'applying' : 'separating'})`
+            `- Transiting ${t.transitPlanet} ${t.aspect} Natal ${t.natalPlanet} (orb: ${t.currentOrb}°, ${t.isApplying ? 'applying' : 'separating'})`
           ).join('\n')
         }`
       : '';

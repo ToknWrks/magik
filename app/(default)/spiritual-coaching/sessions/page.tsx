@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Boundary } from '@/components/ui/boundary';
 import Link from 'next/link';
+import { formatCo2 } from '@/lib/regen-footprint';
 
 interface Session {
   id: string;
@@ -11,6 +12,8 @@ interface Session {
   duration_seconds: number;
   credits_used: number;
   hume_chat_group_id?: string | null;
+  co2_grams: string | null;
+  regen_contribution_cents: number | null;
   created_at: string;
 }
 
@@ -178,6 +181,23 @@ export default function CoachingSessionsPage() {
           </Link>
         </div>
 
+        {/* Ecological impact banner */}
+        {sessions.length > 0 && sessions.some(s => s.co2_grams) && (() => {
+          const totalCo2 = sessions.reduce((sum, s) => sum + (s.co2_grams ? parseFloat(s.co2_grams) : 0), 0);
+          const totalContrib = sessions.reduce((sum, s) => sum + (s.regen_contribution_cents ?? 0), 0);
+          return (
+            <div className="bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-xl px-4 py-3 flex items-center gap-3">
+              <span className="text-green-600 dark:text-green-400 text-lg">🌿</span>
+              <div className="text-sm text-green-800 dark:text-green-300">
+                <span className="font-semibold">{sessions.length} session{sessions.length !== 1 ? 's' : ''}</span>
+                {' · '}~{formatCo2(totalCo2)} CO₂ generated
+                {' · '}
+                <span className="font-semibold">${(totalContrib / 100).toFixed(2)}</span> contributed to ecological regeneration
+              </div>
+            </div>
+          );
+        })()}
+
         {sessions.length === 0 ? (
           <div className="bg-white dark:bg-gray-800 rounded-xl border border-dashed border-gray-200 dark:border-gray-700 p-10 text-center">
             <div className="w-12 h-12 bg-gray-100 dark:bg-gray-700 rounded-full flex items-center justify-center mx-auto mb-3">
@@ -290,6 +310,19 @@ export default function CoachingSessionsPage() {
                       <span className="text-gray-500 dark:text-gray-400">{fmtDuration(session.duration_seconds)}</span>
                       <span className="text-yellow-700 dark:text-yellow-500">{session.credits_used} credits</span>
                     </div>
+
+                    {/* Eco footprint */}
+                    {session.co2_grams && (
+                      <div className="px-5 py-2 border-b border-gray-100 dark:border-gray-700 flex items-center gap-2 text-xs text-gray-500 dark:text-gray-400">
+                        <span className="text-green-500">🌿</span>
+                        ~{formatCo2(parseFloat(session.co2_grams))} CO₂ used
+                        {session.regen_contribution_cents && (
+                          <span className="text-green-600 dark:text-green-500">
+                            · ${(session.regen_contribution_cents / 100).toFixed(2)} contributed to Regen Network
+                          </span>
+                        )}
+                      </div>
+                    )}
 
                     {loadingDetail === session.id ? (
                       <div className="flex items-center gap-3 px-5 py-6 text-gray-400">

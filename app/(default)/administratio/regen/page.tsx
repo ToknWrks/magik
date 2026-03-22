@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import { formatCo2 } from '@/lib/regen-footprint';
 
 interface RegenStats {
-  totals: { total_readings: string; total_co2_grams: string; total_contribution_cents: string };
+  totals: { total_count: number; total_co2_grams: string; total_contribution_cents: number; reading_count: number; session_count: number };
   unretired: { reading_count: string; co2_grams: string; contribution_cents: string };
   retirements: Retirement[];
   recentReadings: RecentReading[];
@@ -24,7 +24,7 @@ interface Retirement {
 interface RecentReading {
   id: string;
   created_at: string;
-  reading_type: string;
+  source_type: string;
   co2_grams: string | null;
   regen_contribution_cents: number | null;
   regen_retirement_id: string | null;
@@ -67,7 +67,7 @@ export default function RegenAdminPage() {
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || 'Failed');
-      setRetireSuccess(`Recorded retirement of ${data.readingCount} readings. Batch ID: ${data.retirement.id}`);
+      setRetireSuccess(`Recorded retirement of ${data.itemCount} items. Batch ID: ${data.retirement.id}`);
       setShowRetireForm(false);
       setRetireForm({ tx_hash: '', credit_class: 'C02', notes: '' });
       load();
@@ -84,7 +84,7 @@ export default function RegenAdminPage() {
 
   const { totals, unretired, retirements, recentReadings } = stats;
   const unretiredCents = parseInt(unretired.contribution_cents) || 0;
-  const totalCents = parseInt(totals.total_contribution_cents) || 0;
+  const totalCents = (totals.total_contribution_cents as number) || 0;
   const retiredCents = totalCents - unretiredCents;
 
   return (
@@ -97,14 +97,14 @@ export default function RegenAdminPage() {
       {/* Stats grid */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         {[
-          { label: 'Total Readings', value: totals.total_readings },
+          { label: 'Total Items', value: `${totals.total_count} (${totals.reading_count}r + ${totals.session_count}s)` },
           { label: 'Total CO₂ Generated', value: `~${formatCo2(parseFloat(totals.total_co2_grams))}` },
           { label: 'Total Contributed', value: `$${(totalCents / 100).toFixed(2)}` },
           { label: 'Already Retired', value: `$${(retiredCents / 100).toFixed(2)}` },
         ].map(({ label, value }) => (
           <div key={label} className="bg-white dark:bg-gray-800 rounded-xl p-4 border border-gray-200 dark:border-gray-700">
             <p className="text-xs text-gray-500 dark:text-gray-400">{label}</p>
-            <p className="text-2xl font-bold text-gray-900 dark:text-gray-100 mt-1">{value}</p>
+            <p className="text-xl font-bold text-gray-900 dark:text-gray-100 mt-1">{value}</p>
           </div>
         ))}
       </div>
@@ -118,7 +118,7 @@ export default function RegenAdminPage() {
               ${(unretiredCents / 100).toFixed(2)}
             </p>
             <p className="text-sm text-green-700 dark:text-green-500 mt-1">
-              {unretired.reading_count} readings · ~{formatCo2(parseFloat(unretired.co2_grams))} CO₂
+              {unretired.reading_count} items · ~{formatCo2(parseFloat(unretired.co2_grams))} CO₂
             </p>
             <p className="text-xs text-green-600 dark:text-green-500 mt-2">
               Purchase credits via your Regen Compute wallet, then record the retirement below.
@@ -178,7 +178,7 @@ export default function RegenAdminPage() {
                 disabled={retiring}
                 className="px-4 py-2 bg-green-700 hover:bg-green-800 disabled:opacity-50 text-white text-sm font-medium rounded-lg"
               >
-                {retiring ? 'Recording...' : `Mark ${unretired.reading_count} Readings as Retired`}
+                {retiring ? 'Recording...' : `Mark ${unretired.reading_count} Items as Retired`}
               </button>
               <button type="button" onClick={() => setShowRetireForm(false)} className="px-4 py-2 text-sm text-gray-500 hover:text-gray-700 dark:hover:text-gray-300">
                 Cancel
@@ -218,9 +218,9 @@ export default function RegenAdminPage() {
         </div>
       )}
 
-      {/* Recent readings */}
+      {/* Recent activity */}
       <div>
-        <h2 className="text-base font-semibold text-gray-900 dark:text-gray-100 mb-3">Recent Readings</h2>
+        <h2 className="text-base font-semibold text-gray-900 dark:text-gray-100 mb-3">Recent Activity</h2>
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
             <thead>
@@ -239,9 +239,15 @@ export default function RegenAdminPage() {
                     {new Date(r.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
                   </td>
                   <td className="py-2 pr-4">
-                    <span className={`px-1.5 py-0.5 rounded text-xs ${r.reading_type === 'birthchart' ? 'bg-violet-100 text-violet-700 dark:bg-violet-900/30 dark:text-violet-400' : 'bg-sky-100 text-sky-700 dark:bg-sky-900/30 dark:text-sky-400'}`}>
-                      {r.reading_type === 'birthchart' ? 'Birth Chart' : 'Transit'}
-                    </span>
+                    {r.source_type === 'session' ? (
+                      <span className="px-1.5 py-0.5 rounded text-xs bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400">
+                        Session
+                      </span>
+                    ) : (
+                      <span className={`px-1.5 py-0.5 rounded text-xs ${r.source_type === 'birthchart' ? 'bg-violet-100 text-violet-700 dark:bg-violet-900/30 dark:text-violet-400' : 'bg-sky-100 text-sky-700 dark:bg-sky-900/30 dark:text-sky-400'}`}>
+                        {r.source_type === 'birthchart' ? 'Birth Chart' : 'Transit'}
+                      </span>
+                    )}
                   </td>
                   <td className="py-2 pr-4 text-gray-600 dark:text-gray-400">
                     {r.co2_grams ? `~${formatCo2(parseFloat(r.co2_grams))}` : '—'}

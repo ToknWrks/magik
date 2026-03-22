@@ -4,6 +4,7 @@ import React, { useState, useEffect, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { Boundary } from '@/components/ui/boundary'
+import { formatCo2, estimateFootprintGrams } from '@/lib/regen-footprint'
 import * as Astronomy from 'astronomy-engine'
 import { Line } from 'react-chartjs-2'
 import { Chart as ChartJS, CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend } from 'chart.js'
@@ -28,6 +29,15 @@ interface Reading {
   birth_location: string
   report: string
   reading_type: string | null
+  co2_grams: string | null
+  regen_contribution_cents: number | null
+  created_at: string
+}
+
+interface CoachingSession {
+  id: string
+  co2_grams: string | null
+  regen_contribution_cents: number | null
   created_at: string
 }
 
@@ -444,6 +454,8 @@ export default function ProfileClient() {
   const [latestReading, setLatestReading] = useState<Reading | null>(null)
   const [birthChartReading, setBirthChartReading] = useState<Reading | null>(null)
   const [credits, setCredits] = useState<number | null>(null)
+  const [allReadings, setAllReadings] = useState<Reading[]>([])
+  const [allSessions, setAllSessions] = useState<CoachingSession[]>([])
 
   // Edit state
   const [editing, setEditing] = useState(false)
@@ -463,7 +475,8 @@ export default function ProfileClient() {
       fetch('/api/auth/me', { credentials: 'include' }).then(r => r.json()),
       fetch('/api/astrology/readings', { credentials: 'include' }).then(r => r.json()),
       fetch('/api/credits/balance', { credentials: 'include' }).then(r => r.json()).catch(() => ({ balance: null })),
-    ]).then(([authData, readingsData, creditsData]) => {
+      fetch('/api/coaching/sessions', { credentials: 'include' }).then(r => r.json()).catch(() => ({ sessions: [] })),
+    ]).then(([authData, readingsData, creditsData, sessionsData]) => {
       if (creditsData.balance !== undefined) setCredits(creditsData.balance);
       if (authData.user) {
         setUser(authData.user)
@@ -474,9 +487,13 @@ export default function ProfileClient() {
       }
       if (readingsData.readings?.length > 0) {
         const readings: Reading[] = readingsData.readings
+        setAllReadings(readings)
         setBirthChartReading(readings.find(r => r.reading_type === 'birthchart') ?? null)
         // Use the most recent reading with birth_date for chart positions
         setLatestReading(readings[0])
+      }
+      if (sessionsData.sessions?.length > 0) {
+        setAllSessions(sessionsData.sessions)
       }
       setLoading(false)
     }).catch(() => {
@@ -859,30 +876,91 @@ export default function ProfileClient() {
           </div>
         </div>
 
-        {/* ── Regenerative Compute ── */}
-        <a
-          href="https://compute.regen.network/r/ref_ddb8eb2401844f80"
-          target="_blank"
-          rel="noopener noreferrer"
-          className="block bg-white dark:bg-gray-800 rounded-xl p-5 hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors"
-        >
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <div className="w-9 h-9 rounded-full bg-green-100 dark:bg-green-900/30 flex items-center justify-center flex-shrink-0">
-                <svg className="w-5 h-5 text-green-700 dark:text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2 2 2 0 012 2v2.945M8 3.935V5.5A2.5 2.5 0 0010.5 8h.5a2 2 0 012 2 2 2 0 004 0 2 2 0 012-2h1.064M15 20.488V18a2 2 0 012-2h3.064M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                </svg>
-              </div>
-              <div>
-                <p className="text-sm font-medium text-gray-900 dark:text-gray-100">Offset Your AI Footprint</p>
-                <p className="text-xs text-gray-500 dark:text-gray-400">Fund verified ecological regeneration on Regen Network</p>
+        {/* ── Ecological Impact ── */}
+        {(() => {
+          const totalReadingCo2 = allReadings.reduce((sum, r) =>
+            sum + (r.co2_grams != null ? parseFloat(r.co2_grams as any) : estimateFootprintGrams(r.report)), 0);
+          const totalSessionCo2 = allSessions.reduce((sum, s) =>
+            sum + (s.co2_grams != null ? parseFloat(s.co2_grams as any) : 0), 0);
+          const totalCo2 = totalReadingCo2 + totalSessionCo2;
+          const totalContribCents =
+            allReadings.reduce((sum, r) => sum + (r.regen_contribution_cents ?? 0), 0) +
+            allSessions.reduce((sum, s) => sum + (s.regen_contribution_cents ?? 0), 0);
+          const hasAny = allReadings.length > 0 || allSessions.length > 0;
+
+          return (
+            <div className="bg-white dark:bg-gray-800 rounded-xl overflow-hidden border border-green-100 dark:border-green-900/30">
+              <div className="px-5 pt-5 pb-4">
+                <div className="flex items-start gap-3 mb-4">
+                  <div className="w-9 h-9 rounded-full bg-green-100 dark:bg-green-900/30 flex items-center justify-center flex-shrink-0 mt-0.5">
+                    <svg className="w-5 h-5 text-green-700 dark:text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2 2 2 0 012 2v2.945M8 3.935V5.5A2.5 2.5 0 0010.5 8h.5a2 2 0 012 2 2 2 0 004 0 2 2 0 012-2h1.064M15 20.488V18a2 2 0 012-2h3.064M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                  </div>
+                  <div className="flex-1">
+                    {hasAny && totalContribCents > 0 ? (
+                      <>
+                        <p className="text-sm font-semibold text-gray-900 dark:text-gray-100 leading-snug">
+                          Your inner work has regenerated{' '}
+                          <span className="text-green-700 dark:text-green-400">~{formatCo2(totalCo2 * 25)} CO₂</span>
+                          {' '}through illuminati.earth
+                        </p>
+                        <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                          {allReadings.length > 0 && `${allReadings.length} reading${allReadings.length !== 1 ? 's' : ''}`}
+                          {allReadings.length > 0 && allSessions.length > 0 && ' · '}
+                          {allSessions.length > 0 && `${allSessions.length} session${allSessions.length !== 1 ? 's' : ''}`}
+                          {' · '}
+                          <span className="text-green-600 dark:text-green-500 font-medium">${(totalContribCents / 100).toFixed(2)}</span>
+                          {' '}contributed to Regen Network — that's{' '}
+                          <span className="font-medium">25× what we used</span>
+                        </p>
+                      </>
+                    ) : (
+                      <>
+                        <p className="text-sm font-semibold text-gray-900 dark:text-gray-100">Ecological Regeneration</p>
+                        <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
+                          Every reading and session you do contributes $0.25 to verified ecological regeneration on Regen Network.
+                        </p>
+                      </>
+                    )}
+                  </div>
+                </div>
+
+                {hasAny && totalContribCents > 0 && (
+                  <div className="grid grid-cols-3 gap-2 mb-4">
+                    {[
+                      { label: 'CO₂ Generated', value: `~${formatCo2(totalCo2)}` },
+                      { label: 'CO₂ Regenerated', value: `~${formatCo2(totalCo2 * 25)}` },
+                      { label: 'Contributed', value: `$${(totalContribCents / 100).toFixed(2)}` },
+                    ].map(({ label, value }) => (
+                      <div key={label} className="bg-green-50 dark:bg-green-900/20 rounded-lg px-3 py-2 text-center">
+                        <p className="text-xs text-green-700 dark:text-green-400 font-semibold">{value}</p>
+                        <p className="text-xs text-green-600/70 dark:text-green-500/70 mt-0.5">{label}</p>
+                      </div>
+                    ))}
+                  </div>
+                )}
+
+                <div className="border-t border-gray-100 dark:border-gray-700 pt-3">
+                  <p className="text-xs text-gray-500 dark:text-gray-400 mb-2">
+                    Using other AI platforms? Regen Compute makes it easy to offset any AI usage with verified on-chain ecological credits.
+                  </p>
+                  <a
+                    href="https://compute.regen.network/r/ref_ddb8eb2401844f80"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-1.5 text-xs font-medium text-green-700 dark:text-green-400 hover:text-green-800 dark:hover:text-green-300 transition-colors"
+                  >
+                    Explore Regen Compute
+                    <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                    </svg>
+                  </a>
+                </div>
               </div>
             </div>
-            <svg className="w-4 h-4 text-gray-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-            </svg>
-          </div>
-        </a>
+          );
+        })()}
 
         {/* ── Sign Out ── */}
         <button

@@ -18,6 +18,23 @@ export function formatCo2(grams: number): string {
   return `${Math.round(grams)}g`;
 }
 
+// Session footprint: voice transcript (Hume EVI) + Claude Haiku summary generation
+// Voice sessions have higher per-token overhead due to streaming audio pipeline
+export function estimateSessionFootprintGrams(formattedTranscript: string, summary: string): number {
+  const transcriptWords = formattedTranscript.trim().split(/\s+/).length;
+  const summaryWords = summary.trim().split(/\s+/).length;
+  // Transcript: both input and output tokens, plus Hume system prompt overhead (~800 tokens)
+  const transcriptTokens = transcriptWords * 1.35 + 800;
+  // Summary: formatted transcript as input, summary as output, Claude system prompt (~400 tokens)
+  const summaryTokens = (transcriptWords + summaryWords) * 1.35 + 400;
+  const totalTokens = transcriptTokens + summaryTokens;
+  const energyKwh = (totalTokens / 1000) * 0.0033;
+  const co2Grams = energyKwh * 400;
+  return Math.max(parseFloat(co2Grams.toFixed(2)), 1);
+}
+
+export const REGEN_CONTRIBUTION_CENTS_SESSION = 25; // $0.25 per session
+
 // The claim: we use ~$0.01 in ecological cost, we give back $0.25
 // That's a 25x regeneration ratio
 export const REGENERATION_RATIO = 25;

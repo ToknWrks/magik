@@ -6,6 +6,7 @@ import { Boundary } from '@/components/ui/boundary';
 import dynamic from 'next/dynamic';
 import { useLanguage } from '@/hooks/useLanguage';
 import LanguageSelector from '@/components/LanguageSelector';
+import Link from 'next/link';
 
 const SolomonSession = dynamic(() => import('./SolomonSession'), { ssr: false });
 
@@ -123,6 +124,13 @@ function CoachingPageInner() {
             </svg>
             <span className="text-xs font-semibold text-yellow-700 dark:text-yellow-500">{balance} tokens</span>
           </div>
+          <Link
+            href="/spiritual-coaching/terms"
+            className="text-xs text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors"
+            title="Terms of Use"
+          >
+            Terms
+          </Link>
         </div>
       </div>
 

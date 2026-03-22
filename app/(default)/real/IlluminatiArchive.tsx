@@ -29,7 +29,7 @@ export default function IlluminatiArchive() {
           name: 'Chakra Toner',
           status: '',
           slug: 'chakra-sound',
-          description: 'English occultist, ceremonial magician, poet, and mountaineer, known for founding Thelema.',
+          description: 'A sound therapy product designed to balance and align the body\'s energy centers, or chakras, using specific frequencies and vibrations.',
         },
         {
           name: 'Gayatri Mantra',

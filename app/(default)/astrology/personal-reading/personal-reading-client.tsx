@@ -13,6 +13,7 @@ import {
 import * as Astronomy from 'astronomy-engine';
 import FormattedInterpretation from '@/components/FormattedInterpretation';
 import { useLanguage } from '@/hooks/useLanguage';
+import EcoContributionInfo from '@/components/EcoContributionInfo';
 import LanguageSelector from '@/components/LanguageSelector';
 import { Line } from 'react-chartjs-2';
 import {
@@ -32,7 +33,9 @@ const stripePromise = process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY
   ? loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY)
   : null;
 
-const PRICE = 9;
+const READING_PRICE = 9;
+const REGEN_CONTRIBUTION = 0.25;
+const PRICE = READING_PRICE + REGEN_CONTRIBUTION;
 
 const PLANETS = ['Sun', 'Moon', 'Mercury', 'Venus', 'Mars', 'Jupiter', 'Saturn', 'Uranus', 'Neptune', 'Pluto'];
 const ASPECTS = [
@@ -527,7 +530,23 @@ function PaymentForm({
       </button>
 
       <h2 className="text-xl font-bold text-gray-900 dark:text-gray-100 mb-2">Complete Your Order</h2>
-      <p className="text-gray-500 dark:text-gray-400 text-sm mb-6">Personal Transit Reading — $9.00</p>
+      <div className="mb-6 space-y-1">
+        <div className="flex justify-between text-sm">
+          <span className="text-gray-500 dark:text-gray-400">Personal Transit Reading</span>
+          <span className="text-gray-900 dark:text-gray-100">$9.00</span>
+        </div>
+        <div className="flex justify-between text-sm">
+          <span className="flex items-center text-green-700 dark:text-green-400">
+              Ecological Contribution (25x regeneration)
+              <EcoContributionInfo />
+            </span>
+          <span className="text-green-700 dark:text-green-400">$0.25</span>
+        </div>
+        <div className="flex justify-between text-sm font-semibold pt-1 border-t border-gray-200 dark:border-gray-700">
+          <span className="text-gray-900 dark:text-gray-100">Total</span>
+          <span className="text-gray-900 dark:text-gray-100">$9.25</span>
+        </div>
+      </div>
 
       <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-4 mb-6 text-sm space-y-1">
         <p><span className="text-gray-500 dark:text-gray-400">Birth date:</span><span className="text-gray-900 dark:text-gray-100 ml-2">{formData.birthDate}</span></p>
@@ -596,7 +615,7 @@ function PaymentForm({
           ) : isDev ? (
             'Get My Free Reading'
           ) : (
-            'Pay $9.00 & Get My Reading'
+            'Pay $9.25 & Get My Reading'
           )}
         </button>
 

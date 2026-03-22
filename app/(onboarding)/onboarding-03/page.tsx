@@ -17,12 +17,15 @@ import OnboardingImage from '../onboarding-image';
 import OnboardingProgress from '../onboarding-progress';
 import { useLanguage } from '@/hooks/useLanguage';
 import LanguageSelector from '@/components/LanguageSelector';
+import EcoContributionInfo from '@/components/EcoContributionInfo';
 
 const stripePromise = process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY
   ? loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY)
   : null;
 
-const PRICE = 23;
+const READING_PRICE = 23;
+const REGEN_CONTRIBUTION = 0.25;
+const PRICE = READING_PRICE + REGEN_CONTRIBUTION;
 
 const PLANETS = ['Sun', 'Moon', 'Mercury', 'Venus', 'Mars', 'Jupiter', 'Saturn', 'Uranus', 'Neptune', 'Pluto'];
 const ASPECTS = [
@@ -50,6 +53,17 @@ function calculateNatalPositions(birthDate: string, birthTime?: string): Record<
   return positions;
 }
 
+function getMaxOrb(transitPlanet: string, natalPlanet: string, aspectName: string, isApplying: boolean): number {
+  if (transitPlanet === 'Saturn' && natalPlanet === 'Saturn' && aspectName === 'Conjunction') return 20;
+  if (transitPlanet === 'Saturn' && natalPlanet === 'Saturn' && aspectName === 'Opposition') return 10;
+  if (transitPlanet === 'Saturn') return 7;
+  if (transitPlanet === 'Mars') return isApplying ? 9 : 5;
+  if (transitPlanet === 'Uranus' && natalPlanet === 'Uranus' &&
+    (aspectName === 'Conjunction' || aspectName === 'Opposition')) return 10;
+  if (transitPlanet === natalPlanet) return 7;
+  return 5;
+}
+
 function findActiveTransits(natalPositions: Record<string, number>) {
   const today = new Date();
   const tomorrow = new Date(today.getTime() + 86_400_000);
@@ -61,11 +75,13 @@ function findActiveTransits(natalPositions: Record<string, number>) {
         let diff = Math.abs(lon - natalLon);
         diff = Math.min(diff, 360 - diff);
         const orb = Math.abs(diff - aspect.angle);
-        if (orb <= 15) {
-          let diffT = Math.abs(getPlanetLon(transitPlanet, tomorrow) - natalLon);
-          diffT = Math.min(diffT, 360 - diffT);
-          const orbTomorrow = Math.abs(diffT - aspect.angle);
-          transits.push({ transitPlanet, natalPlanet, aspect: aspect.name, aspectAngle: aspect.angle, currentOrb: parseFloat(orb.toFixed(2)), isApplying: orbTomorrow < orb });
+        if (orb > 20) continue;
+        let diffT = Math.abs(getPlanetLon(transitPlanet, tomorrow) - natalLon);
+        diffT = Math.min(diffT, 360 - diffT);
+        const orbTomorrow = Math.abs(diffT - aspect.angle);
+        const isApplying = orbTomorrow < orb;
+        if (orb <= getMaxOrb(transitPlanet, natalPlanet, aspect.name, isApplying)) {
+          transits.push({ transitPlanet, natalPlanet, aspect: aspect.name, aspectAngle: aspect.angle, currentOrb: parseFloat(orb.toFixed(2)), isApplying });
         }
       }
     }
@@ -188,7 +204,23 @@ function PaymentForm({
         ← Back
       </button>
       <h2 className="text-xl font-bold text-gray-900 dark:text-gray-100 mb-1">Complete Your Initiation</h2>
-      <p className="text-gray-500 dark:text-gray-400 text-sm mb-6">Full Initiation Reading — $23.00</p>
+      <div className="mb-6 space-y-1">
+        <div className="flex justify-between text-sm">
+          <span className="text-gray-500 dark:text-gray-400">Full Initiation Reading</span>
+          <span className="text-gray-900 dark:text-gray-100">$23.00</span>
+        </div>
+        <div className="flex justify-between text-sm">
+          <span className="flex items-center text-green-700 dark:text-green-400">
+              Ecological Contribution (25x regeneration)
+              <EcoContributionInfo />
+            </span>
+          <span className="text-green-700 dark:text-green-400">$0.25</span>
+        </div>
+        <div className="flex justify-between text-sm font-semibold pt-1 border-t border-gray-200 dark:border-gray-700">
+          <span className="text-gray-900 dark:text-gray-100">Total</span>
+          <span className="text-gray-900 dark:text-gray-100">$23.25</span>
+        </div>
+      </div>
 
       <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-4 mb-6 text-sm space-y-1">
         <p><span className="text-gray-500 dark:text-gray-400">Birth date:</span><span className="text-gray-900 dark:text-gray-100 ml-2">{formData.birthDate}</span></p>
@@ -196,7 +228,7 @@ function PaymentForm({
         <p><span className="text-gray-500 dark:text-gray-400">Location:</span><span className="text-gray-900 dark:text-gray-100 ml-2">{formData.birthLocation}</span></p>
         {transits.length > 0 && (
           <p className="text-yellow-600 dark:text-yellow-500 pt-1">
-            {transits.length} active transit{transits.length !== 1 ? 's' : ''} found within 15° orb
+            {transits.length} active transit{transits.length !== 1 ? 's' : ''} found
           </p>
         )}
       </div>
@@ -254,7 +286,7 @@ function PaymentForm({
               </svg>
               {loadingMsg || 'Processing...'}
             </span>
-          ) : isDev ? 'Begin My Initiation' : `Pay $${PRICE}.00 · Begin My Initiation`}
+          ) : isDev ? 'Begin My Initiation' : `Pay $${PRICE.toFixed(2)} · Begin My Initiation`}
         </button>
 
         {!isDev && (

@@ -4,6 +4,7 @@ import Stripe from 'stripe';
 import { Pool } from '@neondatabase/serverless';
 import { createUserAccount, createSession } from '@/lib/auth';
 import { languagePromptSuffix } from '@/lib/language';
+import { estimateFootprintGrams, REGEN_CONTRIBUTION_CENTS } from '@/lib/regen-footprint';
 
 const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, { apiVersion: '2025-11-17.clover' });
@@ -23,6 +24,9 @@ async function ensureTable() {
       created_at TIMESTAMPTZ DEFAULT NOW()
     )
   `);
+  await pool.query(`ALTER TABLE astrology_readings ADD COLUMN IF NOT EXISTS co2_grams NUMERIC`);
+  await pool.query(`ALTER TABLE astrology_readings ADD COLUMN IF NOT EXISTS regen_contribution_cents INT`);
+  await pool.query(`ALTER TABLE astrology_readings ADD COLUMN IF NOT EXISTS regen_retired_at TIMESTAMPTZ`);
 }
 
 export async function POST(request: NextRequest) {
@@ -176,12 +180,14 @@ Write in second person ("you/your"), with depth and warmth. Be specific — refe
 
     const report = response.content[0].type === 'text' ? response.content[0].text : '';
 
+    const co2Grams = estimateFootprintGrams(report);
+
     // Save to DB
     const result = await pool.query(
-      `INSERT INTO astrology_readings (user_id, stripe_payment_id, birth_date, birth_time, birth_location, focus, report)
-       VALUES ($1, $2, $3, $4, $5, $6, $7)
+      `INSERT INTO astrology_readings (user_id, stripe_payment_id, birth_date, birth_time, birth_location, focus, report, co2_grams, regen_contribution_cents)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
        RETURNING *`,
-      [user.id, effectivePaymentId, birthDate, birthTime || null, birthLocation, focus || null, report]
+      [user.id, effectivePaymentId, birthDate, birthTime || null, birthLocation, focus || null, report, co2Grams, REGEN_CONTRIBUTION_CENTS]
     );
 
     const reading = result.rows[0];

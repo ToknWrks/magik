@@ -7,8 +7,10 @@ import { Line } from 'react-chartjs-2';
 import { Chart as ChartJS, CategoryScale, LinearScale, PointElement, LineElement, Tooltip } from 'chart.js';
 import FormattedInterpretation from '@/components/FormattedInterpretation';
 import AudioPlayer from '@/components/AudioPlayer';
+import { estimateFootprintGrams, formatCo2, REGEN_CONTRIBUTION_CENTS } from '@/lib/regen-footprint';
 
 ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Tooltip);
+
 
 const PLANETS = ['Sun', 'Moon', 'Mercury', 'Venus', 'Mars', 'Jupiter', 'Saturn', 'Uranus', 'Neptune', 'Pluto'];
 const ASPECTS = [
@@ -96,6 +98,10 @@ interface Reading {
   report: string;
   reading_type: string | null;
   audio_url: string | null;
+  title: string | null;
+  co2_grams: number | null;
+  regen_contribution_cents: number | null;
+  regen_retired_at: string | null;
   created_at: string;
 }
 
@@ -127,6 +133,7 @@ function ExpandedReading({ reading }: { reading: Reading }) {
   const [aspectInterpretationLoading, setAspectInterpretationLoading] = useState(false);
 
   const isBirthChart = reading.reading_type === 'birthchart';
+  const co2Grams = reading.co2_grams != null ? parseFloat(reading.co2_grams as any) : estimateFootprintGrams(reading.report);
   const natal = calcNatal(reading.birth_date, reading.birth_time);
   const transits = isBirthChart ? [] : findTransits(natal);
   const natalAspects = isBirthChart ? findNatalAspects(natal) : [];
@@ -314,6 +321,34 @@ function ExpandedReading({ reading }: { reading: Reading }) {
         </div>
       )}
 
+      {/* ── Ecological Footprint ── */}
+      <a
+        href="https://compute.regen.network/r/ref_ddb8eb2401844f80"
+        target="_blank"
+        rel="noopener noreferrer"
+        className="flex items-center justify-between px-4 py-3 rounded-xl bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800/40 hover:bg-green-100 dark:hover:bg-green-900/30 transition-colors group"
+      >
+        <div className="flex items-center gap-3">
+          <svg className="w-5 h-5 text-green-600 dark:text-green-500 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2 2 2 0 012 2v2.945M8 3.935V5.5A2.5 2.5 0 0010.5 8h.5a2 2 0 012 2 2 2 0 004 0 2 2 0 012-2h1.064M15 20.488V18a2 2 0 012-2h3.064M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+          </svg>
+          <div>
+            <p className="text-sm font-medium text-green-800 dark:text-green-300">
+              ~{formatCo2(co2Grams)} CO₂ used · $0.25 contributed to Regen Network
+              {reading.regen_retired_at && (
+                <span className="ml-2 text-xs font-normal text-green-600 dark:text-green-400">✓ retired</span>
+              )}
+            </p>
+            <p className="text-xs text-green-700 dark:text-green-500">
+              Funds verified ecological regeneration on Regen Network
+            </p>
+          </div>
+        </div>
+        <svg className="w-4 h-4 text-green-500 dark:text-green-500 flex-shrink-0 group-hover:translate-x-0.5 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+        </svg>
+      </a>
+
       {showAspectModal && selectedAspect && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
           <div className="bg-white dark:bg-gray-800 rounded-lg p-6 max-w-2xl w-full mx-4 max-h-[90vh] overflow-y-auto">
@@ -484,6 +519,20 @@ export default function ReadingsPanel() {
   const [expanded, setExpanded] = useState<string | null>(null);
   const [confirmDelete, setConfirmDelete] = useState<string | null>(null);
   const [deleting, setDeleting] = useState<string | null>(null);
+  const [editingTitle, setEditingTitle] = useState<string | null>(null);
+  const [titleDraft, setTitleDraft] = useState('');
+
+  const saveTitle = async (id: string) => {
+    const trimmed = titleDraft.trim();
+    setEditingTitle(null);
+    setReadings(prev => prev.map(r => r.id === id ? { ...r, title: trimmed || null } : r));
+    await fetch('/api/astrology/readings', {
+      method: 'PATCH',
+      credentials: 'include',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ id, title: trimmed || null }),
+    });
+  };
 
   const handleDelete = async (id: string) => {
     setDeleting(id);
@@ -513,7 +562,7 @@ export default function ReadingsPanel() {
 
   const handleDownload = (reading: Reading) => {
     const content = [
-      `Personal Transit Reading`,
+      reading.title || (reading.reading_type === 'birthchart' ? 'Birth Chart Reading' : 'Personal Transit Reading'),
       `Date: ${new Date(reading.created_at).toLocaleDateString()}`,
       `Birth Date: ${reading.birth_date}`,
       reading.birth_time ? `Birth Time: ${reading.birth_time}` : null,
@@ -550,9 +599,13 @@ export default function ReadingsPanel() {
     );
   }
 
+  const totalCo2 = readings.reduce((sum, r) => sum + (r.co2_grams != null ? parseFloat(r.co2_grams as any) : estimateFootprintGrams(r.report)), 0);
+  const totalContributionCents = readings.reduce((sum, r) => sum + (r.regen_contribution_cents ?? 0), 0);
+  const retiredCount = readings.filter(r => r.regen_retired_at).length;
+
   return (
     <div className="space-y-4">
-      <div className="flex items-center justify-between mb-6">
+      <div className="flex items-center justify-between mb-2">
         <h2 className="text-xl font-bold text-gray-900 dark:text-gray-100">My Astrology Readings</h2>
         <Link
           href="/astrology/personal-reading"
@@ -562,19 +615,62 @@ export default function ReadingsPanel() {
         </Link>
       </div>
 
+      {totalContributionCents > 0 && (
+        <div className="flex items-center gap-4 p-4 rounded-xl bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800/40 mb-4">
+          <svg className="w-8 h-8 text-green-600 dark:text-green-500 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2 2 2 0 012 2v2.945M8 3.935V5.5A2.5 2.5 0 0010.5 8h.5a2 2 0 012 2 2 2 0 004 0 2 2 0 012-2h1.064M15 20.488V18a2 2 0 012-2h3.064M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+          </svg>
+          <div className="flex-1">
+            <p className="text-sm font-semibold text-green-800 dark:text-green-300">Your Inner Work Is Regenerating the Earth</p>
+            <p className="text-xs text-green-700 dark:text-green-500 mt-0.5">
+              {readings.length} reading{readings.length !== 1 ? 's' : ''} · ~{formatCo2(totalCo2)} CO₂ generated · ${(totalContributionCents / 100).toFixed(2)} contributed to Regen Network
+              {retiredCount > 0 && ` · ${retiredCount} retired on-chain`}
+            </p>
+          </div>
+        </div>
+      )}
+
       {readings.map(reading => (
         <div
           key={reading.id}
           className="border-t border-x border-gray-200 dark:border-gray-900 rounded-xl overflow-hidden"
         >
           <div className="flex items-center justify-between p-4 bg-white dark:bg-gray-800">
-            <div>
-              <p className="font-medium text-gray-900 dark:text-gray-100">
-                {reading.birth_location} · {reading.birth_date}
-              </p>
-              <p className="text-sm text-gray-500 dark:text-gray-400">
-                {new Date(reading.created_at).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}
-                {reading.focus && ` · "${reading.focus.slice(0, 50)}${reading.focus.length > 50 ? '...' : ''}"`}
+            <div className="flex-1 min-w-0 mr-3">
+              <div className="flex items-center gap-2 mb-0.5">
+                <span className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-medium ${
+                  reading.reading_type === 'birthchart'
+                    ? 'bg-violet-100 text-violet-700 dark:bg-violet-900/30 dark:text-violet-400'
+                    : 'bg-sky-100 text-sky-700 dark:bg-sky-900/30 dark:text-sky-400'
+                }`}>
+                  {reading.reading_type === 'birthchart' ? 'Birth Chart' : 'Transit'}
+                </span>
+                {editingTitle === reading.id ? (
+                  <input
+                    autoFocus
+                    value={titleDraft}
+                    onChange={e => setTitleDraft(e.target.value)}
+                    onBlur={() => saveTitle(reading.id)}
+                    onKeyDown={e => { if (e.key === 'Enter') saveTitle(reading.id); if (e.key === 'Escape') setEditingTitle(null); }}
+                    placeholder={reading.reading_type === 'birthchart' ? 'Birth Chart' : 'Personal Transit'}
+                    className="flex-1 text-sm font-medium bg-transparent border-b border-gray-400 dark:border-gray-500 outline-none text-gray-900 dark:text-gray-100 placeholder-gray-400"
+                  />
+                ) : (
+                  <button
+                    onClick={() => { setEditingTitle(reading.id); setTitleDraft(reading.title ?? ''); }}
+                    className="text-sm font-medium text-gray-900 dark:text-gray-100 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors truncate"
+                    title="Click to edit title"
+                  >
+                    {reading.title || (reading.reading_type === 'birthchart' ? 'Birth Chart' : 'Personal Transit')}
+                    <svg className="inline-block ml-1 w-3 h-3 text-gray-400 opacity-0 group-hover:opacity-100" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536M9 11l6-6 3 3-6 6H9v-3z" />
+                    </svg>
+                  </button>
+                )}
+              </div>
+              <p className="text-xs text-gray-500 dark:text-gray-400">
+                {reading.birth_location} · {reading.birth_date} · {new Date(reading.created_at).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}
+                {reading.focus && ` · "${reading.focus.slice(0, 40)}${reading.focus.length > 40 ? '...' : ''}"`}
               </p>
             </div>
             <div className="flex items-center gap-2">

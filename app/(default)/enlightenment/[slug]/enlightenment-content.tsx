@@ -92,6 +92,7 @@ export function EnlightenmentContent({ slug }: EnlightenmentContentProps) {
           sources: template.sources,
           key_teachings: template.key_teachings,
           spiritual_practices: template.spiritual_practices,
+          audio_url: template.audio_url ?? null,
         });
         return;
       }
@@ -99,16 +100,17 @@ export function EnlightenmentContent({ slug }: EnlightenmentContentProps) {
       const response = await fetch(`/api/enlightenment/generate/${slug}`, {
         method: 'POST',
       });
-      
+
       if (!response.ok) {
         throw new Error(`Failed to generate content`);
       }
-      
+
       const data = await response.json();
       setContent({
         ...data,
         key_teachings: template.key_teachings,
         spiritual_practices: template.spiritual_practices,
+        audio_url: template.audio_url ?? null,
       });
     } catch (err) {
       setError(err instanceof Error ? err.message : 'An error occurred');

@@ -5,12 +5,11 @@ import { useState } from 'react';
 interface Props {
   contentId: string;
   contentType: 'enlightenment' | 'mystery';
-  text: string;
   existingUrl?: string | null;
   onGenerated?: (url: string) => void;
 }
 
-export default function GenerateAudioButton({ contentId, contentType, text, existingUrl, onGenerated }: Props) {
+export default function GenerateAudioButton({ contentId, contentType, existingUrl, onGenerated }: Props) {
   const [loading, setLoading] = useState(false);
   const [url, setUrl] = useState(existingUrl ?? null);
   const [error, setError] = useState('');
@@ -23,7 +22,7 @@ export default function GenerateAudioButton({ contentId, contentType, text, exis
         method: 'POST',
         credentials: 'include',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ text, contentId, contentType }),
+        body: JSON.stringify({ contentId, contentType }),
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || 'Failed');

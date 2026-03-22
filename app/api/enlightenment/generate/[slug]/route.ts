@@ -29,22 +29,29 @@ export async function POST(
       return NextResponse.json({ error: 'This teaching is not active' }, { status: 403 });
     }
 
-    // Check for cached content in enlightenment_content table
-    const cachedResult = await pool.query(
-      `SELECT * FROM enlightenment_content 
-       WHERE template_id = $1 
-       ORDER BY created_at DESC LIMIT 1`,
-      [template.id]
-    );
+    const { force } = await request.json().catch(() => ({ force: false }));
 
-    if (cachedResult.rows.length > 0) {
-      const cached = cachedResult.rows[0];
-      return NextResponse.json({
-        cached: true,
-        title: template.title,
-        body: cached.content,
-        sources: template.sources,
-      });
+    // Check for cached content unless force-regenerating
+    if (!force) {
+      const cachedResult = await pool.query(
+        `SELECT * FROM enlightenment_content
+         WHERE template_id = $1
+         ORDER BY created_at DESC LIMIT 1`,
+        [template.id]
+      );
+
+      if (cachedResult.rows.length > 0) {
+        const cached = cachedResult.rows[0];
+        return NextResponse.json({
+          cached: true,
+          title: template.title,
+          body: cached.content,
+          sources: template.sources,
+        });
+      }
+    } else {
+      // Clear old cache entries before regenerating
+      await pool.query(`DELETE FROM enlightenment_content WHERE template_id = $1`, [template.id]);
     }
 
     // Generate new content with AI

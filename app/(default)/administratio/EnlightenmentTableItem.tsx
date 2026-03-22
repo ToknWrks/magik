@@ -6,6 +6,54 @@ import { EnlightenmentProperties } from './EnlightenmentTableProperties'
 import Link from 'next/link'
 import GenerateAudioButton from '@/components/admin/GenerateAudioButton'
 
+function RegenerateContentButton({ slug }: { slug: string }) {
+  const [loading, setLoading] = useState(false);
+  const [done, setDone] = useState(false);
+  const [error, setError] = useState('');
+
+  const regenerate = async (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (!confirm('Clear cached content and regenerate with AI?')) return;
+    setLoading(true);
+    setError('');
+    setDone(false);
+    try {
+      const res = await fetch(`/api/enlightenment/generate/${slug}`, {
+        method: 'POST',
+        credentials: 'include',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ force: true }),
+      });
+      if (!res.ok) throw new Error('Failed');
+      setDone(true);
+      setTimeout(() => setDone(false), 3000);
+    } catch {
+      setError('Error');
+      setTimeout(() => setError(''), 3000);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <button
+      onClick={regenerate}
+      disabled={loading}
+      title="Regenerate content"
+      className={`p-1 rounded transition-colors ${
+        done ? 'text-green-500' :
+        error ? 'text-red-500' :
+        'text-gray-400 hover:text-purple-500 dark:text-gray-500 dark:hover:text-purple-400 hover:bg-purple-50 dark:hover:bg-purple-900/20'
+      }`}
+    >
+      <svg className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+      </svg>
+    </button>
+  );
+}
+
 interface EnlightenmentTableItemProps {
   template: EnlightenmentTemplate
   onCheckboxChange: (id: string, checked: boolean) => void
@@ -119,10 +167,10 @@ export default function EnlightenmentTableItem({
       </td>
       <td className="px-2 first:pl-5 last:pr-5 py-3 whitespace-nowrap w-px">
         <div className="flex items-center space-x-2">
+          <RegenerateContentButton slug={template.slug} />
           <GenerateAudioButton
             contentId={template.id}
             contentType="enlightenment"
-            text={template.article_content || template.description || template.title}
             existingUrl={template.audio_url}
           />
           <button

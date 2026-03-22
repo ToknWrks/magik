@@ -315,7 +315,6 @@ function StartScreen({
         <div className="w-28 h-28 rounded-full overflow-hidden shadow-lg">
           <img src="/images/illuminati-logo.png" alt="Solomon" className="w-full h-full object-cover" />
         </div>
-        <div className="absolute -bottom-1 -right-1 w-6 h-6 bg-green-400 rounded-full border-2 border-white dark:border-gray-900" />
       </div>
 
       <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-1">Solomon</h2>

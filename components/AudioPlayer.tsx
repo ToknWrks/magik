@@ -49,38 +49,39 @@ export default function AudioPlayer({ url, label }: { url: string; label?: strin
   const pct = duration ? (progress / duration) * 100 : 0;
 
   return (
-    <div className="flex items-center gap-3 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-xl px-4 py-3">
+    <div className="flex items-center gap-3 bg-gray-50 dark:bg-gray-800/60 border border-gray-200 dark:border-gray-700 rounded-xl px-4 py-3">
       <audio ref={audioRef} src={url} preload="metadata" />
 
       {/* Play/Pause */}
       <button
         onClick={toggle}
-        className="w-9 h-9 flex items-center justify-center rounded-full bg-amber-600 hover:bg-amber-700 text-white flex-shrink-0 transition-colors"
+        className="w-9 h-9 flex items-center justify-center rounded-full bg-gray-700 hover:bg-gray-600 dark:bg-gray-600 dark:hover:bg-gray-500 text-white flex-shrink-0 transition-colors"
       >
         {playing ? (
-          <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-            <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zM7 8a1 1 0 012 0v4a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v4a1 1 0 102 0V8a1 1 0 00-1-1z" clipRule="evenodd" />
+          <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+            <rect x="6" y="5" width="4" height="14" rx="1" />
+            <rect x="14" y="5" width="4" height="14" rx="1" />
           </svg>
         ) : (
-          <svg className="w-4 h-4 ml-0.5" fill="currentColor" viewBox="0 0 20 20">
-            <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" clipRule="evenodd" />
+          <svg className="w-5 h-5 translate-x-0.5" fill="currentColor" viewBox="0 0 24 24">
+            <path d="M8 5.5v13l10-6.5L8 5.5z" />
           </svg>
         )}
       </button>
 
       <div className="flex flex-col flex-1 min-w-0 gap-1.5">
-        {label && <p className="text-xs font-medium text-amber-800 dark:text-amber-300 truncate">{label}</p>}
+        {label && <p className="text-xs font-medium text-gray-600 dark:text-gray-400 truncate">{label}</p>}
         {/* Progress bar */}
         <div
-          className="h-1.5 bg-amber-200 dark:bg-amber-800 rounded-full cursor-pointer relative"
+          className="h-1.5 bg-gray-200 dark:bg-gray-700 rounded-full cursor-pointer relative"
           onClick={seek}
         >
           <div
-            className="h-full bg-amber-600 dark:bg-amber-500 rounded-full transition-all duration-100"
+            className="h-full bg-gray-500 dark:bg-gray-400 rounded-full transition-all duration-100"
             style={{ width: `${pct}%` }}
           />
         </div>
-        <div className="flex justify-between text-[10px] text-amber-600 dark:text-amber-400 tabular-nums">
+        <div className="flex justify-between text-[10px] text-gray-400 dark:text-gray-500 tabular-nums">
           <span>{fmt(progress)}</span>
           <span>{fmt(duration)}</span>
         </div>

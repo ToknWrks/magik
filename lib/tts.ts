@@ -115,13 +115,9 @@ function silencePCM(seconds: number, sampleRate: number, channels: number, bitDe
   return Buffer.alloc(bytes, 0);
 }
 
-async function humeAPICall(texts: string | string[], voice?: string, format: 'mp3' | 'wav' = 'mp3'): Promise<Buffer> {
-  const chunks = Array.isArray(texts) ? texts : [texts];
-  const utterances = chunks.map(text => {
-    const u: Record<string, unknown> = { text };
-    if (voice && VALID_VOICES.includes(voice)) u.voice = { name: voice };
-    return u;
-  });
+async function humeAPICall(text: string, voice?: string, format: 'mp3' | 'wav' = 'mp3'): Promise<Buffer> {
+  const utterance: Record<string, unknown> = { text };
+  if (voice && VALID_VOICES.includes(voice)) utterance.voice = { name: voice };
 
   const res = await fetch('https://api.hume.ai/v0/tts', {
     method: 'POST',
@@ -130,7 +126,7 @@ async function humeAPICall(texts: string | string[], voice?: string, format: 'mp
       'Content-Type': 'application/json',
     },
     body: JSON.stringify({
-      utterances,
+      utterances: [utterance],
       format: { type: format },
     }),
   });
@@ -155,12 +151,15 @@ export async function generateTTS(text: string, voice?: string): Promise<TTSResu
   if (!hasBreaks) {
     const clean = stripMarkdown(text);
     const chunks = splitIntoChunks(clean);
-    // Single chunk or multiple utterances in one request
-    const buffer = await humeAPICall(chunks, voice, 'mp3');
-    return { buffer, ext: 'mp3', contentType: 'audio/mpeg' };
+    // Sequential calls per chunk — Hume truncates multi-utterance requests
+    const buffers: Buffer[] = [];
+    for (const chunk of chunks) {
+      buffers.push(await humeAPICall(chunk, voice, 'mp3'));
+    }
+    return { buffer: Buffer.concat(buffers), ext: 'mp3', contentType: 'audio/mpeg' };
   }
 
-  // SSML mode: split, stitch with silence
+  // SSML mode: split on <break> tags, stitch WAV with silence
   const segments = parseSegments(text);
   const pcmChunks: Buffer[] = [];
   let fmt = { sampleRate: 24000, channels: 1, bitDepth: 16 };

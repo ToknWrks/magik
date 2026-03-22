@@ -12,22 +12,17 @@ const CHAKRAS = [
   { name: 'Root',          sanskrit: 'Muladhara',    note: 'C', vowel: 'uh',  color: '#F87171', cy: 460 },
 ];
 
-// Every chromatic note maps to a chakra
 const NOTE_TO_CHAKRA: Record<string, number> = {
-  'C': 6, 'C#': 6,
-  'D': 5, 'D#': 5,
-  'E': 4,
-  'F': 3, 'F#': 3,
-  'G': 2, 'G#': 2,
-  'A': 1, 'A#': 1,
-  'B': 0,
+  'C': 6, 'C#': 6, 'D': 5, 'D#': 5, 'E': 4,
+  'F': 3, 'F#': 3, 'G': 2, 'G#': 2, 'A': 1, 'A#': 1, 'B': 0,
 };
 
 const NOTE_NAMES = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'];
+const SVG_H = 520;
 
 function getNoteFromFreq(freq: number) {
   if (freq <= 0 || !isFinite(freq)) return null;
-  const semitones = 12 * Math.log2(freq / 440);
+  const semitones = 12 * Math.log2(freq / 432);
   const rounded = Math.round(semitones);
   const cents = Math.round((semitones - rounded) * 100);
   return { note: NOTE_NAMES[((rounded % 12) + 12) % 12], cents };
@@ -65,17 +60,7 @@ function autoCorrelate(buf: Float32Array<ArrayBuffer>, sampleRate: number): numb
   return sampleRate / T0;
 }
 
-// Deterministic star positions via golden-angle stepping (no Math.random)
-const STARS = Array.from({ length: 80 }, (_, i) => ({
-  x: +((i * 137.508) % 100).toFixed(2),
-  y: +((i * 79.373) % 100).toFixed(2),
-  r: i % 5 === 0 ? 1.5 : i % 3 === 0 ? 1 : 0.5,
-  o: +(0.12 + (i % 7) * 0.06).toFixed(2),
-}));
-
-const SVG_H = 520;
-
-export default function ChakraSoundPage() {
+export default function ChakraTunerPage() {
   const [listening, setListening] = useState(false);
   const [currentNote, setCurrentNote] = useState<string | null>(null);
   const [frequency, setFrequency] = useState<number | null>(null);
@@ -179,18 +164,17 @@ export default function ChakraSoundPage() {
   useEffect(() => () => stopListening(), [stopListening]);
 
   const activeChakra = activeIdx !== null ? CHAKRAS[activeIdx] : null;
-  // Spectrum position: Root (idx 6) = left (0%), Crown (idx 0) = right (100%)
   const spectrumPos = activeIdx !== null ? ((6 - activeIdx) / 6) * 100 : null;
 
   return (
     <div
-      className="relative flex flex-col items-center min-h-[calc(100vh-4rem)] overflow-hidden select-none"
-      style={{ background: 'url(/images/Spirit9.png) center calc(50% - 2pt) / cover no-repeat fixed' }}
+      className="relative flex flex-col h-[calc(100vh-4rem)] overflow-hidden select-none"
+      style={{ background: 'url(/images/Spirit9.png) center center / cover no-repeat fixed' }}
     >
-      {/* Dark overlay so UI stays readable over the background image */}
+      {/* Dark overlay */}
       <div className="absolute inset-0 pointer-events-none" style={{ background: 'rgba(0,0,0,0.78)' }} />
 
-      {/* Ambient background glow from active chakra */}
+      {/* Ambient glow */}
       <div
         className="absolute inset-0 pointer-events-none"
         style={{
@@ -202,37 +186,33 @@ export default function ChakraSoundPage() {
       />
 
       {/* Content */}
-      <div className="relative z-10 flex flex-col items-center w-full max-w-2xl px-4 pt-4 pb-6">
+      <div className="relative z-10 flex flex-col h-full w-full max-w-2xl mx-auto px-4 pt-2 pb-3">
 
-        {/* Header */}
-        <p className="text-[12px] tracking-[0.5em] text-white/60 uppercase mb-1.5">Chakra Toner</p>
-        <p className="text-[12px] text-white/45 tracking-widest mb-4">Sing a note to illuminate your energy centers</p>
-
-        {/* Note display — only takes space when a note is detected */}
-        {currentNote && (
-          <div className="flex flex-col items-center mb-3">
-            <div
-              className="font-bold leading-none"
-              style={{
-                fontSize: 96,
-                color: activeChakra?.color ?? '#fff',
-                filter: `drop-shadow(0 0 20px ${activeChakra?.color ?? '#fff'}) drop-shadow(0 0 50px ${activeChakra?.color ?? '#fff'}50)`,
-                transition: 'color 0.2s ease, filter 0.2s ease',
-              }}
-            >
-              {currentNote}
-            </div>
-            <div className="text-xs text-white/40 mt-1.5 tracking-widest tabular-nums">
-              {frequency} Hz &nbsp;·&nbsp; {cents >= 0 ? '+' : ''}{cents} cents
-            </div>
+        {/* Row 1: Title + compact note/vowel line below */}
+        <div className="flex-shrink-0 text-center mb-1">
+          <p className="text-[11px] tracking-[0.45em] text-white/60 uppercase leading-tight">Chakra Toner</p>
+          <div className="h-[28px] flex items-center justify-center">
+            {currentNote && activeChakra ? (
+              <p
+                className="text-[11px] tracking-widest tabular-nums font-medium transition-all duration-200"
+                style={{
+                  color: activeChakra.color,
+                  filter: `drop-shadow(0 0 6px ${activeChakra.color}80)`,
+                }}
+              >
+                {currentNote} · "{activeChakra.vowel}" · {activeChakra.name} · {frequency} Hz · {cents >= 0 ? '+' : ''}{cents}¢
+              </p>
+            ) : (
+              <p className="text-[10px] text-white/35 tracking-wider">Sing a note to illuminate your energy centers</p>
+            )}
           </div>
-        )}
+        </div>
 
-        {/* Chakra diagram */}
-        <div className="flex items-stretch justify-center gap-4 mb-3" style={{ height: SVG_H }}>
+        {/* Row 2: Diagram — fills all remaining space */}
+        <div className="flex-1 min-h-0 flex items-stretch justify-center gap-2 mb-1">
 
-          {/* Left: chakra names + note labels */}
-          <div className="relative" style={{ width: 110 }}>
+          {/* Left: chakra names + note labels — percentage-positioned */}
+          <div className="relative w-24 flex-shrink-0">
             {CHAKRAS.map((ch, i) => {
               const isActive = activeIdx === i;
               return (
@@ -240,73 +220,53 @@ export default function ChakraSoundPage() {
                   key={ch.name}
                   className="absolute right-0 text-right transition-all duration-300"
                   style={{
-                    top: ch.cy - 14,
+                    top: `${(ch.cy / SVG_H) * 100}%`,
+                    transform: 'translateY(-50%)',
                     color: isActive ? ch.color : 'rgba(255,255,255,0.55)',
                     filter: isActive ? `drop-shadow(0 0 6px ${ch.color})` : 'none',
                   }}
                 >
-                  <div className="text-[11px] font-semibold uppercase tracking-wider leading-tight">
-                    {ch.name}
-                  </div>
-                  <div className="text-[10px] opacity-60">{ch.note} · "{ch.vowel}"</div>
+                  <div className="text-[10px] font-semibold uppercase tracking-wider leading-tight">{ch.name}</div>
+                  <div className="text-[9px] opacity-60">{ch.note} · "{ch.vowel}"</div>
                 </div>
               );
             })}
           </div>
 
-          {/* Center: SVG spine + orbs */}
+          {/* Center: SVG spine — scales to fill height */}
           <svg
             viewBox={`0 0 100 ${SVG_H}`}
-            style={{ width: 100, height: SVG_H, overflow: 'visible', flexShrink: 0 }}
+            style={{ height: '100%', width: 'auto', overflow: 'visible', flexShrink: 0 }}
+            preserveAspectRatio="xMidYMid meet"
           >
             <defs>
               <filter id="orb-glow" x="-150%" y="-150%" width="400%" height="400%">
                 <feGaussianBlur stdDeviation="5" result="blur" />
-                <feMerge>
-                  <feMergeNode in="blur" />
-                  <feMergeNode in="SourceGraphic" />
-                </feMerge>
+                <feMerge><feMergeNode in="blur" /><feMergeNode in="SourceGraphic" /></feMerge>
               </filter>
               <filter id="soft-blur" x="-150%" y="-150%" width="400%" height="400%">
                 <feGaussianBlur stdDeviation="9" />
               </filter>
             </defs>
 
-            {/* Sushumna (spine line) */}
-            <line
-              x1="50" y1={CHAKRAS[0].cy}
-              x2="50" y2={CHAKRAS[6].cy}
-              stroke="rgba(255,255,255,0.20)"
-              strokeWidth="1"
-            />
-            {/* Glowing spine when a chakra is active */}
+            <line x1="50" y1={CHAKRAS[0].cy} x2="50" y2={CHAKRAS[6].cy} stroke="rgba(255,255,255,0.20)" strokeWidth="1" />
             {activeChakra && (
-              <line
-                x1="50" y1={CHAKRAS[0].cy}
-                x2="50" y2={CHAKRAS[6].cy}
-                stroke={activeChakra.color}
-                strokeWidth="1"
-                opacity="0.18"
-                filter="url(#soft-blur)"
-              />
+              <line x1="50" y1={CHAKRAS[0].cy} x2="50" y2={CHAKRAS[6].cy}
+                stroke={activeChakra.color} strokeWidth="1" opacity="0.18" filter="url(#soft-blur)" />
             )}
 
-            {/* Chakra orbs */}
             {CHAKRAS.map((ch, i) => {
               const isActive = activeIdx === i;
               return (
                 <g key={ch.name}>
-                  {/* Outer aura rings when active */}
                   {isActive && (
                     <>
                       <circle cx="50" cy={ch.cy} r="34" fill={ch.color} opacity="0.05" filter="url(#soft-blur)" />
                       <circle cx="50" cy={ch.cy} r="22" fill={ch.color} opacity="0.10" filter="url(#soft-blur)" />
                     </>
                   )}
-                  {/* Main orb */}
                   <circle
-                    cx="50"
-                    cy={ch.cy}
+                    cx="50" cy={ch.cy}
                     r={isActive ? 14 : 9}
                     fill={isActive ? ch.color : 'transparent'}
                     stroke={ch.color}
@@ -314,17 +274,14 @@ export default function ChakraSoundPage() {
                     opacity={isActive ? 1 : 0.55}
                     filter={isActive ? 'url(#orb-glow)' : undefined}
                   />
-                  {/* Inner highlight for depth */}
-                  {isActive && (
-                    <circle cx="46" cy={ch.cy - 4} r="3.5" fill="white" opacity="0.28" />
-                  )}
+                  {isActive && <circle cx="46" cy={ch.cy - 4} r="3.5" fill="white" opacity="0.28" />}
                 </g>
               );
             })}
           </svg>
 
-          {/* Right: Sanskrit names */}
-          <div className="relative" style={{ width: 110 }}>
+          {/* Right: Sanskrit names — percentage-positioned */}
+          <div className="relative w-24 flex-shrink-0">
             {CHAKRAS.map((ch, i) => {
               const isActive = activeIdx === i;
               return (
@@ -332,111 +289,80 @@ export default function ChakraSoundPage() {
                   key={ch.sanskrit}
                   className="absolute left-0 transition-all duration-300"
                   style={{
-                    top: ch.cy - 10,
+                    top: `${(ch.cy / SVG_H) * 100}%`,
+                    transform: 'translateY(-50%)',
                     color: isActive ? ch.color : 'rgba(255,255,255,0.50)',
                     filter: isActive ? `drop-shadow(0 0 5px ${ch.color})` : 'none',
                   }}
                 >
-                  <div className="text-[11px] italic tracking-wide">{ch.sanskrit}</div>
+                  <div className="text-[10px] italic tracking-wide">{ch.sanskrit}</div>
                 </div>
               );
             })}
           </div>
         </div>
 
-        {/* Color spectrum bar */}
-        <div className="w-full max-w-xs mb-1">
+        {/* Row 3: Spectrum bar */}
+        <div className="flex-shrink-0 w-full max-w-xs mx-auto mb-1.5">
           <div
-            className="relative h-3 rounded-full overflow-visible"
+            className="relative h-2 rounded-full overflow-visible"
             style={{ background: 'linear-gradient(to right, #F87171, #FB923C, #FDE047, #4ADE80, #22D3EE, #818CF8, #C084FC)' }}
           >
             {spectrumPos !== null && (
               <div
-                className="absolute top-1/2 w-3.5 h-3.5 bg-white rounded-full"
+                className="absolute top-1/2 w-3 h-3 bg-white rounded-full"
                 style={{
                   left: `${spectrumPos}%`,
                   transform: 'translate(-50%, -50%)',
-                  boxShadow: `0 0 10px 3px ${activeChakra?.color ?? '#fff'}`,
+                  boxShadow: `0 0 8px 2px ${activeChakra?.color ?? '#fff'}`,
                   transition: 'left 0.2s ease',
                 }}
               />
             )}
           </div>
-          <div className="flex justify-between text-[9px] text-white/22 mt-1.5 px-0.5">
+          <div className="flex justify-between text-[9px] text-white/20 mt-1 px-0.5">
             <span>C</span><span>D</span><span>E</span><span>F</span><span>G</span><span>A</span><span>B</span>
           </div>
         </div>
 
-        {/* Active chakra pill */}
-        <div className="h-14 flex items-center mb-3">
-          {activeChakra ? (
-            <div className="flex flex-col items-center gap-1">
-              <div
-                className="text-2xl font-bold tracking-widest italic"
-                style={{
-                  color: activeChakra.color,
-                  filter: `drop-shadow(0 0 12px ${activeChakra.color})`,
-                  transition: 'all 0.3s ease',
-                }}
-              >
-                "{activeChakra.vowel}"
-              </div>
-              <div
-                className="px-5 py-1.5 rounded-full text-xs font-medium border tracking-wide"
-                style={{
-                  color: activeChakra.color,
-                  borderColor: `${activeChakra.color}35`,
-                  background: `${activeChakra.color}0e`,
-                  filter: `drop-shadow(0 0 6px ${activeChakra.color}30)`,
-                  transition: 'all 0.3s ease',
-                }}
-              >
-                {activeChakra.name} · {activeChakra.sanskrit}
-              </div>
-            </div>
-          ) : (
-            <div />
-          )}
+        {/* Row 4: Amplitude bars */}
+        <div className="flex-shrink-0 flex items-center justify-center mb-2">
+          <div className="flex gap-0.5 items-end h-6">
+            {Array.from({ length: 16 }).map((_, i) => {
+              const threshold = i / 16;
+              const lit = listening && amplitude > threshold;
+              return (
+                <div
+                  key={i}
+                  className="rounded-sm"
+                  style={{
+                    width: 4,
+                    height: lit ? Math.max(3, 2 + i * 1.3) : 2,
+                    background: lit ? (activeChakra?.color ?? '#818CF8') : 'rgba(255,255,255,0.07)',
+                    transition: 'height 0.06s ease, background 0.3s ease',
+                  }}
+                />
+              );
+            })}
+          </div>
         </div>
 
-        {/* Amplitude bars — always rendered to prevent layout shift */}
-        <div className="flex gap-0.5 items-end h-8 mb-3">
-          {Array.from({ length: 18 }).map((_, i) => {
-            const threshold = i / 18;
-            const lit = listening && amplitude > threshold;
-            return (
-              <div
-                key={i}
-                className="rounded-sm"
-                style={{
-                  width: 5,
-                  height: lit ? Math.max(4, 3 + i * 1.4) : 3,
-                  background: lit
-                    ? (activeChakra?.color ?? '#818CF8')
-                    : 'rgba(255,255,255,0.07)',
-                  transition: 'height 0.06s ease, background 0.3s ease',
-                }}
-              />
-            );
-          })}
+        {/* Row 5: Button */}
+        <div className="flex-shrink-0 flex flex-col items-center gap-2">
+          <button
+            onClick={listening ? stopListening : startListening}
+            className="px-8 py-2.5 rounded-full font-semibold tracking-widest text-xs uppercase transition-all duration-300"
+            style={
+              listening
+                ? { background: 'rgba(239,68,68,0.10)', border: '1px solid rgba(239,68,68,0.28)', color: 'rgba(248,113,113,0.85)' }
+                : { background: 'rgba(139,92,246,0.12)', border: '1px solid rgba(139,92,246,0.38)', color: 'rgba(192,132,252,0.9)' }
+            }
+          >
+            {listening ? 'End Session' : 'Begin Session'}
+          </button>
+          {error && <p className="text-red-400/70 text-xs text-center max-w-xs leading-relaxed">{error}</p>}
         </div>
 
-        {/* Begin / End button */}
-        <button
-          onClick={listening ? stopListening : startListening}
-          className="px-10 py-3 rounded-full font-semibold tracking-widest text-sm uppercase transition-all duration-300"
-          style={
-            listening
-              ? { background: 'rgba(239,68,68,0.10)', border: '1px solid rgba(239,68,68,0.28)', color: 'rgba(248,113,113,0.85)' }
-              : { background: 'rgba(139,92,246,0.12)', border: '1px solid rgba(139,92,246,0.38)', color: 'rgba(192,132,252,0.9)' }
-          }
-        >
-          {listening ? 'End Session' : 'Begin Session'}
-        </button>
-
-        {error && (
-          <p className="mt-4 text-red-400/70 text-xs text-center max-w-xs leading-relaxed">{error}</p>
-        )}
       </div>
     </div>
   );

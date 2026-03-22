@@ -12,6 +12,11 @@ const nextConfig = {
         destination: '/spiritual-coaching/:path*',
         permanent: true,
       },
+      {
+        source: '/chakra-sound',
+        destination: '/chakra-toner',
+        permanent: true,
+      },
     ];
   },
 };

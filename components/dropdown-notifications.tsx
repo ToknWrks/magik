@@ -65,9 +65,9 @@ export default function DropdownNotifications({ align }: {
 
           <Transition
             as="div"
-            className={`origin-top-right z-10 absolute top-full min-w-[20rem] max-w-sm bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700/60 py-1.5 rounded-lg shadow-lg overflow-hidden mt-1 ${
-              align === 'right' ? 'right-0' : 'left-0'
-            }`}
+            className={`z-10 fixed left-4 right-4 top-16 sm:absolute sm:top-full sm:left-auto sm:right-auto sm:min-w-[20rem] sm:max-w-sm sm:mt-1 ${
+              align === 'right' ? 'sm:right-0' : 'sm:left-0'
+            } bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700/60 py-1.5 rounded-lg shadow-lg overflow-hidden`}
             enter="transition ease-out duration-200 transform"
             enterFrom="opacity-0 -translate-y-2"
             enterTo="opacity-100 translate-y-0"

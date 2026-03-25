@@ -806,7 +806,7 @@ export default function SolomonSession({
           credentials: 'include',
           body: JSON.stringify({
             transcript,
-            durationSeconds: elapsed,
+            durationSeconds: resumedElapsed + elapsed,
             creditsUsed,
             chatGroupId,
             originalSessionId: resumeSessionId,
@@ -829,13 +829,13 @@ export default function SolomonSession({
   if (phase === 'summary') {
     return (
       <SessionSummary
-        elapsedSeconds={summaryData.elapsed}
+        elapsedSeconds={resumedElapsed + summaryData.elapsed}
         creditsUsed={summaryData.creditsUsed}
         balance={summaryData.balance}
         summary={sessionSummary}
         savingSession={savingSession}
         onResume={() => {
-          setResumedElapsed(summaryData.elapsed);
+          setResumedElapsed(prev => prev + summaryData.elapsed);
           if (lastChatGroupId) {
             setResumeChatGroupId(lastChatGroupId);
             setResumeTranscript(null);

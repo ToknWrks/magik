@@ -148,6 +148,7 @@ export default function CoachingSessionsPage() {
       if (detail?.transcript) {
         sessionStorage.setItem('solomon_resume_transcript', JSON.stringify(detail.transcript));
         sessionStorage.setItem('solomon_resume_session_id', sessionId);
+        sessionStorage.setItem('solomon_resume_elapsed', String(session?.duration_seconds ?? 0));
         router.push('/spiritual-coaching?resume=true');
       }
     } catch {
@@ -241,7 +242,12 @@ export default function CoachingSessionsPage() {
                   <div className="flex items-center gap-3">
                     <div className="text-right hidden sm:block">
                       <p className="text-xs text-gray-500 dark:text-gray-400">{fmtDuration(session.duration_seconds)}</p>
-                      <p className="text-xs text-yellow-700 dark:text-yellow-500">{session.credits_used} credits</p>
+                      {(() => {
+                        const minsLeft = Math.max(0, 10 - Math.floor(session.duration_seconds / 60));
+                        return minsLeft > 0 ? (
+                          <p className="text-xs text-yellow-700 dark:text-yellow-500">{minsLeft} min left</p>
+                        ) : null;
+                      })()}
                     </div>
 
                     {/* Resume button */}
@@ -309,7 +315,12 @@ export default function CoachingSessionsPage() {
                     {/* Mobile stats */}
                     <div className="flex gap-4 text-sm px-5 py-3 sm:hidden border-b border-gray-100 dark:border-gray-700">
                       <span className="text-gray-500 dark:text-gray-400">{fmtDuration(session.duration_seconds)}</span>
-                      <span className="text-yellow-700 dark:text-yellow-500">{session.credits_used} credits</span>
+                      {(() => {
+                        const minsLeft = Math.max(0, 10 - Math.floor(session.duration_seconds / 60));
+                        return minsLeft > 0 ? (
+                          <span className="text-yellow-700 dark:text-yellow-500">{minsLeft} min left</span>
+                        ) : null;
+                      })()}
                     </div>
 
                     {/* Eco footprint */}

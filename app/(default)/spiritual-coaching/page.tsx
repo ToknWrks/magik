@@ -42,6 +42,14 @@ function CoachingPageInner() {
     } catch {}
     return null;
   });
+  const [initialResumeSessionId] = useState<string | null>(() => {
+    if (typeof window === 'undefined') return null;
+    try {
+      const v = sessionStorage.getItem('solomon_resume_session_id');
+      if (v) { sessionStorage.removeItem('solomon_resume_session_id'); return v; }
+    } catch {}
+    return null;
+  });
   const [initialContentContext] = useState<{ title: string; type: 'enlightenment' | 'mystery' } | null>(() => {
     if (typeof window === 'undefined') return null;
     try {
@@ -141,6 +149,7 @@ function CoachingPageInner() {
         initialResumeTranscript={initialResumeTranscript}
         initialResumeChatGroupId={initialResumeChatGroupId}
         initialResumeElapsed={initialResumeElapsed}
+        initialResumeSessionId={initialResumeSessionId}
         initialContentContext={initialContentContext}
         language={language}
       />

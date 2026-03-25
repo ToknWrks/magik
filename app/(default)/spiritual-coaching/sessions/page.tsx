@@ -147,6 +147,7 @@ export default function CoachingSessionsPage() {
       }
       if (detail?.transcript) {
         sessionStorage.setItem('solomon_resume_transcript', JSON.stringify(detail.transcript));
+        sessionStorage.setItem('solomon_resume_session_id', sessionId);
         router.push('/spiritual-coaching?resume=true');
       }
     } catch {

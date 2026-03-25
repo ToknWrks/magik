@@ -751,6 +751,7 @@ export default function SolomonSession({
   initialResumeTranscript = null,
   initialResumeChatGroupId = null,
   initialResumeElapsed = 0,
+  initialResumeSessionId = null,
   initialContentContext = null,
   language = 'en',
 }: {
@@ -759,6 +760,7 @@ export default function SolomonSession({
   initialResumeTranscript?: any[] | null;
   initialResumeChatGroupId?: string | null;
   initialResumeElapsed?: number;
+  initialResumeSessionId?: string | null;
   initialContentContext?: { title: string; type: 'enlightenment' | 'mystery' } | null;
   language?: string;
 }) {
@@ -770,7 +772,9 @@ export default function SolomonSession({
   const [previousSummary, setPreviousSummary] = useState<string | null>(null);
   const [resumeTranscript, setResumeTranscript] = useState<any[] | null>(initialResumeTranscript);
   const [resumeChatGroupId, setResumeChatGroupId] = useState<string | null>(initialResumeChatGroupId);
+  const [resumeSessionId, setResumeSessionId] = useState<string | null>(initialResumeSessionId);
   const [lastChatGroupId, setLastChatGroupId] = useState<string | null>(null);
+  const [lastSavedSessionId, setLastSavedSessionId] = useState<string | null>(null);
   const [currentBalance, setCurrentBalance] = useState(initialBalance);
   const [resumedElapsed, setResumedElapsed] = useState(initialResumeElapsed);
   const lastTranscriptRef = useRef<any[]>([]);
@@ -800,9 +804,16 @@ export default function SolomonSession({
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           credentials: 'include',
-          body: JSON.stringify({ transcript, durationSeconds: elapsed, creditsUsed, chatGroupId }),
+          body: JSON.stringify({
+            transcript,
+            durationSeconds: elapsed,
+            creditsUsed,
+            chatGroupId,
+            originalSessionId: resumeSessionId,
+          }),
         });
         const data = await res.json();
+        if (data.session?.id) setLastSavedSessionId(data.session.id);
         if (data.session?.summary) {
           setSessionSummary(data.session.summary);
           setPreviousSummary(data.session.summary);
@@ -828,9 +839,11 @@ export default function SolomonSession({
           if (lastChatGroupId) {
             setResumeChatGroupId(lastChatGroupId);
             setResumeTranscript(null);
+            setResumeSessionId(null);
           } else {
             setResumeTranscript(lastTranscriptRef.current);
             setResumeChatGroupId(null);
+            setResumeSessionId(lastSavedSessionId);
           }
           setPhase('session');
           setSessionKey(k => k + 1);
@@ -838,12 +851,14 @@ export default function SolomonSession({
         onNew={() => {
           setResumeTranscript(null);
           setResumeChatGroupId(null);
+          setResumeSessionId(null);
           setPhase('session');
           setSessionKey(k => k + 1);
         }}
         onFreshStart={() => {
           setResumeTranscript(null);
           setResumeChatGroupId(null);
+          setResumeSessionId(null);
           setPreviousSummary(null);
           setPhase('session');
           setSessionKey(k => k + 1);

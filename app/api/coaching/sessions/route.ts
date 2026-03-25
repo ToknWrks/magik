@@ -29,7 +29,7 @@ export async function POST(request: NextRequest) {
     const userId = request.cookies.get('user_id')?.value;
     if (!userId) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
-    const { transcript, durationSeconds, creditsUsed, chatGroupId } = await request.json();
+    const { transcript, durationSeconds, creditsUsed, chatGroupId, originalSessionId } = await request.json();
     if (!transcript?.length) return NextResponse.json({ error: 'No transcript provided' }, { status: 400 });
 
     await ensureTable();
@@ -63,6 +63,33 @@ ${formatted}`,
 
     const co2Grams = estimateSessionFootprintGrams(formatted, summary);
 
+    // Check if this is a resumed session — update existing record instead of inserting
+    let existingSessionId: string | null = null;
+
+    if (chatGroupId) {
+      const existing = await pool.query(
+        `SELECT id FROM coaching_sessions WHERE hume_chat_group_id = $1 AND user_id = $2 LIMIT 1`,
+        [chatGroupId, userId]
+      );
+      if (existing.rows.length > 0) existingSessionId = existing.rows[0].id;
+    }
+    if (!existingSessionId && originalSessionId) {
+      existingSessionId = originalSessionId;
+    }
+
+    if (existingSessionId) {
+      // Resume: update existing session, no additional regen contribution
+      const result = await pool.query(
+        `UPDATE coaching_sessions
+         SET transcript = $1, summary = $2, duration_seconds = $3, credits_used = $4, co2_grams = $5
+         WHERE id = $6 AND user_id = $7
+         RETURNING id, created_at, co2_grams, regen_contribution_cents`,
+        [JSON.stringify(transcript), summary, durationSeconds, creditsUsed, co2Grams, existingSessionId, userId]
+      );
+      return NextResponse.json({ session: { ...result.rows[0], summary } });
+    }
+
+    // New session: insert with regen contribution
     const result = await pool.query(
       `INSERT INTO coaching_sessions (user_id, transcript, summary, duration_seconds, credits_used, hume_chat_group_id, co2_grams, regen_contribution_cents)
        VALUES ($1, $2, $3, $4, $5, $6, $7, $8)

@@ -1,6 +1,6 @@
 import Link from 'next/link'
 
-const STEP_HREFS = ['/onboarding-01', '/onboarding-02', '/onboarding-03'];
+const STEP_HREFS = ['/onboarding-01', '/illuminati-initiation', '/full-illuminati-initiation'];
 
 export default function OnboardingProgress({ step = 1, total = 3 }: { step?: number; total?: number }) {
   return (

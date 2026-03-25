@@ -15,7 +15,7 @@ export default function Onboarding02() {
   const [selected, setSelected] = useState<Path>('full');
 
   const handleContinue = () => {
-    if (selected === 'full') router.push('/onboarding-03');
+    if (selected === 'full') router.push('/full-illuminati-initiation');
     else if (selected === 'transit') router.push('/astrology/personal-reading');
     else router.push('/onboarding-solomon');
   };
@@ -32,8 +32,8 @@ export default function Onboarding02() {
 
             <div className="px-4 py-8">
               <div className="max-w-md mx-auto">
-                <h1 className="text-3xl text-gray-800 dark:text-gray-100 font-bold mb-2">How would you like to begin?</h1>
-                <p className="text-gray-500 dark:text-gray-400 text-sm mb-8">Choose your path. You can always explore the others later.</p>
+                <h1 className="text-3xl text-gray-800 dark:text-gray-100 font-bold mb-2">You who choose to lead...</h1>
+                <p className="text-gray-500 dark:text-gray-400 text-sm mb-8">Choose. This path is for your steps alone.</p>
 
                 <div className="space-y-3 mb-8">
 

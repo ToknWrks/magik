@@ -399,7 +399,7 @@ export default function OnboardingSolomon() {
                       )}
 
                       <div className="flex items-center justify-between">
-                        <Link className="text-sm underline hover:no-underline" href="/onboarding-02">← Back</Link>
+                        <Link className="text-sm underline hover:no-underline" href="/illuminati-initiation">← Back</Link>
                         <button
                           type="submit"
                           className="btn bg-gray-900 text-gray-100 hover:bg-gray-800 dark:bg-gray-100 dark:text-gray-800 dark:hover:bg-white"

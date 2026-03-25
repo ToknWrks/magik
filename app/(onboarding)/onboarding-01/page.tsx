@@ -72,7 +72,7 @@ export default function Onboarding01() {
                 </p>
 
                 <div className="flex justify-end">
-                  <Link className="btn bg-gray-900 text-gray-100 hover:bg-gray-800 dark:bg-gray-100 dark:text-gray-800 dark:hover:bg-white" href="/onboarding-02">
+                  <Link className="btn bg-gray-900 text-gray-100 hover:bg-gray-800 dark:bg-gray-100 dark:text-gray-800 dark:hover:bg-white" href="/illuminati-initiation">
                     I'm in. Let's go →
                   </Link>
                 </div>

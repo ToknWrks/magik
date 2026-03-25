@@ -17,6 +17,16 @@ const nextConfig = {
         destination: '/chakra-toner',
         permanent: true,
       },
+      {
+        source: '/onboarding-02',
+        destination: '/illuminati-initiation',
+        permanent: true,
+      },
+      {
+        source: '/onboarding-03',
+        destination: '/full-illuminati-initiation',
+        permanent: true,
+      },
     ];
   },
 };

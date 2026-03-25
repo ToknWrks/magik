@@ -268,7 +268,7 @@ function NatalChartSection({ reading, birthChartReading }: { reading: Reading; b
         </div>
         {!birthChartReading && (
           <div className="px-5 py-3 bg-gray-50 dark:bg-gray-800/50 border-t border-gray-100 dark:border-gray-700">
-            <Link href="/onboarding-03" className="text-xs text-yellow-700 dark:text-yellow-500 hover:underline font-medium">
+            <Link href="/full-illuminati-initiation" className="text-xs text-yellow-700 dark:text-yellow-500 hover:underline font-medium">
               ✦ Get a Birth Chart Reading to unlock planet interpretations →
             </Link>
           </div>
@@ -361,7 +361,7 @@ function NatalChartSection({ reading, birthChartReading }: { reading: Reading; b
             </p>
             <div className="flex flex-col gap-2">
               <Link
-                href="/onboarding-03"
+                href="/full-illuminati-initiation"
                 onClick={() => setShowUpsell(false)}
                 className="w-full py-2.5 bg-yellow-700 hover:bg-yellow-800 text-white font-medium rounded-lg text-sm transition-colors text-center"
               >

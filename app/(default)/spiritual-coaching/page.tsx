@@ -1,17 +1,17 @@
 'use client';
 
 import { useEffect, useState, Suspense } from 'react';
-import { useRouter } from 'next/navigation';
 import { Boundary } from '@/components/ui/boundary';
 import dynamic from 'next/dynamic';
 import { useLanguage } from '@/hooks/useLanguage';
 import LanguageSelector from '@/components/LanguageSelector';
 import Link from 'next/link';
+import MemberGate from '@/components/MemberGate';
 
 const SolomonSession = dynamic(() => import('./SolomonSession'), { ssr: false });
 
 function CoachingPageInner() {
-  const router = useRouter();
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [accessToken, setAccessToken] = useState<string | null>(null);
   const [balance, setBalance] = useState<number | null>(null);
   const [error, setError] = useState('');
@@ -66,9 +66,10 @@ function CoachingPageInner() {
       fetch('/api/credits/balance', { credentials: 'include' }).then(r => r.json()),
     ]).then(([auth, tokenData, creditsData]) => {
       if (!auth.user) {
-        router.push('/signin?redirect=/spiritual-coaching');
+        setLoading(false);
         return;
       }
+      setIsLoggedIn(true);
       if (tokenData.error) {
         setError('Failed to connect to Solomon. Please try again.');
         return;
@@ -80,11 +81,11 @@ function CoachingPageInner() {
     }).finally(() => {
       setLoading(false);
     });
-  }, [router]);
+  }, []);
 
   if (loading) {
     return (
-      <Boundary label="Coaching">
+      <Boundary label="Spiritual Coaching">
         <div className="flex flex-col items-center justify-center py-24 gap-4">
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-yellow-600" />
           <p className="text-sm text-gray-500 dark:text-gray-400">Preparing your session...</p>
@@ -93,9 +94,19 @@ function CoachingPageInner() {
     );
   }
 
+  if (!loading && !isLoggedIn) {
+    return (
+      <Boundary label="Spiritual Coaching">
+        <div className="max-w-sm mx-auto py-16">
+          <MemberGate redirect="/spiritual-coaching" message="Sign in or create an account to begin a session with Solomon." />
+        </div>
+      </Boundary>
+    );
+  }
+
   if (error) {
     return (
-      <Boundary label="Coaching">
+      <Boundary label="Spiritual Coaching">
         <div className="text-center py-24">
           <p className="text-gray-600 dark:text-gray-400 mb-4">{error}</p>
           <button

@@ -9,9 +9,9 @@ function LinkStatus() {
 
 export default function DashboardClient() {
   return (
-    <div className="px-4 sm:px-6 lg:px-8 pt-20 pb-8 w-full max-w-[96rem] mx-auto">  {/* Increased pt-8 to pt-20 for more top space */}
+    <div className="px-2 sm:px-6 lg:px-8 pt-4 sm:pt-20 pb-4 sm:pb-8 w-full max-w-[96rem] mx-auto">
       {/* Dashboard actions */}
-      <div className="sm:flex sm:justify-between sm:items-center mb-8">
+      <div className="sm:flex sm:justify-between sm:items-center mb-4 sm:mb-8">
         {/* Left: Title */}
         <div className="mb-4 sm:mb-0">
           <h1 className="text-2xl md:text-3xl text-gray-800 dark:text-gray-100 font-bold">Dashboard</h1>
@@ -31,7 +31,7 @@ export default function DashboardClient() {
       {/* Cards */}
       <div className="grid grid-cols-12 gap-6">
         {/* Illuminati Archive Section */}
-        <div className="col-span-12 pt-8"> {/* Changed mt-8 to pt-8 for top padding inside the div */}
+        <div className="col-span-12 pt-2 sm:pt-8">
           <IlluminatiArchive />
         </div>
       </div>

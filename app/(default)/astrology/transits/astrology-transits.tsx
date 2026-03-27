@@ -2,6 +2,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import MemberGate from '@/components/MemberGate';
 import * as Astronomy from 'astronomy-engine';
 import { astrologySymbols } from '../symbols';
 import { Line } from 'react-chartjs-2';
@@ -50,7 +51,9 @@ function getPlanetPositions(date: Date): Record<string, number> {
   return positions;
 }
 
+
 export default function AstrologyTransits() {
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [transits, setTransits] = useState<Transit[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedTransit, setSelectedTransit] = useState<Transit | null>(null);
@@ -67,6 +70,10 @@ export default function AstrologyTransits() {
   const [birthLabel, setBirthLabel] = useState('');
 
   useEffect(() => {
+    fetch('/api/auth/me', { credentials: 'include' })
+      .then(r => r.json())
+      .then(d => setIsLoggedIn(!!d.user))
+      .catch(() => setIsLoggedIn(false));
     calculateTransits();
   }, []);
 
@@ -297,7 +304,7 @@ export default function AstrologyTransits() {
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {personalTransits.map((t, index) => (
-              <div key={index} className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6">
+              <div key={index} onClick={() => openPersonalModal(t)} className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6 cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-750 transition-colors">
                 <div className="flex justify-between items-start mb-4">
                   <div>
                     <h3 className="text-lg font-semibold mb-2">
@@ -307,14 +314,6 @@ export default function AstrologyTransits() {
                       {t.orb.toFixed(1)}° orb · <span className={`font-medium ${t.isApplying ? 'text-green-600 dark:text-green-400' : 'text-gray-400'}`}>{t.isApplying ? 'applying' : 'separating'}</span>
                     </p>
                   </div>
-                  <button
-                    onClick={() => openPersonalModal(t)}
-                    className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
-                  >
-                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                    </svg>
-                  </button>
                 </div>
                 <div className="flex justify-end gap-2">
                   <span className="text-2xl astrology-symbol">{astrologySymbols[t.transitPlanet]}</span>
@@ -329,9 +328,10 @@ export default function AstrologyTransits() {
       ) : loading ? (
         <div>Loading transits...</div>
       ) : (
+        <>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {transits.map((transit, index) => (
-            <div key={index} className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6">
+          {(isLoggedIn ? transits : transits.slice(0, 3)).map((transit, index) => (
+            <div key={index} onClick={() => openModal(transit)} className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6 cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-750 transition-colors">
               <div className="flex justify-between items-start mb-4">
                 <div>
                   <h3 className="text-lg font-semibold mb-2">
@@ -344,14 +344,6 @@ export default function AstrologyTransits() {
                     {transit.angle.toFixed(1)}° • Orb: {transit.orb.toFixed(1)}°
                   </div>
                 </div>
-                <button
-                  onClick={() => openModal(transit)}
-                  className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
-                >
-                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                  </svg>
-                </button>
               </div>
               <div className="flex justify-end gap-2">
                 <span className="text-2xl astrology-symbol">
@@ -367,6 +359,10 @@ export default function AstrologyTransits() {
             </div>
           ))}
         </div>
+        {!isLoggedIn && (
+          <MemberGate redirect="/astrology/transits" message="Sign in or create an account to view all current transits." gradient />
+        )}
+        </>
       )}
 
       {/* Modal */}

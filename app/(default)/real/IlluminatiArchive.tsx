@@ -116,7 +116,7 @@ export default function IlluminatiArchive() {
       label="Illuminati - Singing and Dancing are the voice of the law"
       animateRerendering={false}
       kind="solid"
-      className="flex flex-col gap-9 pt-8"  // Added pt-8 for top padding
+      className="flex flex-col gap-6 sm:gap-9 pt-4 sm:pt-8"
     >
       {sections.map((section) => {
         return (

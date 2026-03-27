@@ -4,6 +4,7 @@
 import { useEffect, useState } from 'react';
 import { Boundary } from '@/components/ui/boundary';
 import Link from 'next/link';
+import MemberGate from '@/components/MemberGate';
 import ShareToX from '@/components/ShareToX';
 import AutoLinkMarkdown from '@/components/AutoLinkMarkdown';
 import Script from 'next/script';
@@ -17,40 +18,6 @@ function extractTeaser(body: string): string {
   return paragraphs.slice(0, 3).join('\n\n');
 }
 
-function MemberGate({ slug }: { slug: string }) {
-  return (
-    <div className="relative">
-      <div className="pointer-events-none select-none">
-        <div className="absolute inset-x-0 bottom-0 h-32 bg-gradient-to-t from-white dark:from-gray-950 to-transparent z-10" />
-      </div>
-      <div className="relative z-20 mt-4 flex flex-col items-center text-center py-10 px-6 bg-white dark:bg-gray-900 border border-amber-200 dark:border-amber-800 rounded-xl shadow-sm">
-        <div className="w-12 h-12 bg-amber-100 dark:bg-amber-900/40 rounded-full flex items-center justify-center mb-4">
-          <svg className="w-6 h-6 text-amber-600 dark:text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
-          </svg>
-        </div>
-        <h3 className="text-lg font-bold text-gray-900 dark:text-gray-100 mb-2">Members Only</h3>
-        <p className="text-gray-600 dark:text-gray-400 text-sm mb-6 max-w-sm">
-          The full interpretation is available to members. Sign in or create an account to continue reading.
-        </p>
-        <div className="flex flex-col sm:flex-row gap-3 w-full max-w-xs">
-          <Link
-            href={`/signin?redirect=/astrology/${slug}`}
-            className="flex-1 py-2.5 px-4 bg-yellow-700 hover:bg-yellow-800 text-white font-medium rounded-lg text-sm text-center transition-colors"
-          >
-            Sign In
-          </Link>
-          <Link
-            href={`/signup?redirect=/astrology/${slug}`}
-            className="flex-1 py-2.5 px-4 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 font-medium rounded-lg text-sm text-center transition-colors"
-          >
-            Create Account
-          </Link>
-        </div>
-      </div>
-    </div>
-  );
-}
 
 export function AstrologyContent({ slug }: AstrologyContentProps) {
   const [content, setContent] = useState<any>(null);
@@ -260,7 +227,7 @@ export function AstrologyContent({ slug }: AstrologyContentProps) {
             ) : (
               <>
                 <AutoLinkMarkdown content={extractTeaser(content.body || '')} currentSlug={slug} />
-                <MemberGate slug={slug} />
+                <MemberGate redirect={`/astrology/${slug}`} message="The full interpretation is available to members. Sign in or create an account to continue reading." gradient />
               </>
             )}
           </article>

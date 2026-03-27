@@ -56,9 +56,7 @@ export default function DropdownHelp({ align }: {
               <MenuItem as="li">
                 {({ active }) => (
                   <Link className={`font-medium text-sm flex items-center py-1 px-3 ${active ? 'text-gray-600 dark:text-yellow-700' : 'text-yellow-700'}`} href="/astrology/personal-reading">
-                    <svg className="w-3 h-3 fill-current text-gray-500 shrink-0 mr-2" viewBox="0 0 12 12">
-                      <path d="M6 0a6 6 0 100 12A6 6 0 006 0zm0 1a5 5 0 110 10A5 5 0 016 1zm0 2a1 1 0 100 2 1 1 0 000-2zm-.5 3h1v4h-1V6z" />
-                    </svg>
+                    <span className="astrology-symbol text-gray-500 shrink-0 mr-2 text-sm leading-none">{"\u2646"}</span>
                     <span>Reading</span>
                   </Link>
                 )}
@@ -66,8 +64,8 @@ export default function DropdownHelp({ align }: {
               <MenuItem as="li">
                 {({ active }) => (
                   <Link className={`font-medium text-sm flex items-center py-1 px-3 ${active ? 'text-gray-600 dark:text-yellow-700' : 'text-yellow-700'}`} href="/spiritual-coaching">
-                    <svg className="w-3 h-3 fill-current text-gray-500 shrink-0 mr-2" viewBox="0 0 12 12">
-                      <path d="M6 0a6 6 0 100 12A6 6 0 006 0zM5 3.5a1 1 0 112 0v3a1 1 0 11-2 0v-3zm1 6a1 1 0 100-2 1 1 0 000 2z" />
+                    <svg className="w-3 h-3 text-gray-500 shrink-0 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z" />
                     </svg>
                     <span>Solomon</span>
                   </Link>

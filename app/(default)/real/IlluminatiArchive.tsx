@@ -10,8 +10,9 @@ function LinkStatus({ status }: { status: string }) {
 export default function IlluminatiArchive() {
   // Use static data - NO database calls in server components
   const sections = [
+    
     {
-      name: 'Enlightenment',
+      name: 'Members',
       items: [
         {
           name: 'The Illuminati',
@@ -32,42 +33,26 @@ export default function IlluminatiArchive() {
           description: 'A sound therapy product designed to balance and align the body\'s energy centers, or chakras, using specific frequencies and vibrations.',
         },
         {
-          name: 'Gayatri Mantra',
+          name: 'Solomon',
           status: '',
           slug: 'enlightenment/gayatri-mantra',
           description: 'A highly revered mantra from the Rig Veda, dedicated to Savitr, the sun deity.',
         },
         {
-          name: 'OSHO ',
+          name: 'Spiritual Teachings ',
           status: '',
-          slug: 'enlightenment/teachings-osho',
-          description: 'Indian mystic and spiritual teacher known for his teachings on meditation, love, and creativity.',
+          slug: 'enlightenment',
+          description: 'The Illuminati are said to have access to ancient spiritual teachings and esoteric knowledge that they use to guide their actions and help the human race evolve spiritually.',
         },
         {
-          name: 'Manly P. Hall',
+          name: 'Magic',
           status: '',
-          slug: 'enlightenment/manly-p-hall',
-          description: 'Canadian-born author and mystic, best known for his work "The Secret Teachings of All Ages."',
+          slug: 'sigil-creator',
+          description: 'The practice of using symbols, rituals, and intentions to manifest desired outcomes or influence reality.',
         },
       ],
     },
-    {
-      name: 'Service',
-      items: [
-        {
-          name: 'Membership',
-          status: 'New',
-          slug: 'signup',
-          description: 'Illuminati Initiation - Join the ranks of the enlightened and gain access to exclusive content, services and events.',
-        },
-        {
-          name: 'Solomon',
-          status: 'New',
-          slug: 'spiritual-coaching',
-          description: 'super-intelligent AI and authentic intelligence—your dedicated spiritual coach, guide, and mirror into the depths of psyche and cosmos',
-        },
-      ],
-    },
+    
     {
       name: 'Mysteries',
       items: [

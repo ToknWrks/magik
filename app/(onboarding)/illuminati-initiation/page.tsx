@@ -22,7 +22,7 @@ export default function Onboarding02() {
 
   return (
     <main className="bg-white dark:bg-gray-900">
-      <div className="relative flex">
+      <div className="relative flex ">
         <div className="w-full md:w-1/2">
           <div className="min-h-[100dvh] h-full flex flex-col after:flex-1">
             <div className="flex-1">
@@ -30,10 +30,10 @@ export default function Onboarding02() {
               <OnboardingProgress step={2} total={3} />
             </div>
 
-            <div className="px-4 py-8">
-              <div className="max-w-md mx-auto">
+            <div className="px-4 py-2">
+              <div className="max-w-md mx-auto mt-0">
                 <h1 className="text-3xl text-gray-800 dark:text-gray-100 font-bold mb-2">You who choose to lead...</h1>
-                <p className="text-gray-500 dark:text-gray-400 text-sm mb-8">Choose. This path is for your steps alone.</p>
+                <p className="text-gray-500 dark:text-gray-400 text-sm mb-8">Must Lead. This path is for your steps alone. ~ The Grateful Dead</p>
 
                 <div className="space-y-3 mb-8">
 
@@ -53,16 +53,15 @@ export default function Onboarding02() {
                         <div className="space-y-1">
                           {[
                             'Complete natal chart interpretation',
-                            'Current planetary transits on your chart',
-                            'Deep dive into your core archetypal energies',
-                            '100 Solomon coaching tokens included',
+                            'World and Personal planetary transits',
+                            
                           ].map(f => (
                             <p key={f} className="text-xs text-gray-400 flex items-center gap-1.5">
                               <span className="text-yellow-600 dark:text-yellow-500 flex-shrink-0">✦</span>{f}
                             </p>
                           ))}
                         </div>
-                        <span className="inline-block mt-2.5 text-xs font-medium text-yellow-700 dark:text-yellow-500 bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 px-2 py-0.5 rounded-full">
+                        <span className="inline-block mt-2.5 text-xs font-medium text-yellow-700 dark:text-yellow-500 bg-yellow-50 dark:bg-blue-200/20 border border-yellow-200 dark:border-yellow-800 px-2 py-0.5 rounded-full">
                           Most comprehensive
                         </span>
                       </div>

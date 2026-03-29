@@ -126,6 +126,7 @@ function makeUnique(consonants: string): string {
     .join('');
 }
 
+const DAILY_KEY = () => `sigil_daily_${new Date().toISOString().slice(0, 10)}`;
 const STEP_LABELS = ['Speak', 'Consonants', 'Essence', 'Sigil'];
 
 export default function SigilClient() {
@@ -141,16 +142,78 @@ export default function SigilClient() {
   const [typedIntention, setTypedIntention] = useState('');
   const [listeningMode, setListeningMode] = useState<'browser' | 'hume' | 'text'>('browser');
 
+  // Auth + credits
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [balance, setBalance] = useState<number | null>(null);
+  const [authLoading, setAuthLoading] = useState(true);
+
+  // Daily limit
+  const [dailyUsed, setDailyUsed] = useState(false);
+
   const [showModal, setShowModal] = useState(false);
   const [releasing, setReleasing] = useState(false);
   const [imgOpacity, setImgOpacity] = useState(1);
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
 
-  const openModal = useCallback(() => {
+  // On mount: check daily limit + auth/balance
+  useEffect(() => {
+    try {
+      if (localStorage.getItem(DAILY_KEY())) setDailyUsed(true);
+    } catch { /* ignore */ }
+
+    Promise.all([
+      fetch('/api/auth/me', { credentials: 'include' }).then(r => r.json()),
+      fetch('/api/credits/balance', { credentials: 'include' }).then(r => r.json()),
+    ]).then(([auth, credits]) => {
+      setIsLoggedIn(!!auth.user);
+      setBalance(credits.balance ?? null);
+      // Guests: check permanent single-use flag
+      if (!auth.user) {
+        try {
+          if (localStorage.getItem('sigil_guest_used')) setDailyUsed(true);
+        } catch { /* ignore */ }
+      }
+    }).catch(() => {}).finally(() => setAuthLoading(false));
+  }, []);
+
+  // Token-gated modal open — first daily use is free, subsequent cost 10 tokens
+  const handleOpenModal = useCallback(async () => {
+    if (!isLoggedIn) {
+      // Mark guest as having used their one free attempt before redirecting
+      try { localStorage.setItem('sigil_guest_used', '1'); } catch { /* ignore */ }
+      window.location.href = `/signin?redirect=/sigil-creator`;
+      return;
+    }
+    setError('');
+
+    if (!dailyUsed) {
+      // First offering today — free
+      try { localStorage.setItem(DAILY_KEY(), '1'); } catch { /* ignore */ }
+      setDailyUsed(true);
+      setReleasing(false);
+      setImgOpacity(1);
+      setShowModal(true);
+      return;
+    }
+
+    // Subsequent offerings — cost 10 tokens
+    if (balance === null || balance < 10) {
+      setError('You need 10 tokens for an additional sigil today.');
+      return;
+    }
+    const res = await fetch('/api/credits/spend', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      credentials: 'include',
+      body: JSON.stringify({ amount: 10, description: 'Daily Offering — Additional Sigil' }),
+    });
+    const data = await res.json();
+    if (!res.ok) { setError(data.error || 'Failed to spend tokens'); return; }
+    setBalance(data.balance);
     setReleasing(false);
     setImgOpacity(1);
     setShowModal(true);
-  }, []);
+  }, [isLoggedIn, balance, dailyUsed]);
 
   const handleLetItGo = useCallback(() => {
     if (!canvasRef.current) return;
@@ -418,30 +481,7 @@ export default function SigilClient() {
   const displayText = typedIntention || intention || interimText;
 
   return (
-    <div
-      className="relative flex flex-col min-h-[calc(100vh-4rem)] overflow-hidden"
-      style={{
-        background: 'radial-gradient(ellipse 120% 80% at 50% 0%, #1a0a2e 0%, #0d0d14 60%, #080810 100%)',
-      }}
-    >
-      {/* Subtle star-field */}
-      <div
-        className="absolute inset-0 pointer-events-none opacity-20"
-        style={{
-          backgroundImage:
-            'radial-gradient(circle, rgba(255,255,255,0.18) 1px, transparent 1px)',
-          backgroundSize: '48px 48px',
-        }}
-      />
-
-      {/* Ambient radial glow */}
-      <div
-        className="absolute inset-0 pointer-events-none"
-        style={{
-          background:
-            'radial-gradient(ellipse 60% 40% at 50% 30%, rgba(139,92,246,0.06) 0%, transparent 70%)',
-        }}
-      />
+    <div className="relative flex flex-col min-h-[calc(100vh-4rem)] bg-white dark:bg-gray-950">
 
       <div className="relative z-10 flex flex-col items-center justify-center flex-1 px-4 py-16">
 
@@ -452,24 +492,27 @@ export default function SigilClient() {
               <div key={label} className="flex items-center gap-3">
                 <div className="flex flex-col items-center gap-1">
                   <div
-                    className="w-1.5 h-1.5 rounded-full transition-all duration-500"
-                    style={{
-                      background: i <= stepIndex ? 'rgba(168,85,247,0.9)' : 'rgba(255,255,255,0.15)',
-                      boxShadow: i === stepIndex ? '0 0 8px rgba(168,85,247,0.6)' : 'none',
-                      transform: i === stepIndex ? 'scale(1.4)' : 'scale(1)',
-                    }}
+                    className={`w-1.5 h-1.5 rounded-full transition-all duration-500 ${
+                      i <= stepIndex
+                        ? 'bg-gray-900 dark:bg-gray-100 scale-125'
+                        : 'bg-gray-200 dark:bg-gray-700'
+                    }`}
                   />
                   <span
-                    className="text-[9px] tracking-widest uppercase transition-all duration-300"
-                    style={{ color: i === stepIndex ? 'rgba(192,132,252,0.8)' : 'rgba(255,255,255,0.2)' }}
+                    className={`text-[9px] tracking-widest uppercase transition-all duration-300 ${
+                      i === stepIndex
+                        ? 'text-gray-700 dark:text-gray-300'
+                        : 'text-gray-300 dark:text-gray-600'
+                    }`}
                   >
                     {label}
                   </span>
                 </div>
                 {i < STEP_LABELS.length - 1 && (
                   <div
-                    className="w-8 h-px mb-4 transition-all duration-500"
-                    style={{ background: i < stepIndex ? 'rgba(168,85,247,0.4)' : 'rgba(255,255,255,0.08)' }}
+                    className={`w-8 h-px mb-4 transition-all duration-500 ${
+                      i < stepIndex ? 'bg-gray-400 dark:bg-gray-500' : 'bg-gray-200 dark:bg-gray-700'
+                    }`}
                   />
                 )}
               </div>
@@ -480,25 +523,42 @@ export default function SigilClient() {
         {/* ── INTRO ── */}
         {step === 'intro' && (
           <div className="text-center max-w-sm">
-            <p className="text-sm tracking-[0.6em] text-white/40 uppercase mb-4">Sigil Creator</p>
-            <h1
-              className="text-4xl font-extralight text-white/90 mb-10 leading-tight"
-              style={{ fontFamily: 'Georgia, serif', letterSpacing: '0.05em' }}
-            >
-              Manifest Your<br />Intention
+            <p className="text-xs font-mono font-semibold tracking-wider uppercase text-gray-500 dark:text-gray-400 mb-4">Daily Practice</p>
+            <h1 className="albertus-font text-4xl font-extralight text-gray-900 dark:text-gray-100 mb-6 leading-tight" style={{ letterSpacing: '0.05em' }}>
+              ILLUMINATI
             </h1>
-            <button
-              onClick={startListening}
-              className="px-10 py-3 rounded-full text-sm tracking-[0.3em] uppercase transition-all duration-300 hover:scale-105"
-              style={{
-                border: '1px solid rgba(168,85,247,0.35)',
-                color: 'rgba(192,132,252,0.9)',
-                background: 'rgba(139,92,246,0.06)',
-              }}
-            >
-              Begin
-            </button>
-            {error && <p className="text-red-400/60 text-xs mt-5">{error}</p>}
+
+            {dailyUsed && !isLoggedIn ? (
+              <div className="mt-2">
+                <p className="text-gray-500 dark:text-gray-400 text-sm mb-4">Sign in to create more sigils.</p>
+                <a
+                  href="/signin?redirect=/sigil-creator"
+                  className="inline-block px-10 py-3 rounded-lg bg-gray-900 dark:bg-gray-100 text-white dark:text-gray-900 text-sm font-medium hover:bg-gray-800 dark:hover:bg-white transition-colors"
+                >
+                  Sign In
+                </a>
+              </div>
+            ) : dailyUsed ? (
+              <>
+                <button
+                  onClick={startListening}
+                  className="px-10 py-3 rounded-lg bg-gray-900 dark:bg-gray-100 text-white dark:text-gray-900 text-sm font-medium hover:bg-gray-800 dark:hover:bg-white transition-colors"
+                >
+                  Begin
+                </button>
+                <p className="text-xs text-gray-400 dark:text-gray-500 mt-4">Additional sigils cost 10 tokens</p>
+              </>
+            ) : (
+              <>
+                <button
+                  onClick={startListening}
+                  className="px-10 py-3 rounded-lg bg-gray-900 dark:bg-gray-100 text-white dark:text-gray-900 text-sm font-medium hover:bg-gray-800 dark:hover:bg-white transition-colors"
+                >
+                  Begin
+                </button>
+              </>
+            )}
+            {error && <p className="text-red-600 dark:text-red-400 text-xs mt-5">{error}</p>}
           </div>
         )}
 
@@ -512,34 +572,25 @@ export default function SigilClient() {
                 <div className="relative w-20 h-20">
                   {isRecognizing && (
                     <>
-                      <div
-                        className="absolute inset-0 rounded-full animate-ping"
-                        style={{ background: 'rgba(168,85,247,0.12)', animationDuration: '1.5s' }}
-                      />
-                      <div
-                        className="absolute inset-2 rounded-full animate-ping"
-                        style={{ background: 'rgba(168,85,247,0.08)', animationDuration: '2s', animationDelay: '0.3s' }}
-                      />
+                      <div className="absolute inset-0 rounded-full animate-ping bg-gray-200 dark:bg-gray-700" style={{ animationDuration: '1.5s' }} />
+                      <div className="absolute inset-2 rounded-full animate-ping bg-gray-200 dark:bg-gray-700" style={{ animationDuration: '2s', animationDelay: '0.3s' }} />
                     </>
                   )}
                   <div
-                    className="absolute inset-4 rounded-full flex items-center justify-center"
-                    style={{
-                      background: isRecognizing ? 'rgba(139,92,246,0.2)' : 'rgba(255,255,255,0.04)',
-                      border: `1px solid ${isRecognizing ? 'rgba(168,85,247,0.5)' : 'rgba(255,255,255,0.1)'}`,
-                      boxShadow: isRecognizing ? '0 0 20px rgba(168,85,247,0.2)' : 'none',
-                    }}
+                    className={`absolute inset-4 rounded-full flex items-center justify-center border transition-colors ${
+                      isRecognizing
+                        ? 'bg-gray-200 dark:bg-gray-700 border-gray-300 dark:border-gray-600'
+                        : 'bg-gray-100 dark:bg-gray-800 border-gray-200 dark:border-gray-700'
+                    }`}
                   >
-                    <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"
-                      style={{ color: isRecognizing ? 'rgba(192,132,252,0.9)' : 'rgba(255,255,255,0.3)' }}>
+                    <svg className={`w-5 h-5 ${isRecognizing ? 'text-gray-700 dark:text-gray-200' : 'text-gray-400 dark:text-gray-500'}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5}
                         d="M12 18.75a6 6 0 006-6v-1.5m-6 7.5a6 6 0 01-6-6v-1.5m6 7.5v3.75m-3.75 0h7.5M12 15.75a3 3 0 01-3-3V4.5a3 3 0 116 0v8.25a3 3 0 01-3 3z" />
                     </svg>
                   </div>
                 </div>
                 {listeningMode === 'hume' && (
-                  <span className="mt-3 text-[9px] tracking-[0.35em] uppercase"
-                    style={{ color: 'rgba(251,191,36,0.5)' }}>
+                  <span className="mt-3 text-gray-500 dark:text-gray-400 text-xs tracking-wider">
                     
                   </span>
                 )}
@@ -549,7 +600,7 @@ export default function SigilClient() {
             {/* Text input fallback */}
             {showTextInput ? (
               <div className="mb-8 w-full">
-                <p className="text-white/60 text-base mb-3">
+                <p className="text-gray-600 dark:text-gray-400 text-base mb-3">
                   {error ? 'Speech unavailable — type your intention below' : 'Type your intention'}
                 </p>
                 <textarea
@@ -558,19 +609,12 @@ export default function SigilClient() {
                   onChange={(e) => setTypedIntention(e.target.value)}
                   placeholder="I intend to…"
                   rows={3}
-                  className="w-full rounded-xl px-4 py-3 text-white/85 text-base font-light italic resize-none outline-none placeholder:text-white/20 focus:ring-1"
-                  style={{
-                    background: 'rgba(255,255,255,0.03)',
-                    border: '1px solid rgba(168,85,247,0.25)',
-                    caretColor: 'rgba(192,132,252,0.8)',
-                  }}
-                  onFocus={(e) => (e.currentTarget.style.borderColor = 'rgba(168,85,247,0.5)')}
-                  onBlur={(e) => (e.currentTarget.style.borderColor = 'rgba(168,85,247,0.25)')}
+                  className="w-full rounded-lg px-4 py-3 text-gray-900 dark:text-gray-100 text-base font-light italic resize-none outline-none placeholder:text-gray-400 dark:placeholder:text-gray-600 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 focus:ring-1 focus:ring-gray-400 dark:focus:ring-gray-500 transition-colors"
                 />
                 {!error && (
                   <button
                     onClick={() => { setShowTextInput(false); startListening(); }}
-                    className="mt-3 text-xs tracking-widest text-white/25 uppercase hover:text-white/45 transition-colors"
+                    className="mt-3 text-xs tracking-widest text-gray-400 dark:text-gray-500 uppercase hover:text-gray-600 dark:hover:text-gray-300 transition-colors"
                   >
                     ← try microphone instead
                   </button>
@@ -581,16 +625,13 @@ export default function SigilClient() {
                 {/* Live transcript */}
                 <div className="min-h-[72px] mb-6 px-4">
                   {displayText ? (
-                    <p
-                      className="text-lg font-light leading-relaxed"
-                      style={{ color: 'rgba(255,255,255,0.85)', fontStyle: 'italic' }}
-                    >
+                    <p className="text-lg font-light leading-relaxed text-gray-900 dark:text-gray-100 italic">
                       &ldquo;{intention}
-                      <span style={{ color: 'rgba(255,255,255,0.35)' }}>{interimText}</span>
+                      <span className="text-gray-400 dark:text-gray-500">{interimText}</span>
                       &rdquo;
                     </p>
                   ) : (
-                    <p className="text-white/50 text-base">
+                    <p className="text-gray-500 dark:text-gray-400 text-base">
                       {isRecognizing
                         ? listeningMode === 'hume' ? 'Listening... speak then pause' : 'Listening…'
                         : 'Press Begin to start'}
@@ -601,32 +642,26 @@ export default function SigilClient() {
                 {/* Type instead toggle */}
                 <button
                   onClick={() => { stopAll(); setShowTextInput(true); setListeningMode('text'); }}
-                  className="mb-8 text-xs tracking-widest text-white/20 uppercase hover:text-white/40 transition-colors"
+                  className="mb-8 text-xs tracking-widest text-gray-400 dark:text-gray-500 uppercase hover:text-gray-600 dark:hover:text-gray-300 transition-colors"
                 >
                   type instead
                 </button>
               </>
             )}
 
-            {error && <p className="text-red-400/60 text-xs mb-4">{error}</p>}
+            {error && <p className="text-red-600 dark:text-red-400 text-xs mb-4">{error}</p>}
 
             <div className="flex justify-center gap-4">
               <button
                 onClick={handleReset}
-                className="px-6 py-2.5 rounded-full text-xs tracking-widest uppercase transition-all duration-200"
-                style={{ border: '1px solid rgba(255,255,255,0.08)', color: 'rgba(255,255,255,0.3)' }}
+                className="px-6 py-2.5 rounded-lg border border-gray-200 dark:border-gray-700 text-gray-600 dark:text-gray-400 text-sm font-medium hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
               >
                 Cancel
               </button>
               {displayText && (
                 <button
                   onClick={handleContinueFromListening}
-                  className="px-8 py-2.5 rounded-full text-sm tracking-[0.25em] uppercase transition-all duration-300 hover:scale-105"
-                  style={{
-                    border: '1px solid rgba(168,85,247,0.4)',
-                    color: 'rgba(192,132,252,0.9)',
-                    background: 'rgba(139,92,246,0.08)',
-                  }}
+                  className="px-8 py-2.5 rounded-lg bg-gray-900 dark:bg-gray-100 text-white dark:text-gray-900 text-sm font-medium hover:bg-gray-800 dark:hover:bg-white transition-colors"
                 >
                   Continue →
                 </button>
@@ -640,22 +675,13 @@ export default function SigilClient() {
           <div className="text-center max-w-lg w-full">
 
             <div className="mb-6">
-              <p className="text-white/40 text-xs tracking-widest uppercase mb-1">Your Intention</p>
-              <p className="text-white/65 text-base italic">&ldquo;{intention}&rdquo;</p>
+              <p className="text-xs font-mono font-semibold tracking-wider uppercase text-gray-500 dark:text-gray-400 mb-1">Your Intention</p>
+              <p className="text-gray-600 dark:text-gray-400 text-base italic">&ldquo;{intention}&rdquo;</p>
             </div>
 
-            <div
-              className="my-8 p-8 rounded-2xl"
-              style={{
-                border: '1px solid rgba(255,255,255,0.06)',
-                background: 'rgba(255,255,255,0.02)',
-              }}
-            >
-              <p className="text-xs tracking-[0.5em] text-white/40 uppercase mb-5">Consonants</p>
-              <p
-                className="text-3xl font-light text-white/85 break-all"
-                style={{ letterSpacing: '0.45em' }}
-              >
+            <div className="my-8 p-8 rounded-lg bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700">
+              <p className="text-xs font-mono font-semibold tracking-wider uppercase text-gray-500 dark:text-gray-400 mb-5">Consonants</p>
+              <p className="text-3xl font-light text-gray-900 dark:text-gray-100 break-all tracking-widest">
                 {consonants}
               </p>
             </div>
@@ -663,19 +689,13 @@ export default function SigilClient() {
             <div className="flex justify-center gap-4">
               <button
                 onClick={handleReset}
-                className="px-6 py-2.5 rounded-full text-xs tracking-widest uppercase transition-all duration-200"
-                style={{ border: '1px solid rgba(255,255,255,0.08)', color: 'rgba(255,255,255,0.3)' }}
+                className="px-6 py-2.5 rounded-lg border border-gray-200 dark:border-gray-700 text-gray-600 dark:text-gray-400 text-sm font-medium hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
               >
                 Start Over
               </button>
               <button
                 onClick={handleContinueFromConsonants}
-                className="px-8 py-2.5 rounded-full text-sm tracking-[0.25em] uppercase transition-all duration-300 hover:scale-105"
-                style={{
-                  border: '1px solid rgba(168,85,247,0.4)',
-                  color: 'rgba(192,132,252,0.9)',
-                  background: 'rgba(139,92,246,0.08)',
-                }}
+                className="px-8 py-2.5 rounded-lg bg-gray-900 dark:bg-gray-100 text-white dark:text-gray-900 text-sm font-medium hover:bg-gray-800 dark:hover:bg-white transition-colors"
               >
                 Continue →
               </button>
@@ -687,44 +707,25 @@ export default function SigilClient() {
         {step === 'unique' && (
           <div className="text-center max-w-lg w-full">
 
-            <div
-              className="my-8 p-10 rounded-2xl"
-              style={{
-                border: '1px solid rgba(168,85,247,0.18)',
-                background: 'rgba(139,92,246,0.04)',
-                boxShadow: '0 0 40px rgba(139,92,246,0.06) inset',
-              }}
-            >
-              <p className="text-xs tracking-[0.5em] text-purple-300/30 uppercase mb-6">Sigil Letters</p>
-              <p
-                className="text-5xl font-thin text-purple-100/90 break-all"
-                style={{
-                  letterSpacing: '0.75em',
-                  textShadow: '0 0 30px rgba(168,85,247,0.35)',
-                }}
-              >
+            <div className="my-8 p-10 rounded-lg bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700">
+              <p className="text-xs font-mono font-semibold tracking-wider uppercase text-gray-500 dark:text-gray-400 mb-6">Sigil Letters</p>
+              <p className="text-3xl font-light text-gray-900 dark:text-gray-100 break-all tracking-widest">
                 {uniqueConsonants}
               </p>
             </div>
 
-            {error && <p className="text-red-400/60 text-xs mb-5">{error}</p>}
+            {error && <p className="text-red-600 dark:text-red-400 text-xs mb-5">{error}</p>}
 
             <div className="flex justify-center gap-4">
               <button
                 onClick={handleReset}
-                className="px-6 py-2.5 rounded-full text-xs tracking-widest uppercase transition-all duration-200"
-                style={{ border: '1px solid rgba(255,255,255,0.08)', color: 'rgba(255,255,255,0.3)' }}
+                className="px-6 py-2.5 rounded-lg border border-gray-200 dark:border-gray-700 text-gray-600 dark:text-gray-400 text-sm font-medium hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
               >
                 Start Over
               </button>
               <button
                 onClick={handleGenerateSigil}
-                className="px-8 py-2.5 rounded-full text-sm tracking-[0.25em] uppercase transition-all duration-300 hover:scale-105"
-                style={{
-                  border: '1px solid rgba(251,191,36,0.4)',
-                  color: 'rgba(253,224,71,0.85)',
-                  background: 'rgba(245,158,11,0.06)',
-                }}
+                className="px-8 py-2.5 rounded-lg bg-gray-900 dark:bg-gray-100 text-white dark:text-gray-900 text-sm font-medium hover:bg-gray-800 dark:hover:bg-white transition-colors"
               >
                 Generate Sigil ✦
               </button>
@@ -735,37 +736,22 @@ export default function SigilClient() {
         {/* ── GENERATING ── */}
         {step === 'generating' && (
           <div className="text-center">
-            <p className="text-sm tracking-[0.5em] text-white/50 uppercase mb-12">
+            <p className="text-xs font-mono font-semibold tracking-wider uppercase text-gray-500 dark:text-gray-400 mb-12">
               Transmuting Intention
             </p>
             <div className="relative w-24 h-24 mx-auto mb-8">
               <div
-                className="absolute inset-0 rounded-full border"
-                style={{
-                  borderColor: 'rgba(251,191,36,0.25)',
-                  animation: 'spin 4s linear infinite',
-                }}
+                className="absolute inset-0 rounded-full border border-gray-300 dark:border-gray-600"
+                style={{ animation: 'spin 4s linear infinite' }}
               />
               <div
-                className="absolute inset-3 rounded-full border"
-                style={{
-                  borderColor: 'rgba(168,85,247,0.25)',
-                  animation: 'spin 3s linear infinite reverse',
-                }}
+                className="absolute inset-3 rounded-full border border-gray-300 dark:border-gray-600"
+                style={{ animation: 'spin 3s linear infinite reverse' }}
               />
-              <div
-                className="absolute inset-6 rounded-full border animate-pulse"
-                style={{ borderColor: 'rgba(255,255,255,0.12)' }}
-              />
-              <div
-                className="absolute inset-9 rounded-full"
-                style={{
-                  background: 'rgba(168,85,247,0.15)',
-                  animation: 'pulse 1.5s ease-in-out infinite',
-                }}
-              />
+              <div className="absolute inset-6 rounded-full border border-gray-900 dark:border-gray-100 animate-pulse" />
+              <div className="absolute inset-9 rounded-full bg-gray-200 dark:bg-gray-700 animate-pulse" />
             </div>
-            <p className="text-white/30 text-xs tracking-widest">
+            <p className="text-gray-400 dark:text-gray-500 text-xs tracking-widest">
               {uniqueConsonants.split('').join(' · ')}
             </p>
           </div>
@@ -775,50 +761,35 @@ export default function SigilClient() {
         {step === 'sigil' && sigilUrl && (
           <div className="text-center max-w-md w-full">
             <button
-              onClick={openModal}
-              className="block w-full rounded-2xl overflow-hidden mb-6 group transition-all duration-300 hover:scale-[1.02]"
-              style={{
-                border: '1px solid rgba(168,85,247,0.2)',
-                boxShadow: '0 0 60px rgba(139,92,246,0.15), 0 0 120px rgba(139,92,246,0.06)',
-              }}
+              onClick={handleOpenModal}
+              className="block w-full rounded-lg overflow-hidden mb-6 group transition-all duration-300 hover:scale-[1.02] border border-gray-200 dark:border-gray-700"
             >
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img src={sigilUrl} alt="Generated sigil" className="w-full block" />
-              <div
-                className="py-2 text-[9px] tracking-[0.4em] uppercase opacity-0 group-hover:opacity-100 transition-opacity duration-200"
-                style={{ color: 'rgba(192,132,252,0.7)', background: 'rgba(0,0,0,0.4)' }}
-              >
+              <div className="py-2 text-[9px] tracking-[0.4em] uppercase opacity-0 group-hover:opacity-100 transition-opacity duration-200 text-gray-500 dark:text-gray-400 bg-gray-50 dark:bg-gray-800">
                 Open Full Size
               </div>
             </button>
 
-            <p
-              className="text-sm tracking-[0.5em] mb-8"
-              style={{ color: 'rgba(253,224,71,0.4)' }}
-            >
+            <p className="text-sm tracking-widest mb-8 text-gray-400 dark:text-gray-500">
               {uniqueConsonants.split('').join(' ')}
             </p>
 
             <div className="flex justify-center gap-4">
               <button
                 onClick={handleReset}
-                className="px-6 py-2.5 rounded-full text-xs tracking-widest uppercase transition-all duration-200"
-                style={{ border: '1px solid rgba(255,255,255,0.08)', color: 'rgba(255,255,255,0.3)' }}
+                className="px-6 py-2.5 rounded-lg border border-gray-200 dark:border-gray-700 text-gray-600 dark:text-gray-400 text-sm font-medium hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
               >
                 Start Over
               </button>
               <button
-                onClick={openModal}
-                className="px-8 py-2.5 rounded-full text-sm tracking-[0.25em] uppercase transition-all duration-300 hover:scale-105"
-                style={{
-                  border: '1px solid rgba(168,85,247,0.4)',
-                  color: 'rgba(192,132,252,0.9)',
-                  background: 'rgba(139,92,246,0.08)',
-                }}
+                onClick={handleOpenModal}
+                className="px-8 py-2.5 rounded-lg bg-gray-900 dark:bg-gray-100 text-white dark:text-gray-900 text-sm font-medium hover:bg-gray-800 dark:hover:bg-white transition-colors"
               >
-                View Sigil ✦
+                {dailyUsed ? 'Work this Sigil · 10 tokens' : 'Work this Sigil · free'}
               </button>
             </div>
+            {error && <p className="text-red-600 dark:text-red-400 text-xs mt-4">{error}</p>}
           </div>
         )}
 
@@ -827,24 +798,15 @@ export default function SigilClient() {
       {/* ── SIGIL MODAL ── */}
       {showModal && (
         <div
-          className="fixed inset-0 z-50 flex items-center justify-center p-4"
-          style={{ background: 'rgba(0,0,0,0.92)' }}
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80"
           onClick={(e) => { if (e.target === e.currentTarget && !releasing) setShowModal(false); }}
         >
-          <div
-            className="relative max-w-2xl w-full rounded-3xl overflow-hidden"
-            style={{
-              border: '1px solid rgba(168,85,247,0.25)',
-              boxShadow: '0 0 80px rgba(139,92,246,0.2), 0 0 200px rgba(139,92,246,0.08)',
-              background: 'rgba(5,0,15,0.95)',
-            }}
-          >
+          <div className="relative max-w-2xl w-full rounded-xl overflow-hidden bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700">
             {/* Close */}
             {!releasing && (
               <button
                 onClick={() => setShowModal(false)}
-                className="absolute top-4 right-4 z-10 w-8 h-8 flex items-center justify-center rounded-full transition-colors"
-                style={{ background: 'rgba(255,255,255,0.06)', color: 'rgba(255,255,255,0.4)' }}
+                className="absolute top-4 right-4 z-10 w-8 h-8 flex items-center justify-center rounded-full bg-gray-100 dark:bg-gray-800 text-gray-500 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
               >
                 ✕
               </button>
@@ -868,35 +830,21 @@ export default function SigilClient() {
 
             {/* Actions */}
             {!releasing && (
-              <div
-                className="px-8 py-6 flex flex-col items-center gap-4"
-                style={{ borderTop: '1px solid rgba(168,85,247,0.1)' }}
-              >
-                <p className="text-white/25 text-xs tracking-[0.5em] uppercase mb-1">
+              <div className="px-8 py-6 flex flex-col items-center gap-4 border-t border-gray-200 dark:border-gray-700">
+                <p className="text-gray-400 dark:text-gray-500 text-xs tracking-widest uppercase mb-4">
                   {uniqueConsonants.split('').join(' · ')}
                 </p>
-                <p className="text-white/55 text-base italic mb-2">&ldquo;{intention}&rdquo;</p>
 
                 <div className="flex gap-4">
                   <button
                     onClick={handleRefine}
-                    className="px-8 py-3 rounded-full text-sm tracking-[0.25em] uppercase transition-all duration-300 hover:scale-105"
-                    style={{
-                      border: '1px solid rgba(168,85,247,0.4)',
-                      color: 'rgba(192,132,252,0.9)',
-                      background: 'rgba(139,92,246,0.08)',
-                    }}
+                    className="px-8 py-3 rounded-lg border border-gray-200 dark:border-gray-700 text-gray-600 dark:text-gray-400 text-sm font-medium hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
                   >
                     ↻ Refine
                   </button>
                   <button
                     onClick={handleLetItGo}
-                    className="px-8 py-3 rounded-full text-sm tracking-[0.25em] uppercase transition-all duration-300 hover:scale-105"
-                    style={{
-                      border: '1px solid rgba(251,191,36,0.35)',
-                      color: 'rgba(253,224,71,0.85)',
-                      background: 'rgba(245,158,11,0.06)',
-                    }}
+                    className="px-8 py-3 rounded-lg bg-gray-900 dark:bg-gray-100 text-white dark:text-gray-900 text-sm font-medium hover:bg-gray-800 dark:hover:bg-white transition-colors"
                   >
                     ✦ Let It Go
                   </button>

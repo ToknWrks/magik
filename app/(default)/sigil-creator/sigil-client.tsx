@@ -209,14 +209,13 @@ export default function SigilClient() {
     setShowLoginModal(true);
   }, [sigilUrl, uniqueConsonants, intention]);
 
-  // Open modal — free, just requires login
+  // Open modal — free, no login required
   const handleOpenModal = useCallback(() => {
-    if (!isLoggedIn) { saveAndShowLogin(); return; }
     setError('');
     setReleasing(false);
     setImgOpacity(1);
     setShowModal(true);
-  }, [isLoggedIn, saveAndShowLogin]);
+  }, []);
 
   // Spend 10 tokens helper
   const spendTokens = useCallback(async (description: string): Promise<boolean> => {
@@ -259,6 +258,7 @@ export default function SigilClient() {
     try {
       localStorage.setItem(DAILY_KEY(), '1');
       localStorage.removeItem('sigil_pending');
+      if (!isLoggedIn) localStorage.setItem('sigil_guest_used', '1');
     } catch { /* ignore */ }
     setDailyUsed(true);
     setReleasing(true);
@@ -278,7 +278,7 @@ export default function SigilClient() {
         finalTextRef.current = '';
       }, 200);
     });
-  }, [stopMeditation]);
+  }, [stopMeditation, isLoggedIn]);
 
   const handleRefine = useCallback(async () => {
     if (!isLoggedIn) { saveAndShowLogin(); return; }

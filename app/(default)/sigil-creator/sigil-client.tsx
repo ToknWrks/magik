@@ -127,7 +127,7 @@ function makeUnique(consonants: string): string {
 }
 
 const DAILY_KEY = () => `sigil_daily_${new Date().toISOString().slice(0, 10)}`;
-const STEP_LABELS = ['Speak', 'Consonants', 'Essence', 'Sigil'];
+const STEP_LABELS = ['Speak', 'Reduction', 'Essence', 'Sigil'];
 
 export default function SigilClient() {
   const [step, setStep] = useState<Step>('intro');
@@ -154,6 +154,8 @@ export default function SigilClient() {
   const [releasing, setReleasing] = useState(false);
   const [imgOpacity, setImgOpacity] = useState(1);
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
+  const audioRef = useRef<HTMLAudioElement | null>(null);
+  const [meditating, setMeditating] = useState(false);
 
   // On mount: check daily limit + auth/balance
   useEffect(() => {
@@ -215,8 +217,25 @@ export default function SigilClient() {
     setShowModal(true);
   }, [isLoggedIn, balance, dailyUsed]);
 
+  const toggleMeditation = useCallback(() => {
+    if (!audioRef.current) return;
+    if (meditating) {
+      audioRef.current.pause();
+      setMeditating(false);
+    } else {
+      audioRef.current.play();
+      setMeditating(true);
+    }
+  }, [meditating]);
+
+  const stopMeditation = useCallback(() => {
+    if (audioRef.current) { audioRef.current.pause(); audioRef.current.currentTime = 0; }
+    setMeditating(false);
+  }, []);
+
   const handleLetItGo = useCallback(() => {
     if (!canvasRef.current) return;
+    stopMeditation();
     setReleasing(true);
     burstSigil(canvasRef.current, setImgOpacity, () => {
       setTimeout(() => {
@@ -234,9 +253,10 @@ export default function SigilClient() {
         finalTextRef.current = '';
       }, 200);
     });
-  }, []);
+  }, [stopMeditation]);
 
   const handleRefine = useCallback(async () => {
+    stopMeditation();
     setShowModal(false);
     setStep('generating');
     setError('');
@@ -255,7 +275,7 @@ export default function SigilClient() {
       setError(err instanceof Error ? err.message : 'Unknown error');
       setStep('sigil');
     }
-  }, [uniqueConsonants, intention]);
+  }, [uniqueConsonants, intention, stopMeditation]);
 
 
   const recognitionRef = useRef<ISpeechRecognition | null>(null);
@@ -680,7 +700,7 @@ export default function SigilClient() {
             </div>
 
             <div className="my-8 p-8 rounded-lg bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700">
-              <p className="text-xs font-mono font-semibold tracking-wider uppercase text-gray-500 dark:text-gray-400 mb-5">Consonants</p>
+              <p className="text-xs font-mono font-semibold tracking-wider uppercase text-gray-500 dark:text-gray-400 mb-5">Reduction</p>
               <p className="text-3xl font-light text-gray-900 dark:text-gray-100 break-all tracking-widest">
                 {consonants}
               </p>
@@ -708,7 +728,7 @@ export default function SigilClient() {
           <div className="text-center max-w-lg w-full">
 
             <div className="my-8 p-10 rounded-lg bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700">
-              <p className="text-xs font-mono font-semibold tracking-wider uppercase text-gray-500 dark:text-gray-400 mb-6">Sigil Letters</p>
+              <p className="text-xs font-mono font-semibold tracking-wider uppercase text-gray-500 dark:text-gray-400 mb-6">Essence</p>
               <p className="text-3xl font-light text-gray-900 dark:text-gray-100 break-all tracking-widest">
                 {uniqueConsonants}
               </p>
@@ -835,16 +855,26 @@ export default function SigilClient() {
                   {uniqueConsonants.split('').join(' · ')}
                 </p>
 
-                <div className="flex gap-4">
+                <div className="flex gap-3 flex-wrap justify-center">
                   <button
                     onClick={handleRefine}
-                    className="px-8 py-3 rounded-lg border border-gray-200 dark:border-gray-700 text-gray-600 dark:text-gray-400 text-sm font-medium hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
+                    className="px-6 py-3 rounded-lg border border-gray-200 dark:border-gray-700 text-gray-600 dark:text-gray-400 text-sm font-medium hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
                   >
                     ↻ Refine
                   </button>
                   <button
+                    onClick={toggleMeditation}
+                    className={`px-6 py-3 rounded-lg border text-sm font-medium transition-colors ${
+                      meditating
+                        ? 'border-gray-400 dark:border-gray-500 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300'
+                        : 'border-gray-200 dark:border-gray-700 text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800'
+                    }`}
+                  >
+                    {meditating ? '⏸ Meditating' : '♬ Meditate'}
+                  </button>
+                  <button
                     onClick={handleLetItGo}
-                    className="px-8 py-3 rounded-lg bg-gray-900 dark:bg-gray-100 text-white dark:text-gray-900 text-sm font-medium hover:bg-gray-800 dark:hover:bg-white transition-colors"
+                    className="px-6 py-3 rounded-lg bg-gray-900 dark:bg-gray-100 text-white dark:text-gray-900 text-sm font-medium hover:bg-gray-800 dark:hover:bg-white transition-colors"
                   >
                     ✦ Let It Go
                   </button>
@@ -861,6 +891,9 @@ export default function SigilClient() {
           to { transform: rotate(360deg); }
         }
       `}</style>
+
+      {/* eslint-disable-next-line jsx-a11y/media-has-caption */}
+      <audio ref={audioRef} src="/audio/meditation20.mp3" loop preload="none" />
     </div>
   );
 }

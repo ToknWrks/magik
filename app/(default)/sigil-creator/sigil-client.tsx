@@ -146,6 +146,7 @@ export default function SigilClient() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [balance, setBalance] = useState<number | null>(null);
   const [authLoading, setAuthLoading] = useState(true);
+  const [refining, setRefining] = useState(false);
 
   // Daily limit
   const [dailyUsed, setDailyUsed] = useState(false);
@@ -254,13 +255,8 @@ export default function SigilClient() {
   const handleLetItGo = useCallback(() => {
     if (!canvasRef.current) return;
     stopMeditation();
-    // Consuming the daily offering
-    try {
-      localStorage.setItem(DAILY_KEY(), '1');
-      localStorage.removeItem('sigil_pending');
-      if (!isLoggedIn) localStorage.setItem('sigil_guest_used', '1');
-    } catch { /* ignore */ }
-    setDailyUsed(true);
+    // Clear the pending sigil on release
+    try { localStorage.removeItem('sigil_pending'); } catch { /* ignore */ }
     setReleasing(true);
     burstSigil(canvasRef.current, setImgOpacity, () => {
       setTimeout(() => {
@@ -278,16 +274,18 @@ export default function SigilClient() {
         finalTextRef.current = '';
       }, 200);
     });
-  }, [stopMeditation, isLoggedIn]);
+  }, [stopMeditation]);
 
   const handleRefine = useCallback(async () => {
     if (!isLoggedIn) { saveAndShowLogin(); return; }
     setError('');
+    setRefining(true);
     const ok = await spendTokens('Daily Offering — Refine Sigil');
-    if (!ok) return;
+    if (!ok) { setRefining(false); return; }
     stopMeditation();
     setShowModal(false);
     setStep('generating');
+    setRefining(false);
     try {
       const res = await fetch('/api/sigil/generate', {
         method: 'POST',
@@ -482,8 +480,16 @@ export default function SigilClient() {
   }, [consonants]);
 
   const handleGenerateSigil = useCallback(async () => {
-    setStep('generating');
     setError('');
+    // If daily free already used, cost 10 tokens to generate another
+    if (dailyUsed && isLoggedIn) {
+      const ok = await spendTokens('Daily Offering — New Sigil');
+      if (!ok) return;
+    } else if (dailyUsed && !isLoggedIn) {
+      saveAndShowLogin();
+      return;
+    }
+    setStep('generating');
     try {
       const res = await fetch('/api/sigil/generate', {
         method: 'POST',
@@ -499,6 +505,14 @@ export default function SigilClient() {
       const data = await res.json();
       setSigilUrl(data.url);
       setStep('sigil');
+      // Mark daily as used at generation (the costly AI call)
+      if (!dailyUsed) {
+        try { localStorage.setItem(DAILY_KEY(), '1'); } catch { /* ignore */ }
+        if (!isLoggedIn) {
+          try { localStorage.setItem('sigil_guest_used', '1'); } catch { /* ignore */ }
+        }
+        setDailyUsed(true);
+      }
       // Persist so navigation away doesn't lose it
       try {
         localStorage.setItem('sigil_pending', JSON.stringify({
@@ -511,7 +525,7 @@ export default function SigilClient() {
       setError(err instanceof Error ? err.message : 'Failed to generate sigil');
       setStep('unique');
     }
-  }, [uniqueConsonants, intention]);
+  }, [uniqueConsonants, intention, dailyUsed, isLoggedIn, spendTokens, saveAndShowLogin]);
 
   const handleReset = useCallback(() => {
     stopAll();
@@ -606,7 +620,7 @@ export default function SigilClient() {
                 >
                   Begin
                 </button>
-                <p className="text-xs text-gray-400 dark:text-gray-500 mt-4">Refinements cost 10 tokens</p>
+                <p className="text-xs text-gray-400 dark:text-gray-500 mt-4">Daily Sigil is free. Additional sigils and refinements cost 10 tokens</p>
               </>
             ) : (
               <>
@@ -787,7 +801,7 @@ export default function SigilClient() {
                 onClick={handleGenerateSigil}
                 className="px-8 py-2.5 rounded-lg bg-gray-900 dark:bg-gray-100 text-white dark:text-gray-900 text-sm font-medium hover:bg-gray-800 dark:hover:bg-white transition-colors"
               >
-                Generate Sigil ✦
+                {dailyUsed ? 'Generate Sigil · 10 tokens' : 'Generate Sigil ✦'}
               </button>
             </div>
           </div>
@@ -898,9 +912,10 @@ export default function SigilClient() {
                 <div className="flex gap-3 flex-wrap justify-center">
                   <button
                     onClick={handleRefine}
-                    className="px-6 py-3 rounded-lg border border-gray-200 dark:border-gray-700 text-gray-600 dark:text-gray-400 text-sm font-medium hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
+                    disabled={refining}
+                    className="px-6 py-3 rounded-lg border border-gray-200 dark:border-gray-700 text-gray-600 dark:text-gray-400 text-sm font-medium hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                   >
-                    ↻ Refine · 10 tokens
+                    {refining ? 'Spending tokens…' : '↻ Refine · 10 tokens'}
                   </button>
                   <button
                     onClick={toggleMeditation}
@@ -919,6 +934,9 @@ export default function SigilClient() {
                     ✦ Let It Go
                   </button>
                 </div>
+                {error && (
+                  <p className="text-red-500 dark:text-red-400 text-xs mt-2">{error}</p>
+                )}
               </div>
             )}
           </div>

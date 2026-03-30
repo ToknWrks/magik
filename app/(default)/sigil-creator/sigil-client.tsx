@@ -126,7 +126,7 @@ function makeUnique(consonants: string): string {
     .join('');
 }
 
-const DAILY_KEY = () => `sigil_daily_${new Date().toISOString().slice(0, 10)}`;
+const DAILY_KEY = () => `sigil_worked_${new Date().toISOString().slice(0, 10)}`;
 const STEP_LABELS = ['Speak', 'Reduction', 'Essence', 'Sigil'];
 
 export default function SigilClient() {
@@ -150,6 +150,9 @@ export default function SigilClient() {
   // Daily limit
   const [dailyUsed, setDailyUsed] = useState(false);
 
+  // Login modal (shown instead of redirecting)
+  const [showLoginModal, setShowLoginModal] = useState(false);
+
   const [showModal, setShowModal] = useState(false);
   const [releasing, setReleasing] = useState(false);
   const [imgOpacity, setImgOpacity] = useState(1);
@@ -157,20 +160,35 @@ export default function SigilClient() {
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const [meditating, setMeditating] = useState(false);
 
-  // On mount: check daily limit + auth/balance
+  // On mount: check daily limit + auth/balance + restore pending sigil
   useEffect(() => {
     try {
       if (localStorage.getItem(DAILY_KEY())) setDailyUsed(true);
+    } catch { /* ignore */ }
+
+    // Restore a pending sigil for anyone returning to this page
+    try {
+      const saved = localStorage.getItem('sigil_pending');
+      if (saved) {
+        const { url, uniqueConsonants: uc, intention: int } = JSON.parse(saved);
+        if (url) {
+          setSigilUrl(url);
+          setUniqueConsonants(uc || '');
+          setIntention(int || '');
+          setStep('sigil');
+        }
+      }
     } catch { /* ignore */ }
 
     Promise.all([
       fetch('/api/auth/me', { credentials: 'include' }).then(r => r.json()),
       fetch('/api/credits/balance', { credentials: 'include' }).then(r => r.json()),
     ]).then(([auth, credits]) => {
-      setIsLoggedIn(!!auth.user);
+      const loggedIn = !!auth.user;
+      setIsLoggedIn(loggedIn);
       setBalance(credits.balance ?? null);
-      // Guests: check permanent single-use flag
-      if (!auth.user) {
+
+      if (!loggedIn) {
         try {
           if (localStorage.getItem('sigil_guest_used')) setDailyUsed(true);
         } catch { /* ignore */ }
@@ -178,44 +196,45 @@ export default function SigilClient() {
     }).catch(() => {}).finally(() => setAuthLoading(false));
   }, []);
 
-  // Token-gated modal open — first daily use is free, subsequent cost 10 tokens
-  const handleOpenModal = useCallback(async () => {
-    if (!isLoggedIn) {
-      // Mark guest as having used their one free attempt before redirecting
-      try { localStorage.setItem('sigil_guest_used', '1'); } catch { /* ignore */ }
-      window.location.href = `/signin?redirect=/sigil-creator`;
-      return;
-    }
+  // Save pending sigil for guest → show login modal
+  const saveAndShowLogin = useCallback(() => {
+    try {
+      localStorage.setItem('sigil_pending', JSON.stringify({
+        url: sigilUrl,
+        uniqueConsonants,
+        intention,
+      }));
+      localStorage.setItem('sigil_guest_used', '1');
+    } catch { /* ignore */ }
+    setShowLoginModal(true);
+  }, [sigilUrl, uniqueConsonants, intention]);
+
+  // Open modal — free, just requires login
+  const handleOpenModal = useCallback(() => {
+    if (!isLoggedIn) { saveAndShowLogin(); return; }
     setError('');
+    setReleasing(false);
+    setImgOpacity(1);
+    setShowModal(true);
+  }, [isLoggedIn, saveAndShowLogin]);
 
-    if (!dailyUsed) {
-      // First offering today — free
-      try { localStorage.setItem(DAILY_KEY(), '1'); } catch { /* ignore */ }
-      setDailyUsed(true);
-      setReleasing(false);
-      setImgOpacity(1);
-      setShowModal(true);
-      return;
-    }
-
-    // Subsequent offerings — cost 10 tokens
+  // Spend 10 tokens helper
+  const spendTokens = useCallback(async (description: string): Promise<boolean> => {
     if (balance === null || balance < 10) {
-      setError('You need 10 tokens for an additional sigil today.');
-      return;
+      setError('You need 10 tokens to refine your sigil.');
+      return false;
     }
     const res = await fetch('/api/credits/spend', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       credentials: 'include',
-      body: JSON.stringify({ amount: 10, description: 'Daily Offering — Additional Sigil' }),
+      body: JSON.stringify({ amount: 10, description }),
     });
     const data = await res.json();
-    if (!res.ok) { setError(data.error || 'Failed to spend tokens'); return; }
+    if (!res.ok) { setError(data.error || 'Failed to spend tokens'); return false; }
     setBalance(data.balance);
-    setReleasing(false);
-    setImgOpacity(1);
-    setShowModal(true);
-  }, [isLoggedIn, balance, dailyUsed]);
+    return true;
+  }, [balance]);
 
   const toggleMeditation = useCallback(() => {
     if (!audioRef.current) return;
@@ -236,6 +255,12 @@ export default function SigilClient() {
   const handleLetItGo = useCallback(() => {
     if (!canvasRef.current) return;
     stopMeditation();
+    // Consuming the daily offering
+    try {
+      localStorage.setItem(DAILY_KEY(), '1');
+      localStorage.removeItem('sigil_pending');
+    } catch { /* ignore */ }
+    setDailyUsed(true);
     setReleasing(true);
     burstSigil(canvasRef.current, setImgOpacity, () => {
       setTimeout(() => {
@@ -256,10 +281,13 @@ export default function SigilClient() {
   }, [stopMeditation]);
 
   const handleRefine = useCallback(async () => {
+    if (!isLoggedIn) { saveAndShowLogin(); return; }
+    setError('');
+    const ok = await spendTokens('Daily Offering — Refine Sigil');
+    if (!ok) return;
     stopMeditation();
     setShowModal(false);
     setStep('generating');
-    setError('');
     try {
       const res = await fetch('/api/sigil/generate', {
         method: 'POST',
@@ -271,11 +299,14 @@ export default function SigilClient() {
       setSigilUrl(data.url);
       setStep('sigil');
       setShowModal(true);
+      try {
+        localStorage.setItem('sigil_pending', JSON.stringify({ url: data.url, uniqueConsonants, intention }));
+      } catch { /* ignore */ }
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : 'Unknown error');
       setStep('sigil');
     }
-  }, [uniqueConsonants, intention, stopMeditation]);
+  }, [isLoggedIn, saveAndShowLogin, spendTokens, stopMeditation, uniqueConsonants, intention]);
 
 
   const recognitionRef = useRef<ISpeechRecognition | null>(null);
@@ -468,6 +499,14 @@ export default function SigilClient() {
       const data = await res.json();
       setSigilUrl(data.url);
       setStep('sigil');
+      // Persist so navigation away doesn't lose it
+      try {
+        localStorage.setItem('sigil_pending', JSON.stringify({
+          url: data.url,
+          uniqueConsonants,
+          intention,
+        }));
+      } catch { /* ignore */ }
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : 'Failed to generate sigil');
       setStep('unique');
@@ -476,6 +515,7 @@ export default function SigilClient() {
 
   const handleReset = useCallback(() => {
     stopAll();
+    try { localStorage.removeItem('sigil_pending'); } catch { /* ignore */ }
     setStep('intro');
     setIntention('');
     setInterimText('');
@@ -566,7 +606,7 @@ export default function SigilClient() {
                 >
                   Begin
                 </button>
-                <p className="text-xs text-gray-400 dark:text-gray-500 mt-4">Additional sigils cost 10 tokens</p>
+                <p className="text-xs text-gray-400 dark:text-gray-500 mt-4">Refinements cost 10 tokens</p>
               </>
             ) : (
               <>
@@ -806,7 +846,7 @@ export default function SigilClient() {
                 onClick={handleOpenModal}
                 className="px-8 py-2.5 rounded-lg bg-gray-900 dark:bg-gray-100 text-white dark:text-gray-900 text-sm font-medium hover:bg-gray-800 dark:hover:bg-white transition-colors"
               >
-                {dailyUsed ? 'Work this Sigil · 10 tokens' : 'Work this Sigil · free'}
+                Work this Sigil ✦
               </button>
             </div>
             {error && <p className="text-red-600 dark:text-red-400 text-xs mt-4">{error}</p>}
@@ -860,7 +900,7 @@ export default function SigilClient() {
                     onClick={handleRefine}
                     className="px-6 py-3 rounded-lg border border-gray-200 dark:border-gray-700 text-gray-600 dark:text-gray-400 text-sm font-medium hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
                   >
-                    ↻ Refine
+                    ↻ Refine · 10 tokens
                   </button>
                   <button
                     onClick={toggleMeditation}
@@ -881,6 +921,42 @@ export default function SigilClient() {
                 </div>
               </div>
             )}
+          </div>
+        </div>
+      )}
+
+      {/* ── LOGIN MODAL ── */}
+      {showLoginModal && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80"
+          onClick={(e) => { if (e.target === e.currentTarget) setShowLoginModal(false); }}
+        >
+          <div className="bg-white dark:bg-gray-900 rounded-2xl shadow-2xl w-full max-w-sm p-8 text-center">
+            <p className="text-xs font-mono font-semibold tracking-wider uppercase text-gray-400 dark:text-gray-500 mb-4">Daily Offering</p>
+            <h2 className="albertus-font text-2xl text-gray-900 dark:text-gray-100 mb-3">Sign In to Continue</h2>
+            <p className="text-sm text-gray-500 dark:text-gray-400 mb-8">
+              Your sigil has been saved. Sign in or create an account to work it.
+            </p>
+            <div className="flex flex-col gap-3">
+              <a
+                href="/signin?redirect=/sigil-creator"
+                className="w-full py-3 rounded-lg bg-gray-900 dark:bg-gray-100 text-white dark:text-gray-900 text-sm font-medium hover:bg-gray-800 dark:hover:bg-white transition-colors"
+              >
+                Sign In
+              </a>
+              <a
+                href="/signup?redirect=/sigil-creator"
+                className="w-full py-3 rounded-lg border border-gray-200 dark:border-gray-700 text-gray-600 dark:text-gray-400 text-sm font-medium hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
+              >
+                Create Account
+              </a>
+              <button
+                onClick={() => setShowLoginModal(false)}
+                className="text-xs text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300 mt-2 transition-colors"
+              >
+                Cancel
+              </button>
+            </div>
           </div>
         </div>
       )}

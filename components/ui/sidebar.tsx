@@ -197,7 +197,7 @@ export default function Sidebar({
                           <li className="mb-1 last:mb-0">
                             <SidebarLink href="/sigil-creator">
                               <span className="text-sm font-medium lg:opacity-0 lg:sidebar-expanded:opacity-100 2xl:opacity-100 duration-200">
-                                Sigil Creator
+                                Daily Sigil
                               </span>
                             </SidebarLink>
                           </li>

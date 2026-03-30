@@ -45,7 +45,7 @@ export default function IlluminatiArchive() {
           description: 'The Illuminati are said to have access to ancient spiritual teachings and esoteric knowledge that they use to guide their actions and help the human race evolve spiritually.',
         },
         {
-          name: 'Daily Practice',
+          name: 'Daily Sigil',
           status: '',
           slug: 'sigil-creator',
           description: 'The practice of using symbols, rituals, and intentions to manifest desired outcomes or influence reality.',

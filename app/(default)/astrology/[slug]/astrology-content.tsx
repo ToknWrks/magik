@@ -110,12 +110,7 @@ export function AstrologyContent({ slug }: AstrologyContentProps) {
       <Boundary label="Error">
         <div className="text-center py-12">
           <div className="text-gray-700 dark:text-gray-300 mb-4">{error}</div>
-          <Link
-            href="/astrology"
-            className="text-amber-600 dark:text-amber-400 hover:underline"
-          >
-            ← Back to Astrology Archive
-          </Link>
+         
         </div>
       </Boundary>
     );

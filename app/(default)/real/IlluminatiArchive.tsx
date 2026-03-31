@@ -35,7 +35,7 @@ export default function IlluminatiArchive() {
         {
           name: 'Solomon',
           status: '',
-          slug: 'enlightenment/gayatri-mantra',
+          slug: 'spiritual-coaching',
           description: 'A highly revered mantra from the Rig Veda, dedicated to Savitr, the sun deity.',
         },
         {

@@ -3,7 +3,7 @@ import Link from 'next/link';
 
 // Define LinkStatus inline to resolve the undefined error
 function LinkStatus({ status }: { status: string }) {
-  const colorClass = status === 'Verified' ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400';
+  const colorClass = status === 'Members' ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400';
   return <span className={`text-xs ${colorClass}`}>{status}</span>;
 }
 

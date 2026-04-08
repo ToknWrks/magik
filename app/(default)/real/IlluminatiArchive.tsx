@@ -98,7 +98,7 @@ export default function IlluminatiArchive() {
 
   return (
     <Boundary
-      label="Illuminati - Singing and Dancing are the voice of the law"
+      label="Illuminati - As a path of awakening"
       animateRerendering={false}
       kind="solid"
       className="flex flex-col gap-6 sm:gap-9 pt-4 sm:pt-8"

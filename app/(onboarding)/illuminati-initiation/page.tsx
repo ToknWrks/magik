@@ -78,10 +78,10 @@ export default function Onboarding02() {
                       </div>
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center justify-between mb-1">
-                          <p className="font-semibold text-gray-900 dark:text-gray-100">Transit Reading</p>
-                          <span className="text-sm font-bold text-gray-700 dark:text-gray-300 flex-shrink-0 ml-2">$9</span>
+                          <p className="font-semibold text-gray-900 dark:text-gray-100"> Transit Reading</p>
+                          <span className="text-sm font-bold text-gray-700 dark:text-gray-300 flex-shrink-0 ml-2">FREE</span>
                         </div>
-                        <p className="text-sm text-gray-500 dark:text-gray-400 mb-2">Personal Transit Reading</p>
+                        <p className="text-sm text-gray-500 dark:text-gray-400 mb-2">Enter Code "BETA" </p>
                         <div className="space-y-1">
                           {[
                             'Current planetary influences on your natal chart',

@@ -3,6 +3,10 @@
       {
         "path": "/api/post-quote",
         "schedule": "0 9 * * *"
+      },
+      {
+        "path": "/api/post-transit",
+        "schedule": "0 12 * * *"
       }
     ]
   }

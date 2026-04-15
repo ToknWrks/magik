@@ -44,41 +44,12 @@ const rumiQuotes = [
   "The garden of the world has no limits, except in your mind.",
 ];
 
-export async function GET(request: NextRequest) {
-  try {
-    // Fetch Stoic quote from external API
-    const res = await fetch('https://stoic.tekloon.net/stoic-quote');
-    const stoicData = await res.json();
-
-    // Get random Rumi quote
-    const randomRumi = rumiQuotes[Math.floor(Math.random() * rumiQuotes.length)];
-
-    return NextResponse.json({
-      data: {
-        stoic: {
-          quote: stoicData.data.quote,
-          author: stoicData.data.author,
-        },
-        rumi: {
-          quote: randomRumi,
-          author: 'Rumi',
-        },
-      }
-    });
-  } catch (error) {
-    console.error('Error fetching quotes:', error);
-    
-    // Fallback - at least return Rumi if Stoic API fails
-    const randomRumi = rumiQuotes[Math.floor(Math.random() * rumiQuotes.length)];
-    
-    return NextResponse.json({
-      data: {
-        stoic: null,
-        rumi: {
-          quote: randomRumi,
-          author: 'Rumi',
-        },
-      }
-    });
-  }
+export async function GET(_request: NextRequest) {
+  const quote = rumiQuotes[Math.floor(Math.random() * rumiQuotes.length)];
+  return NextResponse.json({
+    data: {
+      stoic: null,
+      rumi: { quote, author: 'Rumi' },
+    },
+  });
 }

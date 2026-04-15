@@ -71,11 +71,12 @@ export async function GET(request: NextRequest) {
     const now  = new Date();
     const date = now.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' });
     const dateKey = now.toISOString().slice(0, 10); // YYYY-MM-DD
+    const authorKey = `transit-${dateKey}`;
 
     // Skip if already posted today
     const existing = await pool.query(
-      "SELECT id FROM posted_quotes WHERE author = 'transit' AND created_at::date = $1::date",
-      [dateKey],
+      'SELECT id FROM posted_quotes WHERE author = $1',
+      [authorKey],
     );
     if (existing.rows.length > 0) {
       return NextResponse.json({ message: 'Transit tweet already posted today' });
@@ -126,7 +127,7 @@ Rules:
     // Save to DB
     await pool.query(
       'INSERT INTO posted_quotes (quote, author, tweet_id) VALUES ($1, $2, $3)',
-      [tweetText, 'transit', tweet.data.id],
+      [tweetText, authorKey, tweet.data.id],
     );
 
     return NextResponse.json({ success: true, tweet: tweetText, tweetId: tweet.data.id });

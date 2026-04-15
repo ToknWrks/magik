@@ -8,11 +8,17 @@ interface Quote {
   author: string;
 }
 
+interface TransitData {
+  aspects: { label: string; orb: string }[];
+  skyline: string;
+}
+
 export default function DropdownNotifications({ align }: {
   align?: 'left' | 'right'
 }) {
   const [stoicQuote, setStoicQuote] = useState<Quote | null>(null);
   const [rumiQuote, setRumiQuote] = useState<Quote | null>(null);
+  const [transit, setTransit] = useState<TransitData | null>(null);
   const [loading, setLoading] = useState(true);
 
   const fetchQuotes = () => {
@@ -20,9 +26,9 @@ export default function DropdownNotifications({ align }: {
     fetch('/api/stoic')
       .then(res => res.json())
       .then(data => {
-        console.log('Fetched data:', data);
         setStoicQuote(data.data.stoic);
         setRumiQuote(data.data.rumi);
+        setTransit(data.data.transit ?? null);
         setLoading(false);
       })
       .catch(error => {
@@ -38,6 +44,12 @@ export default function DropdownNotifications({ align }: {
   const tweetQuote = (quote: Quote): void => {
     const url = `https://twitter.com/intent/tweet?text=${encodeURIComponent(quote.quote + ' - ' + quote.author + ' #realilluminati https://illuminati.earth')}`;
     window.open(url, '_blank');
+  };
+
+  const tweetTransit = (t: TransitData): void => {
+    const top = t.aspects[0] ? `${t.aspects[0].label} (${t.aspects[0].orb})` : t.skyline;
+    const text = `Today's sky: ${top}  ${t.skyline}  #Archetypal #Astrology https://illuminati.earth`;
+    window.open(`https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}`, '_blank');
   };
 
   return (
@@ -65,8 +77,8 @@ export default function DropdownNotifications({ align }: {
 
           <Transition
             as="div"
-            className={`z-10 fixed left-4 right-4 top-16 sm:absolute sm:top-full sm:left-auto sm:right-auto sm:min-w-[20rem] sm:max-w-sm sm:mt-1 ${
-              align === 'right' ? 'sm:right-0' : 'sm:left-0'
+            className={`z-10 fixed left-4 right-4 top-16 sm:absolute sm:top-full sm:w-80 sm:mt-1 ${
+              align === 'right' ? 'sm:right-0 sm:left-auto' : 'sm:left-0 sm:right-auto'
             } bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700/60 py-1.5 rounded-lg shadow-lg overflow-hidden`}
             enter="transition ease-out duration-200 transform"
             enterFrom="opacity-0 -translate-y-2"
@@ -156,6 +168,48 @@ export default function DropdownNotifications({ align }: {
                                 e.preventDefault();
                                 e.stopPropagation();
                                 tweetQuote(rumiQuote);
+                              }}
+                              className="mt-2 text-xs text-gray-400 hover:text-blue-500 flex items-center gap-1 transition-colors"
+                            >
+                              <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 24 24">
+                                <path d="M23.953 4.57a10 10 0 01-2.825.775 4.958 4.958 0 002.163-2.723c-.951.555-2.005.959-3.127 1.184a4.92 4.92 0 00-8.384 4.482C7.69 8.095 4.067 6.13 1.64 3.162a4.822 4.822 0 00-.666 2.475c0 1.71.87 3.213 2.188 4.096a4.904 4.904 0 01-2.228-.616v.06a4.923 4.923 0 003.946 4.827 4.996 4.996 0 01-2.212.085 4.936 4.936 0 004.604 3.417 9.867 9.867 0 01-6.102 2.105c-.39 0-.779-.023-1.17-.067a13.995 13.995 0 007.557 2.209c9.053 0 13.998-7.496 13.998-13.985 0-.21 0-.42-.015-.63A9.935 9.935 0 0024 4.59z" />
+                              </svg>
+                              Share
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+                    </MenuItem>
+                  )}
+
+                  {/* Today's Transits */}
+                  {transit && transit.aspects.length > 0 && (
+                    <MenuItem>
+                      <div className="px-4 py-3 hover:bg-gray-50 dark:hover:bg-gray-700/50 cursor-pointer">
+                        <div className="flex items-start gap-3">
+                          <div className="shrink-0 w-8 h-8 rounded-full bg-yellow-100 dark:bg-yellow-900/30 flex items-center justify-center">
+                            <span className="text-yellow-600 dark:text-yellow-400 text-sm">✦</span>
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <a href="/astrology/transits" className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-1.5 block hover:text-yellow-600 dark:hover:text-yellow-400">
+                              Today's Sky
+                            </a>
+                            <ul className="space-y-1">
+                              {transit.aspects.map((a, i) => (
+                                <li key={i} className="flex items-center justify-between gap-2">
+                                  <span className="text-xs text-gray-700 dark:text-gray-300">{a.label}</span>
+                                  <span className="text-xs text-gray-400 shrink-0">{a.orb}</span>
+                                </li>
+                              ))}
+                            </ul>
+                            <p className="text-xs text-gray-400 dark:text-gray-500 mt-2 tracking-wider">
+                              {transit.skyline}
+                            </p>
+                            <button
+                              onClick={(e) => {
+                                e.preventDefault();
+                                e.stopPropagation();
+                                tweetTransit(transit);
                               }}
                               className="mt-2 text-xs text-gray-400 hover:text-blue-500 flex items-center gap-1 transition-colors"
                             >

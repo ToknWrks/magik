@@ -108,7 +108,7 @@ Write a single tweet (max 250 characters) about today's astrological energy for 
 Rules:
 - Mystical, insightful, poetic tone — not generic horoscope fluff
 - Reference 1–2 specific planets or aspects that are most significant today
-- End with #astrology or #realilluminati (not both)
+- End with #Archetypal #Astrology
 - Do NOT include a URL
 - Output only the tweet text, nothing else`;
 

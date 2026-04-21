@@ -10,15 +10,7 @@ const twitterClient = new TwitterApi({
   accessSecret: process.env.TWITTER_ACCESS_TOKEN_SECRET!,
 });
 
-export async function GET(request: NextRequest) {
-  const url = new URL(request.url);
-  const isManual = url.searchParams.get('manual');
-  const isCron   = request.headers.get('authorization') === `Bearer ${process.env.CRON_SECRET}`;
-  if (!isManual && !isCron) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-  }
-
-  const rumiQuotes = [
+const rumiQuotes = [
     { quote: "Out beyond ideas of wrongdoing and rightdoing there is a field. I'll meet you there.", author: 'Rumi' },
     { quote: "The wound is the place where the Light enters you.", author: 'Rumi' },
     { quote: "What you seek is seeking you.", author: 'Rumi' },
@@ -31,6 +23,7 @@ export async function GET(request: NextRequest) {
     { quote: "There is a voice that doesn't use words. Listen.", author: 'Rumi' },
   ];
 
+export async function GET(request: NextRequest) {
   try {
     const quote = rumiQuotes[Math.floor(Math.random() * rumiQuotes.length)];
     console.log('Selected quote:', quote);
@@ -57,7 +50,8 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json({ message: 'Posted successfully', tweetId: tweet.data.id });
   } catch (error) {
-    console.error('Cron error:', error);
-    return NextResponse.json({ error: 'Failed to post' }, { status: 500 });
+    const err = error instanceof Error ? error.message : String(error);
+    console.error('Post-quote error:', err);
+    return NextResponse.json({ error: err }, { status: 500 });
   }
 }

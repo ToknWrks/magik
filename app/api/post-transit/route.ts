@@ -61,12 +61,6 @@ function getAspects(positions: Record<string, { lon: number }>) {
 }
 
 export async function GET(request: NextRequest) {
-  // Allow manual trigger via ?manual=true
-  const { searchParams } = new URL(request.url);
-  if (!searchParams.get('manual') && request.headers.get('authorization') !== `Bearer ${process.env.CRON_SECRET}`) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-  }
-
   try {
     const now  = new Date();
     const date = now.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' });
@@ -132,10 +126,8 @@ Rules:
 
     return NextResponse.json({ success: true, tweet: tweetText, tweetId: tweet.data.id });
   } catch (error) {
-    console.error('Transit tweet error:', error);
-    return NextResponse.json(
-      { error: error instanceof Error ? error.message : 'Failed to post transit tweet' },
-      { status: 500 },
-    );
+    const err = error instanceof Error ? error.message : String(error);
+    console.error('Post-transit error:', err, error);
+    return NextResponse.json({ error: err }, { status: 500 });
   }
 }

@@ -143,14 +143,25 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     },
   ];
 
-  // Dynamic routes from DB
-  const [articles, conspiracyTemplates, enlightenmentTemplates, astrologyTemplates] =
-    await Promise.all([
-      getAllArticles(),
-      getAllConspiracyTemplates(),
-      getAllEnlightenmentTemplates(),
-      getAllAstrologyTemplates(),
-    ]);
+  // Dynamic routes from DB — skip gracefully at build time when DB is unavailable
+  let articles: Awaited<ReturnType<typeof getAllArticles>> = [];
+  let conspiracyTemplates: Awaited<ReturnType<typeof getAllConspiracyTemplates>> = [];
+  let enlightenmentTemplates: Awaited<ReturnType<typeof getAllEnlightenmentTemplates>> = [];
+  let astrologyTemplates: Awaited<ReturnType<typeof getAllAstrologyTemplates>> = [];
+
+  if (process.env.DATABASE_URL) {
+    try {
+      [articles, conspiracyTemplates, enlightenmentTemplates, astrologyTemplates] =
+        await Promise.all([
+          getAllArticles(),
+          getAllConspiracyTemplates(),
+          getAllEnlightenmentTemplates(),
+          getAllAstrologyTemplates(),
+        ]);
+    } catch {
+      // DB unavailable at build time — sitemap will be populated at runtime
+    }
+  }
 
   const articleRoutes: MetadataRoute.Sitemap = articles.map((a) => ({
     url: `${baseUrl}/articles/${a.slug}`,

@@ -3,9 +3,6 @@ import Stripe from 'stripe';
 import { Pool } from '@neondatabase/serverless';
 import { createUserAccount, createSession } from '@/lib/auth';
 
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!);
-const pool = new Pool({ connectionString: process.env.DATABASE_URL, ssl: true });
-
 const PACKAGES: Record<string, { credits: number; amount: number; label: string }> = {
   single:   { credits: 100, amount: 500,  label: 'Solomon Starter — 100 tokens' },
   standard: { credits: 300, amount: 1200, label: 'Solomon 3-Pack — 300 tokens' },
@@ -14,6 +11,9 @@ const PACKAGES: Record<string, { credits: number; amount: number; label: string 
 
 export async function POST(request: NextRequest) {
   try {
+    const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!);
+    const pool = new Pool({ connectionString: process.env.DATABASE_URL, ssl: true });
+
     const { paymentIntentId, packageId, email, password } = await request.json();
 
     if (!email || !packageId) {

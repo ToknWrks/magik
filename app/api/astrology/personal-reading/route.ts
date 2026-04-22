@@ -6,11 +6,7 @@ import { createUserAccount, createSession } from '@/lib/auth';
 import { languagePromptSuffix } from '@/lib/language';
 import { estimateFootprintGrams, REGEN_CONTRIBUTION_CENTS } from '@/lib/regen-footprint';
 
-const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, { apiVersion: '2025-11-17.clover' });
-const pool = new Pool({ connectionString: process.env.DATABASE_URL, ssl: true });
-
-async function ensureTable() {
+async function ensureTable(pool: Pool) {
   await pool.query(`
     CREATE TABLE IF NOT EXISTS astrology_readings (
       id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -31,6 +27,10 @@ async function ensureTable() {
 
 export async function POST(request: NextRequest) {
   try {
+    const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
+    const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, { apiVersion: '2025-11-17.clover' });
+    const pool = new Pool({ connectionString: process.env.DATABASE_URL, ssl: true });
+
     const {
       paymentIntentId,
       couponCode,
@@ -55,7 +55,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
     }
 
-    await ensureTable();
+    await ensureTable(pool);
 
     let effectivePaymentId: string;
     let couponCredits = 0;

@@ -6,10 +6,6 @@ import { createUserAccount, createSession } from '@/lib/auth';
 import { languagePromptSuffix } from '@/lib/language';
 import { estimateFootprintGrams, REGEN_CONTRIBUTION_CENTS } from '@/lib/regen-footprint';
 
-const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, { apiVersion: '2025-11-17.clover' });
-const pool = new Pool({ connectionString: process.env.DATABASE_URL, ssl: true });
-
 const ZODIAC_SIGNS = ['Aries', 'Taurus', 'Gemini', 'Cancer', 'Leo', 'Virgo', 'Libra', 'Scorpio', 'Sagittarius', 'Capricorn', 'Aquarius', 'Pisces'];
 const LUMINARIES = new Set(['Sun', 'Moon']);
 
@@ -49,7 +45,7 @@ function calcNatalAspects(positions: Record<string, number>): string {
   return results.length > 0 ? results.join('\n') : 'None within orb';
 }
 
-async function ensureSchema() {
+async function ensureSchema(pool: Pool) {
   await pool.query(`ALTER TABLE astrology_readings ADD COLUMN IF NOT EXISTS reading_type TEXT DEFAULT 'transit'`);
   await pool.query(`ALTER TABLE astrology_readings ADD COLUMN IF NOT EXISTS co2_grams NUMERIC`);
   await pool.query(`ALTER TABLE astrology_readings ADD COLUMN IF NOT EXISTS regen_contribution_cents INT`);
@@ -58,6 +54,10 @@ async function ensureSchema() {
 
 export async function POST(request: NextRequest) {
   try {
+    const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
+    const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, { apiVersion: '2025-11-17.clover' });
+    const pool = new Pool({ connectionString: process.env.DATABASE_URL, ssl: true });
+
     const {
       paymentIntentId,
       birthDate,
@@ -81,7 +81,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Payment required' }, { status: 400 });
     }
 
-    await ensureSchema();
+    await ensureSchema(pool);
 
     let effectivePaymentId: string;
 

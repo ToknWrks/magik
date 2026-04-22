@@ -3,10 +3,7 @@ import { Pool } from '@neondatabase/serverless';
 import Anthropic from '@anthropic-ai/sdk';
 import { estimateSessionFootprintGrams, REGEN_CONTRIBUTION_CENTS_SESSION } from '@/lib/regen-footprint';
 
-const pool = new Pool({ connectionString: process.env.DATABASE_URL, ssl: true });
-const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
-
-async function ensureTable() {
+async function ensureTable(pool: Pool) {
   await pool.query(`
     CREATE TABLE IF NOT EXISTS coaching_sessions (
       id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -26,13 +23,16 @@ async function ensureTable() {
 
 export async function POST(request: NextRequest) {
   try {
+    const pool = new Pool({ connectionString: process.env.DATABASE_URL, ssl: true });
+    const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
+
     const userId = request.cookies.get('user_id')?.value;
     if (!userId) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
     const { transcript, durationSeconds, creditsUsed, chatGroupId, originalSessionId } = await request.json();
     if (!transcript?.length) return NextResponse.json({ error: 'No transcript provided' }, { status: 400 });
 
-    await ensureTable();
+    await ensureTable(pool);
 
     // Format transcript for Claude
     const formatted = transcript
@@ -106,10 +106,12 @@ ${formatted}`,
 
 export async function GET(request: NextRequest) {
   try {
+    const pool = new Pool({ connectionString: process.env.DATABASE_URL, ssl: true });
+
     const userId = request.cookies.get('user_id')?.value;
     if (!userId) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
-    await ensureTable();
+    await ensureTable(pool);
 
     const result = await pool.query(
       `SELECT id, summary, duration_seconds, credits_used, hume_chat_group_id, co2_grams, regen_contribution_cents, created_at

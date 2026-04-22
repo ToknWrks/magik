@@ -4,20 +4,20 @@ import { getAstrologyTemplate } from '@/lib/db';
 import { Pool } from '@neondatabase/serverless';
 import Anthropic from '@anthropic-ai/sdk';
 
-const pool = new Pool({
-  connectionString: process.env.DATABASE_URL,
-  ssl: true,
-});
-
-const anthropic = new Anthropic({
-  apiKey: process.env.ANTHROPIC_API_KEY,
-});
-
 export async function POST(
   request: NextRequest,
   { params }: { params: Promise<{ slug: string }> }
 ) {
   try {
+    const pool = new Pool({
+      connectionString: process.env.DATABASE_URL,
+      ssl: true,
+    });
+
+    const anthropic = new Anthropic({
+      apiKey: process.env.ANTHROPIC_API_KEY,
+    });
+
     const { slug } = await params;
     const template = await getAstrologyTemplate(slug);
 

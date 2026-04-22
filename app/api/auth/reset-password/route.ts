@@ -4,9 +4,8 @@ import { Resend } from 'resend';
 import { pool } from '@/lib/db'; // Adjust import
 import bcrypt from 'bcryptjs';
 
-const resend = new Resend(process.env.RESEND_API_KEY);
-
 export async function POST(request: NextRequest) {
+  const resend = new Resend(process.env.RESEND_API_KEY);
   const { email } = await request.json();
   // Generate a reset token and store in DB
   const resetToken = Math.random().toString(36).substring(2);
@@ -53,6 +52,7 @@ export async function PUT(request: NextRequest) {
   console.log('Received token:', token);
   // Verify token and update password
   const result = await pool.query('SELECT * FROM password_resets WHERE token = $1', [token]);
+
   console.log('Query result:', result.rows);
   if (result.rows.length === 0) {
     return NextResponse.json({ error: 'Invalid or expired token' }, { status: 400 });

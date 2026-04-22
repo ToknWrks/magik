@@ -3,17 +3,8 @@ import { NextRequest, NextResponse } from 'next/server';
 import { Pool } from '@neondatabase/serverless';
 import Anthropic from '@anthropic-ai/sdk';
 
-const pool = new Pool({
-  connectionString: process.env.DATABASE_URL,
-  ssl: true,
-});
-
-const anthropic = new Anthropic({
-  apiKey: process.env.ANTHROPIC_API_KEY,
-});
-
 // Inline database functions to avoid import issues
-async function getConspiracyTemplate(slug: string) {
+async function getConspiracyTemplate(slug: string, pool: Pool) {
   try {
     const result = await pool.query(
       'SELECT * FROM conspiracy_templates WHERE slug = $1 AND is_active = true',
@@ -26,7 +17,7 @@ async function getConspiracyTemplate(slug: string) {
   }
 }
 
-async function saveGeneratedContent(templateId: string, content: string, debunking: string, sources: string[]) {
+async function saveGeneratedContent(templateId: string, content: string, debunking: string, sources: string[], pool: Pool) {
   try {
     const result = await pool.query(
       `INSERT INTO generated_content (template_id, content, debunking_content, sources, expires_at)
@@ -41,7 +32,7 @@ async function saveGeneratedContent(templateId: string, content: string, debunki
   }
 }
 
-async function getCachedContent(templateId: string) {
+async function getCachedContent(templateId: string, pool: Pool) {
   try {
     const result = await pool.query(
       'SELECT * FROM generated_content WHERE template_id = $1 AND expires_at > NOW() ORDER BY created_at DESC LIMIT 1',
@@ -54,7 +45,7 @@ async function getCachedContent(templateId: string) {
   }
 }
 
-async function incrementViewCount(templateId: string) {
+async function incrementViewCount(templateId: string, pool: Pool) {
   try {
     await pool.query(
       'UPDATE conspiracy_templates SET view_count = view_count + 1 WHERE id = $1',
@@ -67,6 +58,12 @@ async function incrementViewCount(templateId: string) {
 
 // Inline AI service to avoid import issues
 class ConspiracyAIService {
+  private anthropic: Anthropic;
+
+  constructor(anthropic: Anthropic) {
+    this.anthropic = anthropic;
+  }
+
   async generateConspiracyContent(template: any) {
     try {
       const prompt = `You are a spiritual teacher, wisdom keeper, researcher on mysteries occult and conspiracy theories. Write an enlightening article about "${template.title}".
@@ -104,7 +101,7 @@ Include these sections:
 ## Reflection
 (A closing thought or contemplation)`;
 
-      const response = await anthropic.messages.create({
+      const response = await this.anthropic.messages.create({
         model: 'claude-sonnet-4-20250514',  // Updated to latest model
         max_tokens: 2000,
         messages: [{ role: 'user', content: prompt }],
@@ -126,7 +123,7 @@ ${template.debunking_points?.join('\n') || 'No debunking points provided'}
 Structure the response as a list of sources with links in Markdown format. Verify source links are working.
       `;
 
-      const response = await anthropic.messages.create({
+      const response = await this.anthropic.messages.create({
         model: 'claude-3-haiku-20240307',  // Updated to latest model
         max_tokens: 1500,
         messages: [{ role: 'user', content: prompt }],
@@ -140,24 +137,33 @@ Structure the response as a list of sources with links in Markdown format. Verif
   }
 }
 
-const aiService = new ConspiracyAIService();
-
 export async function POST(
   request: NextRequest,
   { params }: { params: Promise<{ slug: string }> }
 ) {
   try {
+    const pool = new Pool({
+      connectionString: process.env.DATABASE_URL,
+      ssl: true,
+    });
+
+    const anthropic = new Anthropic({
+      apiKey: process.env.ANTHROPIC_API_KEY,
+    });
+
+    const aiService = new ConspiracyAIService(anthropic);
+
     const { slug } = await params;
-    
+
     // Get template from database
-    const template = await getConspiracyTemplate(slug);
+    const template = await getConspiracyTemplate(slug, pool);
     
     if (!template) {
       return NextResponse.json({ error: 'Template not found' }, { status: 404 });
     }
 
     // Check cache first
-    const cached = await getCachedContent(template.id);
+    const cached = await getCachedContent(template.id, pool);
     if (cached) {
       return NextResponse.json({
         id: cached.id,
@@ -176,10 +182,10 @@ export async function POST(
     const debunking = await aiService.generateDebunkingContent(template);
 
     // Save to cache
-    const saved = await saveGeneratedContent(template.id, content, debunking, template.sources);
-    
+    const saved = await saveGeneratedContent(template.id, content, debunking, template.sources, pool);
+
     // Update view count
-    await incrementViewCount(template.id);
+    await incrementViewCount(template.id, pool);
 
     return NextResponse.json({
       id: saved?.id,

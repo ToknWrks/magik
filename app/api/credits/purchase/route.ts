@@ -2,9 +2,6 @@ import { NextRequest, NextResponse } from 'next/server';
 import { Pool } from '@neondatabase/serverless';
 import Stripe from 'stripe';
 
-const pool = new Pool({ connectionString: process.env.DATABASE_URL, ssl: true });
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!);
-
 const PACKAGES: Record<string, { credits: number; amount: number; label: string }> = {
   single:   { credits: 100, amount: 500,  label: 'Single Session (100 credits)' },
   standard: { credits: 300, amount: 1200, label: '3-Pack (300 credits)' },
@@ -13,6 +10,9 @@ const PACKAGES: Record<string, { credits: number; amount: number; label: string 
 
 export async function POST(request: NextRequest) {
   try {
+    const pool = new Pool({ connectionString: process.env.DATABASE_URL, ssl: true });
+    const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!);
+
     const userId = request.cookies.get('user_id')?.value;
     if (!userId) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 

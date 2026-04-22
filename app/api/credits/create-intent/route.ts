@@ -1,8 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import Stripe from 'stripe';
 
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!);
-
 const PACKAGES: Record<string, { amount: number; label: string }> = {
   single:   { amount: 500,  label: 'Single Session — 100 credits' },
   standard: { amount: 1200, label: '3-Pack — 300 credits' },
@@ -11,6 +9,8 @@ const PACKAGES: Record<string, { amount: number; label: string }> = {
 
 export async function POST(request: NextRequest) {
   try {
+    const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!);
+
     const { packageId } = await request.json();
     const pkg = PACKAGES[packageId];
     if (!pkg) return NextResponse.json({ error: 'Invalid package' }, { status: 400 });

@@ -1,9 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { Pool } from '@neondatabase/serverless';
 
-const pool = new Pool({ connectionString: process.env.DATABASE_URL, ssl: true });
-
-async function ensureSchema() {
+async function ensureSchema(pool: Pool) {
   await pool.query(`
     CREATE TABLE IF NOT EXISTS roadmap_items (
       id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -19,7 +17,7 @@ async function ensureSchema() {
   `);
 }
 
-async function adminCheck(request: NextRequest) {
+async function adminCheck(pool: Pool, request: NextRequest) {
   const userId = request.cookies.get('user_id')?.value;
   if (!userId) return null;
   const result = await pool.query(`SELECT role FROM users WHERE id = $1`, [userId]);
@@ -29,10 +27,11 @@ async function adminCheck(request: NextRequest) {
 
 // GET /api/roadmap
 export async function GET(request: NextRequest) {
-  const userId = await adminCheck(request);
+  const pool = new Pool({ connectionString: process.env.DATABASE_URL, ssl: true });
+  const userId = await adminCheck(pool, request);
   if (!userId) return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
 
-  await ensureSchema();
+  await ensureSchema(pool);
 
   const result = await pool.query(
     `SELECT * FROM roadmap_items ORDER BY sort_order ASC, created_at ASC`
@@ -42,10 +41,11 @@ export async function GET(request: NextRequest) {
 
 // POST /api/roadmap
 export async function POST(request: NextRequest) {
-  const userId = await adminCheck(request);
+  const pool = new Pool({ connectionString: process.env.DATABASE_URL, ssl: true });
+  const userId = await adminCheck(pool, request);
   if (!userId) return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
 
-  await ensureSchema();
+  await ensureSchema(pool);
 
   const body = await request.json();
   const { title, description, status = 'backlog', priority = 'medium', category } = body;
@@ -64,10 +64,11 @@ export async function POST(request: NextRequest) {
 
 // PATCH /api/roadmap
 export async function PATCH(request: NextRequest) {
-  const userId = await adminCheck(request);
+  const pool = new Pool({ connectionString: process.env.DATABASE_URL, ssl: true });
+  const userId = await adminCheck(pool, request);
   if (!userId) return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
 
-  await ensureSchema();
+  await ensureSchema(pool);
 
   const body = await request.json();
   const { id, title, description, status, priority, category } = body;
@@ -91,7 +92,8 @@ export async function PATCH(request: NextRequest) {
 
 // DELETE /api/roadmap
 export async function DELETE(request: NextRequest) {
-  const userId = await adminCheck(request);
+  const pool = new Pool({ connectionString: process.env.DATABASE_URL, ssl: true });
+  const userId = await adminCheck(pool, request);
   if (!userId) return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
 
   const { searchParams } = new URL(request.url);

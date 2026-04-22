@@ -3,11 +3,10 @@ import { put } from '@vercel/blob';
 import { Pool } from '@neondatabase/serverless';
 import { generateTTS } from '@/lib/tts';
 
-const pool = new Pool({ connectionString: process.env.DATABASE_URL, ssl: true });
-
 const CREDIT_COST = 50;
 
 export async function POST(request: NextRequest) {
+  const pool = new Pool({ connectionString: process.env.DATABASE_URL, ssl: true });
   try {
     const userId = request.cookies.get('user_id')?.value;
     if (!userId) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });

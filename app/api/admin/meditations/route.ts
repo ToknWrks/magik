@@ -1,9 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { Pool } from '@neondatabase/serverless';
 
-const pool = new Pool({ connectionString: process.env.DATABASE_URL, ssl: true });
-
-async function ensureTable() {
+async function ensureTable(pool: Pool) {
   await pool.query(`
     CREATE TABLE IF NOT EXISTS meditations (
       id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -16,7 +14,7 @@ async function ensureTable() {
   `);
 }
 
-async function assertAdmin(request: NextRequest) {
+async function assertAdmin(pool: Pool, request: NextRequest) {
   const userId = request.cookies.get('user_id')?.value;
   if (!userId) return false;
   const r = await pool.query('SELECT role FROM users WHERE id = $1', [userId]);
@@ -24,15 +22,17 @@ async function assertAdmin(request: NextRequest) {
 }
 
 export async function GET(request: NextRequest) {
-  if (!(await assertAdmin(request))) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-  await ensureTable();
+  const pool = new Pool({ connectionString: process.env.DATABASE_URL, ssl: true });
+  if (!(await assertAdmin(pool, request))) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  await ensureTable(pool);
   const result = await pool.query('SELECT * FROM meditations ORDER BY created_at DESC');
   return NextResponse.json({ meditations: result.rows });
 }
 
 export async function POST(request: NextRequest) {
-  if (!(await assertAdmin(request))) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-  await ensureTable();
+  const pool = new Pool({ connectionString: process.env.DATABASE_URL, ssl: true });
+  if (!(await assertAdmin(pool, request))) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  await ensureTable(pool);
   const { title, script, voice = 'Meditation Female' } = await request.json();
   if (!title || !script) return NextResponse.json({ error: 'title and script are required' }, { status: 400 });
   const result = await pool.query(

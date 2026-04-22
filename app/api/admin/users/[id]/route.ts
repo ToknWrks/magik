@@ -1,9 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { Pool } from '@neondatabase/serverless';
 
-const pool = new Pool({ connectionString: process.env.DATABASE_URL, ssl: true });
-
-async function requireAdmin(request: NextRequest) {
+async function requireAdmin(pool: Pool, request: NextRequest) {
   const userId = request.cookies.get('user_id')?.value;
   if (!userId) return null;
   const result = await pool.query('SELECT role FROM users WHERE id = $1', [userId]);
@@ -12,8 +10,9 @@ async function requireAdmin(request: NextRequest) {
 }
 
 export async function GET(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+  const pool = new Pool({ connectionString: process.env.DATABASE_URL, ssl: true });
   try {
-    if (!await requireAdmin(request)) {
+    if (!await requireAdmin(pool, request)) {
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
     }
     const { id } = await params;
@@ -35,8 +34,9 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
 }
 
 export async function PATCH(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+  const pool = new Pool({ connectionString: process.env.DATABASE_URL, ssl: true });
   try {
-    if (!await requireAdmin(request)) {
+    if (!await requireAdmin(pool, request)) {
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
     }
     const { id } = await params;
@@ -73,8 +73,9 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
 }
 
 export async function DELETE(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+  const pool = new Pool({ connectionString: process.env.DATABASE_URL, ssl: true });
   try {
-    const adminId = await requireAdmin(request);
+    const adminId = await requireAdmin(pool, request);
     if (!adminId) return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
 
     const { id } = await params;

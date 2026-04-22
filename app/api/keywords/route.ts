@@ -2,12 +2,11 @@
 import { NextResponse } from 'next/server';
 import { Pool } from '@neondatabase/serverless';
 
-const pool = new Pool({
-  connectionString: process.env.DATABASE_URL,
-  ssl: true,
-});
-
 export async function GET() {
+  const pool = new Pool({
+    connectionString: process.env.DATABASE_URL,
+    ssl: true,
+  });
   try {
     // Get manual keyword mappings
     const mappings = await pool.query(`

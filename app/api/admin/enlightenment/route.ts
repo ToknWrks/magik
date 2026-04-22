@@ -1,17 +1,16 @@
 // app/api/admin/enlightenment/route.ts
 import { NextRequest, NextResponse } from 'next/server';
 import { Pool } from '@neondatabase/serverless';
-import { 
-  getAllEnlightenmentTemplates, 
-  createEnlightenmentTemplate 
+import {
+  getAllEnlightenmentTemplates,
+  createEnlightenmentTemplate
 } from '@/lib/db';
 
-const pool = new Pool({
-  connectionString: process.env.DATABASE_URL,
-  ssl: true,
-});
-
 export async function GET(request: NextRequest) {
+  const pool = new Pool({
+    connectionString: process.env.DATABASE_URL,
+    ssl: true,
+  });
   try {
     // Verify admin
     const userId = request.cookies.get('user_id')?.value;
@@ -41,6 +40,10 @@ export async function GET(request: NextRequest) {
 }
 
 export async function POST(request: NextRequest) {
+  const pool = new Pool({
+    connectionString: process.env.DATABASE_URL,
+    ssl: true,
+  });
   try {
     const data = await request.json();
     console.log('POST data received:', data);

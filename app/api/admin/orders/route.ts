@@ -2,12 +2,11 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { Pool } from '@neondatabase/serverless';
 
-const pool = new Pool({
-  connectionString: process.env.DATABASE_URL,
-  ssl: true,
-});
-
 export async function GET(request: NextRequest) {
+  const pool = new Pool({
+    connectionString: process.env.DATABASE_URL,
+    ssl: true,
+  });
   try {
     // Verify admin
     const userId = request.cookies.get('user_id')?.value;

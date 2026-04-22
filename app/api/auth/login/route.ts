@@ -3,12 +3,11 @@ import { NextRequest, NextResponse } from 'next/server';
 import { Pool } from '@neondatabase/serverless';
 import bcrypt from 'bcryptjs';
 
-const pool = new Pool({
-  connectionString: process.env.DATABASE_URL,
-  ssl: true,
-});
-
 export async function POST(request: NextRequest) {
+  const pool = new Pool({
+    connectionString: process.env.DATABASE_URL,
+    ssl: true,
+  });
   try {
     const { email, password } = await request.json();
     console.log('Login attempt for:', email);

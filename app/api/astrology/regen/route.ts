@@ -1,9 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { Pool } from '@neondatabase/serverless';
 
-const pool = new Pool({ connectionString: process.env.DATABASE_URL, ssl: true });
-
-async function ensureSchema() {
+async function ensureSchema(pool: Pool) {
   await pool.query(`
     CREATE TABLE IF NOT EXISTS regen_retirements (
       id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -22,6 +20,7 @@ async function ensureSchema() {
 
 // GET /api/astrology/regen — admin stats
 export async function GET(request: NextRequest) {
+  const pool = new Pool({ connectionString: process.env.DATABASE_URL, ssl: true });
   const userId = request.cookies.get('user_id')?.value;
   if (!userId) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
@@ -31,7 +30,7 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
   }
 
-  await ensureSchema();
+  await ensureSchema(pool);
 
   const [readingTotals, sessionTotals, unretiredReadings, unretiredSessions, retirements, recentReadings, recentSessions] = await Promise.all([
     pool.query(`
@@ -115,6 +114,7 @@ export async function GET(request: NextRequest) {
 
 // POST /api/astrology/regen — record a retirement batch
 export async function POST(request: NextRequest) {
+  const pool = new Pool({ connectionString: process.env.DATABASE_URL, ssl: true });
   const userId = request.cookies.get('user_id')?.value;
   if (!userId) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
@@ -123,7 +123,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
   }
 
-  await ensureSchema();
+  await ensureSchema(pool);
 
   const { tx_hash, credit_class, notes } = await request.json();
 

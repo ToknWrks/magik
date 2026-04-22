@@ -1,9 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { Pool } from '@neondatabase/serverless';
 
-const pool = new Pool({ connectionString: process.env.DATABASE_URL, ssl: true });
-
 export async function POST(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+  const pool = new Pool({ connectionString: process.env.DATABASE_URL, ssl: true });
   try {
     const adminId = request.cookies.get('user_id')?.value;
     if (!adminId) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });

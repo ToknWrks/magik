@@ -1,9 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { Pool } from '@neondatabase/serverless';
 
-const pool = new Pool({ connectionString: process.env.DATABASE_URL, ssl: true });
-
-async function ensureTable() {
+async function ensureTable(pool: Pool) {
   await pool.query(`
     CREATE TABLE IF NOT EXISTS invite_codes (
       id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -21,6 +19,7 @@ async function ensureTable() {
 }
 
 export async function POST(request: NextRequest) {
+  const pool = new Pool({ connectionString: process.env.DATABASE_URL, ssl: true });
   try {
     // Admin only
     const userId = request.cookies.get('user_id')?.value;
@@ -31,7 +30,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
     }
 
-    await ensureTable();
+    await ensureTable(pool);
 
     const { code, description, type = 'free_reading', maxUses = 1, credits = 0, expiresAt } = await request.json();
 
@@ -55,6 +54,7 @@ export async function POST(request: NextRequest) {
 }
 
 export async function GET(request: NextRequest) {
+  const pool = new Pool({ connectionString: process.env.DATABASE_URL, ssl: true });
   try {
     const userId = request.cookies.get('user_id')?.value;
     if (!userId) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
@@ -64,7 +64,7 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
     }
 
-    await ensureTable();
+    await ensureTable(pool);
 
     const result = await pool.query(
       `SELECT id, code, description, type, max_uses, uses, credits, expires_at, created_at

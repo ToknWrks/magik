@@ -1,9 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { Pool } from '@neondatabase/serverless';
 
-const pool = new Pool({ connectionString: process.env.DATABASE_URL, ssl: true });
-
-async function ensureTable() {
+async function ensureTable(pool: Pool) {
   await pool.query(`
     CREATE TABLE IF NOT EXISTS invite_codes (
       id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -19,11 +17,12 @@ async function ensureTable() {
 }
 
 export async function POST(request: NextRequest) {
+  const pool = new Pool({ connectionString: process.env.DATABASE_URL, ssl: true });
   try {
     const { code } = await request.json();
     if (!code) return NextResponse.json({ valid: false, error: 'No code provided' });
 
-    await ensureTable();
+    await ensureTable(pool);
 
     const result = await pool.query(
       `SELECT id, type, max_uses, uses, expires_at, description

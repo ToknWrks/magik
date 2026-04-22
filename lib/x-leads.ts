@@ -3,14 +3,14 @@ import { TwitterApi } from 'twitter-api-v2';
 import { pool } from '@/lib/db';
 export { LEAD_KEYWORDS } from '@/lib/x-leads-constants';
 
-export const twitterClient = new TwitterApi({
-  appKey: process.env.TWITTER_API_KEY!,
-  appSecret: process.env.TWITTER_API_SECRET!,
-  accessToken: process.env.TWITTER_ACCESS_TOKEN!,
-  accessSecret: process.env.TWITTER_ACCESS_TOKEN_SECRET!,
-});
-
-const rwClient = twitterClient.readWrite;
+function getTwitterClient() {
+  return new TwitterApi({
+    appKey: process.env.TWITTER_API_KEY!,
+    appSecret: process.env.TWITTER_API_SECRET!,
+    accessToken: process.env.TWITTER_ACCESS_TOKEN!,
+    accessSecret: process.env.TWITTER_ACCESS_TOKEN_SECRET!,
+  });
+}
 
 export interface XLead {
   id: number;
@@ -291,6 +291,9 @@ export async function likeLead(leadId: number): Promise<void> {
 
 // Follow a lead
 export async function followLead(leadId: number): Promise<void> {
+  const twitter = getTwitterClient();
+  const rwClient = twitter.readWrite;
+
   const result = await pool.query(
     'SELECT twitter_user_id, username FROM x_leads WHERE id = $1',
     [leadId],
@@ -326,6 +329,9 @@ export async function followLead(leadId: number): Promise<void> {
 
 // Reply: post an @mention tweet — Free tier allows posting tweets
 export async function replyToLead(leadId: number): Promise<string> {
+  const twitter = getTwitterClient();
+  const rwClient = twitter.readWrite;
+
   const result = await pool.query(
     'SELECT username, source_tweet_id, source_tweet_text FROM x_leads WHERE id = $1',
     [leadId],

@@ -3,19 +3,17 @@ import { put } from '@vercel/blob';
 import { Pool } from '@neondatabase/serverless';
 import { generateTTS } from '@/lib/tts';
 
-const pool = new Pool({ connectionString: process.env.DATABASE_URL, ssl: true });
-
 export const HUME_VOICES = ['Meditation Female', 'Meditation Male'];
 
 // Allow up to 5 minutes for long multi-chunk TTS generation
 export const maxDuration = 300;
 
-async function ensureAudioColumns() {
+async function ensureAudioColumns(pool: Pool) {
   await pool.query(`ALTER TABLE enlightenment_templates ADD COLUMN IF NOT EXISTS audio_url TEXT`);
   await pool.query(`ALTER TABLE conspiracy_templates ADD COLUMN IF NOT EXISTS audio_url TEXT`);
 }
 
-async function fetchContentFromDB(contentId: string, contentType: string): Promise<string | null> {
+async function fetchContentFromDB(pool: Pool, contentId: string, contentType: string): Promise<string | null> {
   if (contentType === 'enlightenment') {
     const r = await pool.query(
       `SELECT article_content, description, title FROM enlightenment_templates WHERE id = $1`,
@@ -51,6 +49,7 @@ async function fetchContentFromDB(contentId: string, contentType: string): Promi
 }
 
 export async function POST(request: NextRequest) {
+  const pool = new Pool({ connectionString: process.env.DATABASE_URL, ssl: true });
   try {
     // Admin only
     const userId = request.cookies.get('user_id')?.value;
@@ -66,10 +65,10 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'contentId and contentType are required' }, { status: 400 });
     }
 
-    await ensureAudioColumns();
+    await ensureAudioColumns(pool);
 
     // Always read full content from DB — never rely on client-sent text
-    const text = await fetchContentFromDB(contentId, contentType);
+    const text = await fetchContentFromDB(pool, contentId, contentType);
     if (!text) {
       return NextResponse.json({ error: 'Content not found' }, { status: 404 });
     }

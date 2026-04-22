@@ -1,14 +1,6 @@
-// app/api/cron/post-quote/route.ts
 import { NextRequest, NextResponse } from 'next/server';
 import { TwitterApi } from 'twitter-api-v2';
-import { pool } from '@/lib/db'; // Adjust import
-
-const twitterClient = new TwitterApi({
-  appKey: process.env.TWITTER_API_KEY!,
-  appSecret: process.env.TWITTER_API_SECRET!,
-  accessToken: process.env.TWITTER_ACCESS_TOKEN!,
-  accessSecret: process.env.TWITTER_ACCESS_TOKEN_SECRET!,
-});
+import { pool } from '@/lib/db';
 
 const rumiQuotes = [
     { quote: "Out beyond ideas of wrongdoing and rightdoing there is a field. I'll meet you there.", author: 'Rumi' },
@@ -25,6 +17,13 @@ const rumiQuotes = [
 
 export async function GET(request: NextRequest) {
   try {
+    const twitter = new TwitterApi({
+      appKey: process.env.TWITTER_API_KEY!,
+      appSecret: process.env.TWITTER_API_SECRET!,
+      accessToken: process.env.TWITTER_ACCESS_TOKEN!,
+      accessSecret: process.env.TWITTER_ACCESS_TOKEN_SECRET!,
+    });
+
     const quote = rumiQuotes[Math.floor(Math.random() * rumiQuotes.length)];
     console.log('Selected quote:', quote);
 
@@ -36,7 +35,7 @@ export async function GET(request: NextRequest) {
 
     // Post to Twitter
     console.log('About to tweet');
-    const tweet = await twitterClient.v2.tweet(`${quote.quote} - ${quote.author} #realilluminati https://illuminati.earth`);
+    const tweet = await twitter.v2.tweet(`${quote.quote} - ${quote.author} #realilluminati https://illuminati.earth`);
     console.log('Tweet posted:', tweet.data.id);
 
     // Save to database

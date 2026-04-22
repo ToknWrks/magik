@@ -32,8 +32,8 @@ export default function Onboarding02() {
 
             <div className="px-4 py-2">
               <div className="max-w-md mx-auto mt-0">
-                <h1 className="text-3xl text-gray-800 dark:text-gray-100 font-bold mb-2">You who choose to lead...</h1>
-                <p className="text-gray-500 dark:text-gray-400 text-sm mb-8">Must Lead. This path is for your steps alone. ~ The Grateful Dead</p>
+                <h1 className="text-3xl text-gray-800 dark:text-gray-100 font-bold mb-2">And if you go...</h1>
+                <p className="text-gray-500 dark:text-gray-400 text-sm mb-8">No one may follow. This path is for your steps alone. ~ The Grateful Dead</p>
 
                 <div className="space-y-3 mb-8">
 

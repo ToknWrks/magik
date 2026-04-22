@@ -3,8 +3,8 @@ import { Pool } from '@neondatabase/serverless';
 import bcrypt from 'bcryptjs';
 
 const pool = new Pool({
-  connectionString: process.env.DATABASE_URL,
-  ssl: true,
+  connectionString: process.env.DATABASE_URL || 'postgresql://localhost/placeholder',
+  ssl: !!process.env.DATABASE_URL,
 });
 
 export { pool };

@@ -2,6 +2,8 @@
 import Link from 'next/link';
 import { getArticles } from '@/lib/db';
 
+export const dynamic = 'force-dynamic';
+
 export default async function Page() {
   const articles = await getArticles();
 

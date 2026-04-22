@@ -27,7 +27,7 @@ export async function POST(request: NextRequest) {
     ];
 
     const response = await anthropic.messages.create({
-      model: 'claude-3-haiku-20240307',  // Updated to latest model
+      model: 'claude-haiku-4-5-20251001',  // Updated to latest model
       max_tokens: 1000,
       messages,
     });

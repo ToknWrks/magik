@@ -16,8 +16,12 @@
     "@neondatabase/serverless": "^1.0.2",
     "@next/third-parties": "^16.0.3",
     "@paypal/react-paypal-js": "^8.9.2",
+    "@reown/appkit": "^1.8.23",
+    "@reown/appkit-adapter-wagmi": "^1.8.23",
+    "@reown/appkit-siwe": "^1.8.23",
     "@stripe/react-stripe-js": "^5.4.1",
     "@stripe/stripe-js": "^8.5.3",
+    "@tanstack/react-query": "^5.102.8",
     "@types/node": "^20.10.4",
     "@types/react": "^18.2.42",
     "@types/react-dom": "^18.2.17",
@@ -45,9 +49,12 @@
     "remark-breaks": "^4.0.0",
     "remark-gfm": "^4.0.1",
     "resend": "^6.5.2",
+    "siwe": "^3.0.0",
     "stripe": "^20.0.0",
     "twitter-api-v2": "^1.28.0",
-    "typescript": "^5.3.3"
+    "typescript": "^5.3.3",
+    "viem": "^2.56.5",
+    "wagmi": "^3.7.7"
   },
   "devDependencies": {
     "@tailwindcss/forms": "^0.5.7",

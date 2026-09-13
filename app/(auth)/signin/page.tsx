@@ -5,6 +5,7 @@ import { Suspense } from 'react';
 import Link from 'next/link';
 import AuthHeader from '../auth-header';
 import AuthImage from '../auth-image';
+import WalletAuthButton from '@/components/web3/WalletAuthButton';
 
 function SignInForm() {
   const searchParams = useSearchParams();
@@ -72,8 +73,9 @@ function SignInForm() {
                     Sign In
                   </button>
                 </div>
-                <div className="pt-5 mt-6 border-t border-gray-100 dark:border-gray-700/60 text-center">
-                  <div className="text-sm text-gray-500 dark:text-gray-400">
+                <div className="pt-5 mt-6 border-t border-gray-100 dark:border-gray-700/60">
+                  <WalletAuthButton label="⛓ Connect Wallet to Sign In" className="w-full" />
+                  <div className="text-sm text-gray-500 dark:text-gray-400 text-center mt-4">
                     Don't have an account?{' '}
                     <Link className="font-medium text-yellow-700 hover:text-yellow-800 dark:hover:text-yellow-800" href="/signup">
                       Create Account

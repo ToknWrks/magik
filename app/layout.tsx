@@ -3,6 +3,7 @@ import './css/style.css'
 import { Inter } from 'next/font/google'
 import Theme from './theme-provider'
 import AppProvider from './app-provider'
+import Web3ModalProvider from '@/components/web3/Web3ModalProvider'
 import { GoogleAnalytics } from '@next/third-parties/google'
 import { CartProvider } from '@/context/cart-context';
 
@@ -27,12 +28,14 @@ export default function RootLayout({
     <html lang="en" className={`${inter.variable}`} suppressHydrationWarning>{/* suppressHydrationWarning: https://github.com/vercel/next.js/issues/44343 */}
       <body className="font-inter antialiased bg-white dark:bg-black text-gray-700 dark:text-gray-400">
         <Theme>
+        <Web3ModalProvider>
         <CartProvider>
           <AppProvider>
             {children}
             {process.env.NEXT_PUBLIC_GA_ID && <GoogleAnalytics gaId={process.env.NEXT_PUBLIC_GA_ID} />}
           </AppProvider>
           </CartProvider>
+        </Web3ModalProvider>
         </Theme>
       </body>
     </html>

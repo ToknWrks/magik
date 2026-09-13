@@ -12,6 +12,7 @@ import {
 } from '@stripe/react-stripe-js';
 import { Boundary } from '@/components/ui/boundary';
 import Link from 'next/link';
+import CryptoPurchase from '@/components/web3/CryptoPurchase';
 
 const stripePromise = process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY
   ? loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY)
@@ -217,6 +218,7 @@ export default function CreditsPage() {
   const [balance, setBalance] = useState<number | null>(null);
   const [transactions, setTransactions] = useState<any[]>([]);
   const [selected, setSelected] = useState<typeof PACKAGES[0] | null>(null);
+  const [payMethod, setPayMethod] = useState<'stripe' | 'crypto'>('stripe');
   const [purchased, setPurchased] = useState(false);
   const [newBalance, setNewBalance] = useState<number | null>(null);
 
@@ -268,7 +270,9 @@ export default function CreditsPage() {
   if (selected) {
     return (
       <Boundary label="Credits">
-        {stripePromise ? (
+        {payMethod === 'crypto' ? (
+          <CryptoPurchase onSuccess={handleSuccess} />
+        ) : stripePromise ? (
           <Elements stripe={stripePromise}>
             <CheckoutForm pkg={selected} onSuccess={handleSuccess} onBack={() => setSelected(null)} />
           </Elements>
@@ -316,7 +320,23 @@ export default function CreditsPage() {
 
         {/* Packages */}
         <div>
-          <h2 className="font-semibold text-gray-900 dark:text-gray-100 mb-4">Choose a package</h2>
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="font-semibold text-gray-900 dark:text-gray-100">Choose a package</h2>
+            <div className="flex items-center gap-2 text-xs">
+              <button
+                onClick={() => setPayMethod('stripe')}
+                className={`px-3 py-1.5 rounded-md font-medium transition ${payMethod === 'stripe' ? 'bg-gray-900 dark:bg-yellow-500 text-white dark:text-gray-900' : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200'}`}
+              >
+                💳 Card
+              </button>
+              <button
+                onClick={() => setPayMethod('crypto')}
+                className={`px-3 py-1.5 rounded-md font-medium transition ${payMethod === 'crypto' ? 'bg-gray-900 dark:bg-yellow-500 text-white dark:text-gray-900' : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200'}`}
+              >
+                ⛓ Crypto
+              </button>
+            </div>
+          </div>
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
             {PACKAGES.map(pkg => (
               <button

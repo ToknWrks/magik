@@ -76,7 +76,7 @@ export default function WalletAuthButton({
       // Session cookies are set (path=/) — hard-navigate so every
       // server component / client fetch picks up the new session.
       const params = new URLSearchParams(window.location.search)
-      const next = params.get('redirect') || '/sigil-creator'
+      const next = params.get('redirect') || '/profile'
       window.location.href = next
     } catch (e) {
       setError(e instanceof Error ? e.message : 'Sign-in failed')

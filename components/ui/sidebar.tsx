@@ -19,7 +19,16 @@ export default function Sidebar({
   const [sidebarExpanded, setSidebarExpanded] = useState<boolean>(false)
   const segments = useSelectedLayoutSegments()  
   const [breakpoint, setBreakpoint] = useState<string | undefined>(getBreakpoint())
+  const [isLoggedIn, setIsLoggedIn] = useState<boolean>(false)
   const expandOnly = !sidebarExpanded && (breakpoint === 'lg' || breakpoint === 'xl')
+
+  // Auth state — drives which nav section shows (visitor vs member)
+  useEffect(() => {
+    fetch('/api/auth/me', { credentials: 'include' })
+      .then(r => r.json())
+      .then(d => setIsLoggedIn(!!d.user))
+      .catch(() => {})
+  }, [])
   
   // close on click outside
   useEffect(() => {
@@ -125,6 +134,70 @@ export default function Sidebar({
                   </div>
                 </SidebarLink>
               </li>
+              {/* Visitor links — mirrors the info dropdown in the header */}
+              {!isLoggedIn && (<>
+                <li className={`pl-4 pr-3 py-2 rounded-lg mb-0.5 last:mb-0 bg-[linear-gradient(135deg,var(--tw-gradient-stops))] ${segments.includes('store') && 'from-gray-500/[0.12] dark:from-gray-500/[0.24] to-gray-500/[0.04]'}`}>
+                  <SidebarLink href="/store">
+                    <div className="flex items-center">
+                      <svg className={`shrink-0 fill-current ${segments.includes('store') ? 'text-gray-500' : 'text-gray-400 dark:text-gray-500'}`} viewBox="0 0 12 12" width="14" height="14">
+                        <rect y="3" width="12" height="9" rx="1" />
+                        <path d="M2 0h8v2H2z" />
+                      </svg>
+                      <span className="text-sm font-medium ml-4 lg:opacity-0 lg:sidebar-expanded:opacity-100 2xl:opacity-100 duration-200">
+                        Shop
+                      </span>
+                    </div>
+                  </SidebarLink>
+                </li>
+                <li className={`pl-4 pr-3 py-2 rounded-lg mb-0.5 last:mb-0 bg-[linear-gradient(135deg,var(--tw-gradient-stops))] ${segments.includes('astrology') && 'from-gray-500/[0.12] dark:from-gray-500/[0.24] to-gray-500/[0.04]'}`}>
+                  <SidebarLink href="/astrology/personal-reading">
+                    <div className="flex items-center">
+                      <span className="astrology-symbol text-gray-500 shrink-0 text-base leading-none">{"\u2646"}</span>
+                      <span className="text-sm font-medium ml-4 lg:opacity-0 lg:sidebar-expanded:opacity-100 2xl:opacity-100 duration-200">
+                        Reading
+                      </span>
+                    </div>
+                  </SidebarLink>
+                </li>
+                <li className={`pl-4 pr-3 py-2 rounded-lg mb-0.5 last:mb-0 bg-[linear-gradient(135deg,var(--tw-gradient-stops))] ${segments.includes('spiritual-coaching') && 'from-gray-500/[0.12] dark:from-gray-500/[0.24] to-gray-500/[0.04]'}`}>
+                  <SidebarLink href="/spiritual-coaching">
+                    <div className="flex items-center">
+                      <svg className={`shrink-0 ${segments.includes('spiritual-coaching') ? 'text-gray-500' : 'text-gray-400 dark:text-gray-500'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24" width="14" height="14">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z" />
+                      </svg>
+                      <span className="text-sm font-medium ml-4 lg:opacity-0 lg:sidebar-expanded:opacity-100 2xl:opacity-100 duration-200">
+                        Solomon
+                      </span>
+                    </div>
+                  </SidebarLink>
+                </li>
+                <li className={`pl-4 pr-3 py-2 rounded-lg mb-0.5 last:mb-0 bg-[linear-gradient(135deg,var(--tw-gradient-stops))] ${segments.includes('cart') && 'from-gray-500/[0.12] dark:from-gray-500/[0.24] to-gray-500/[0.04]'}`}>
+                  <SidebarLink href="/cart">
+                    <div className="flex items-center">
+                      <svg className={`shrink-0 fill-current ${segments.includes('cart') ? 'text-gray-500' : 'text-gray-400 dark:text-gray-500'}`} viewBox="0 0 12 12" width="14" height="14">
+                        <path d="M10.5 0h-9A1.5 1.5 0 000 1.5v9A1.5 1.5 0 001.5 12h9a1.5 1.5 0 001.5-1.5v-9A1.5 1.5 0 0010.5 0zM10 7L8.207 5.207l-3 3-1.414-1.414 3-3L5 2h5v5z" />
+                      </svg>
+                      <span className="text-sm font-medium ml-4 lg:opacity-0 lg:sidebar-expanded:opacity-100 2xl:opacity-100 duration-200">
+                        Cart
+                      </span>
+                    </div>
+                  </SidebarLink>
+                </li>
+                <li className={`pl-4 pr-3 py-2 rounded-lg mb-0.5 last:mb-0 bg-[linear-gradient(135deg,var(--tw-gradient-stops))] ${segments.includes('checkout') && 'from-gray-500/[0.12] dark:from-gray-500/[0.24] to-gray-500/[0.04]'}`}>
+                  <SidebarLink href="/checkout">
+                    <div className="flex items-center">
+                      <svg className={`shrink-0 fill-current ${segments.includes('checkout') ? 'text-gray-500' : 'text-gray-400 dark:text-gray-500'}`} viewBox="0 0 12 12" width="14" height="14">
+                        <path d="M11.854.146a.5.5 0 00-.525-.116l-11 4a.5.5 0 00-.015.934l4.8 1.921 1.921 4.8A.5.5 0 007.5 12h.008a.5.5 0 00.462-.329l4-11a.5.5 0 00-.116-.525z" />
+                      </svg>
+                      <span className="text-sm font-medium ml-4 lg:opacity-0 lg:sidebar-expanded:opacity-100 2xl:opacity-100 duration-200">
+                        Checkout
+                      </span>
+                    </div>
+                  </SidebarLink>
+                </li>
+              </>)}
+              {/* Member sections — Enlightenment / Mysteries / Astrology */}
+              {isLoggedIn && (<>
               {/* Enlightenment */}
               <SidebarLinkGroup open={segments.includes('enlightenment')}>
                 {(handleClick, open) => {
@@ -312,6 +385,7 @@ export default function Sidebar({
                   )
                 }}
               </SidebarLinkGroup>
+              </>)}
               {/* E-Commerce */}
               <SidebarLinkGroup open={segments.includes('M3RCH')}>
                 {(handleClick, open) => {

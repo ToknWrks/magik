@@ -161,6 +161,10 @@ export default function SigilClient() {
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const [meditating, setMeditating] = useState(false);
 
+  // Save state (persisted sigils live in the blob store + saved_sigils table)
+  const [saving, setSaving] = useState(false);
+  const [saved, setSaved] = useState(false);
+
   // On mount: check daily limit + auth/balance + restore pending sigil
   useEffect(() => {
     try {
@@ -215,8 +219,46 @@ export default function SigilClient() {
     setError('');
     setReleasing(false);
     setImgOpacity(1);
+    setSaved(false); // a fresh session with this sigil — allow re-save
     setShowModal(true);
   }, []);
+
+  // Save the sigil permanently (logged-in users; guests get the login modal)
+  const handleSave = useCallback(async () => {
+    setError('');
+    if (!isLoggedIn) {
+      saveAndShowLogin();
+      return;
+    }
+    if (!sigilUrl) return;
+    setSaving(true);
+    try {
+      const res = await fetch('/api/sigil/save', {
+        method: 'POST',
+        credentials: 'include',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ url: sigilUrl, intention, consonants: uniqueConsonants }),
+      });
+      const data = await res.json();
+      if (!res.ok || !data.success) {
+        throw new Error(data.error || 'Failed to save');
+      }
+      setSaved(true);
+      // Remember the permanent URL so refreshes keep a valid image
+      try {
+        localStorage.setItem('sigil_pending', JSON.stringify({
+          url: data.sigil.blob_url,
+          uniqueConsonants,
+          intention,
+        }));
+      } catch { /* ignore */ }
+      setSigilUrl(data.sigil.blob_url);
+    } catch (e) {
+      setError(e instanceof Error ? e.message : 'Failed to save sigil');
+    } finally {
+      setSaving(false);
+    }
+  }, [isLoggedIn, sigilUrl, uniqueConsonants, intention, saveAndShowLogin]);
 
   // Spend 10 tokens helper
   const spendTokens = useCallback(async (description: string): Promise<boolean> => {
@@ -933,6 +975,17 @@ export default function SigilClient() {
                     }`}
                   >
                     {meditating ? '⏸ Meditating' : '♬ Meditate'}
+                  </button>
+                  <button
+                    onClick={handleSave}
+                    disabled={saving || saved}
+                    className={`px-5 py-2.5 rounded-lg border text-sm font-medium transition-colors ${
+                      saved
+                        ? 'border-emerald-400 dark:border-emerald-600 text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-900/20'
+                        : 'border-gray-200 dark:border-gray-700 text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800'
+                    } disabled:cursor-not-allowed`}
+                  >
+                    {saving ? 'Saving…' : saved ? '✓ Saved' : '☆ Save'}
                   </button>
                   <button
                     onClick={handleLetItGo}

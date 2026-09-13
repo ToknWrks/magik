@@ -103,6 +103,7 @@ export async function POST(request: NextRequest) {
       secure: process.env.NODE_ENV === 'production',
       sameSite: 'lax',
       expires: expiresAt,
+      path: '/',
     });
     // Some legacy routes read user_id directly from cookies
     response.cookies.set('user_id', userId, {
@@ -110,6 +111,7 @@ export async function POST(request: NextRequest) {
       secure: process.env.NODE_ENV === 'production',
       sameSite: 'lax',
       expires: expiresAt,
+      path: '/',
     });
 
     return response;

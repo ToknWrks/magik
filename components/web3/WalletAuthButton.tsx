@@ -6,7 +6,6 @@
 // On success: router.refresh() so server components pick up the session.
 
 import { useState } from 'react'
-import { useRouter } from 'next/navigation'
 import { useAppKit, useAppKitAccount, useAppKitNetwork } from '@reown/appkit/react'
 import { useSignMessage, useSwitchChain } from 'wagmi'
 import { SiweMessage } from 'siwe'
@@ -23,7 +22,6 @@ export default function WalletAuthButton({
   /** Pass an email to link a wallet to an existing account ("link:<email>" statement). */
   linkEmail?: string
 }) {
-  const router = useRouter()
   const { open } = useAppKit()
   const { address } = useAppKitAccount()
   const { chainId } = useAppKitNetwork()
@@ -75,7 +73,11 @@ export default function WalletAuthButton({
         throw new Error(data.error || 'Sign-in failed')
       }
 
-      router.refresh()
+      // Session cookies are set (path=/) — hard-navigate so every
+      // server component / client fetch picks up the new session.
+      const params = new URLSearchParams(window.location.search)
+      const next = params.get('redirect') || '/sigil-creator'
+      window.location.href = next
     } catch (e) {
       setError(e instanceof Error ? e.message : 'Sign-in failed')
     } finally {

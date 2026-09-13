@@ -114,14 +114,25 @@ export default function Sidebar({
               <span className="lg:hidden lg:sidebar-expanded:block 2xl:block"></span>
             </h3>
             <ul className="mt-3">
-              {/* Dashboard */}
+              {/* Sigil Creator — primary */}
+              <li className={`pl-4 pr-3 py-2 rounded-lg mb-0.5 last:mb-0 bg-[linear-gradient(135deg,var(--tw-gradient-stops))] ${segments.includes('sigil-creator') && 'from-violet-500/[0.12] dark:from-violet-500/[0.24] to-violet-500/[0.04]'}`}>
+                <SidebarLink href="/sigil-creator">
+                  <div className="flex items-center">
+                    <span className="text-2xl astrology-symbol text-gray-600">{"\u26E4"}</span>
+                    <span className="text-sm font-medium ml-4 lg:opacity-0 lg:sidebar-expanded:opacity-100 2xl:opacity-100 duration-200">
+                      Sigil Creator
+                    </span>
+                  </div>
+                </SidebarLink>
+              </li>
+              {/* Enlightenment */}
               <SidebarLinkGroup open={segments.includes('enlightenment')}>
                 {(handleClick, open) => {
                   return (
                     <>
                       <a
                         href="#0"
-                        className={`block text-gray-700 dark:text-gray-100 truncate transition ${segments.includes('dashboard') ? '' : 'hover:text-gray-900 dark:hover:text-white'
+                        className={`block text-gray-700 dark:text-gray-100 truncate transition ${segments.includes('enlightenment') ? '' : 'hover:text-gray-900 dark:hover:text-white'
                           }`}
                         onClick={(e) => {
                           e.preventDefault();
@@ -149,13 +160,6 @@ export default function Sidebar({
                             <SidebarLink href="/enlightenment">
                               <span className="text-sm font-medium lg:opacity-0 lg:sidebar-expanded:opacity-100 2xl:opacity-100 duration-200">
                                 Teachings
-                              </span>
-                            </SidebarLink>
-                          </li>
-                          <li className="mb-1 last:mb-0">
-                            <SidebarLink href="/articles/history-of-enlightenment">
-                              <span className="text-sm font-medium lg:opacity-0 lg:sidebar-expanded:opacity-100 2xl:opacity-100 duration-200">
-                                History
                               </span>
                             </SidebarLink>
                           </li>
@@ -191,13 +195,6 @@ export default function Sidebar({
                             <SidebarLink href="/spiritual-coaching">
                               <span className="text-sm font-medium lg:opacity-0 lg:sidebar-expanded:opacity-100 2xl:opacity-100 duration-200">
                                 Solomon
-                              </span>
-                            </SidebarLink>
-                          </li>
-                          <li className="mb-1 last:mb-0">
-                            <SidebarLink href="/sigil-creator">
-                              <span className="text-sm font-medium lg:opacity-0 lg:sidebar-expanded:opacity-100 2xl:opacity-100 duration-200">
-                                Daily Sigil
                               </span>
                             </SidebarLink>
                           </li>
@@ -249,13 +246,6 @@ export default function Sidebar({
                             <SidebarLink href="/mysteries/illuminati-history">
                               <span className="text-sm font-medium lg:opacity-0 lg:sidebar-expanded:opacity-100 2xl:opacity-100 duration-200">
                                 History
-                              </span>
-                            </SidebarLink>
-                          </li>
-                          <li className="mb-1 last:mb-0">
-                            <SidebarLink href="/spiritual-coaching">
-                              <span className="text-sm font-medium lg:opacity-0 lg:sidebar-expanded:opacity-100 2xl:opacity-100 duration-200">
-                                Solomon
                               </span>
                             </SidebarLink>
                           </li>

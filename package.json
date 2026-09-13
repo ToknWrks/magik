@@ -27,6 +27,9 @@
     "@types/react-dom": "^18.2.17",
     "@uiw/react-md-editor": "^4.0.8",
     "@vercel/blob": "^2.3.1",
+    "@x402/core": "^2.21.0",
+    "@x402/evm": "^2.21.0",
+    "@x402/svm": "^2.21.0",
     "astronomy-engine": "^2.1.19",
     "bcryptjs": "^3.0.3",
     "chart.js": "^4.5.1",
@@ -63,5 +66,16 @@
     "postcss": "^8.4.32",
     "tailwindcss": "^3.3.6"
   },
-  "packageManager": "pnpm@9.13.2+sha512.88c9c3864450350e65a33587ab801acf946d7c814ed1134da4a924f6df5a2120fd36b46aab68f7cd1d413149112d53c7db3a4136624cfd00ff1846a0c6cef48a"
+  "packageManager": "pnpm@9.13.2+sha512.88c9c3864450350e65a33587ab801acf946d7c814ed1134da4a924f6df5a2120fd36b46aab68f7cd1d413149112d53c7db3a4136624cfd00ff1846a0c6cef48a",
+  "pnpm": {
+    "onlyBuiltDependencies": [],
+    "peerDependencyRules": {
+      "ignoreMissing": [
+        "@x402/core",
+        "@x402/evm",
+        "@x402/extensions",
+        "@x402/svm"
+      ]
+    }
+  }
 }

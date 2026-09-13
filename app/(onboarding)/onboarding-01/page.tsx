@@ -49,28 +49,6 @@ export default function Onboarding01() {
                   </div>
                 </div>
 
-                {/* What we are */}
-                <div className="border border-yellow-200 dark:border-yellow-800/60 rounded-xl p-5 mb-8 bg-yellow-50/50 dark:bg-yellow-900/10">
-                  <p className="text-xs font-semibold text-yellow-700 dark:text-yellow-500 uppercase tracking-wider mb-3">What we actually are</p>
-                  <div className="space-y-2.5">
-                    {[
-                      'A community of seekers on the inner path',
-                      'Ancient wisdom applied to modern minds',
-                      'Tools for self-discovery and conscious living',
-                      'A space to ask the questions that actually matter',
-                    ].map(item => (
-                      <div key={item} className="flex items-start gap-2">
-                        <span className="text-yellow-600 dark:text-yellow-500 mt-0.5 flex-shrink-0">✦</span>
-                        <p className="text-sm text-gray-700 dark:text-gray-300">{item}</p>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-
-                <p className="text-sm text-gray-400 dark:text-gray-500 italic mb-8">
-                  "The real conspiracy is becoming the best version of yourself. It's harder than it sounds."
-                </p>
-
                 <div className="flex justify-end">
                   <Link className="btn bg-gray-900 text-gray-100 hover:bg-gray-800 dark:bg-gray-100 dark:text-gray-800 dark:hover:bg-white" href="/illuminati-initiation">
                     I'm in. Let's go →

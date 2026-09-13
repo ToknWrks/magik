@@ -124,10 +124,10 @@ export default function Sidebar({
             </h3>
             <ul className="mt-3">
               {/* Sigil Creator — primary */}
-              <li className={`pl-4 pr-3 py-2 rounded-lg mb-0.5 last:mb-0 bg-[linear-gradient(135deg,var(--tw-gradient-stops))] ${segments.includes('sigil-creator') && 'from-violet-500/[0.12] dark:from-violet-500/[0.24] to-violet-500/[0.04]'}`}>
+              <li className={`pl-4 pr-3 py-2 rounded-lg mb-0.5 last:mb-0 bg-[linear-gradient(135deg,var(--tw-gradient-stops))] ${segments.includes('sigil-creator') && 'from-gray-500/[0.12] dark:from-gray-500/[0.24] to-gray-500/[0.04]'}`}>
                 <SidebarLink href="/sigil-creator">
                   <div className="flex items-center">
-                    <span className="text-2xl astrology-symbol text-gray-600">{"\u26E4"}</span>
+                    <span className="astrology-symbol text-gray-600 shrink-0 text-2xl leading-none h-5 flex items-center">{"\u26E4"}</span>
                     <span className="text-sm font-medium ml-4 lg:opacity-0 lg:sidebar-expanded:opacity-100 2xl:opacity-100 duration-200">
                       Sigil Creator
                     </span>

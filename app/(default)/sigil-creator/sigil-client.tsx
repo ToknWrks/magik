@@ -339,7 +339,14 @@ export default function SigilClient() {
     try {
       // Fetch short-lived access token
       const tokenRes = await fetch('/api/hume/token');
-      if (!tokenRes.ok) throw new Error('Could not obtain Hume token');
+      if (!tokenRes.ok) {
+        let detail = `HTTP ${tokenRes.status}`;
+        try {
+          const j = await tokenRes.json();
+          if (j?.error) detail = j.error;
+        } catch { /* non-JSON response */ }
+        throw new Error(`Could not obtain Hume token: ${detail}`);
+      }
       const { accessToken } = await tokenRes.json();
 
       // Mic stream

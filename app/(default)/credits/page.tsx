@@ -219,6 +219,15 @@ export default function CreditsPage() {
   const [transactions, setTransactions] = useState<any[]>([]);
   const [selected, setSelected] = useState<typeof PACKAGES[0] | null>(null);
   const [payMethod, setPayMethod] = useState<'stripe' | 'crypto'>('stripe');
+
+  useEffect(() => {
+    // Wallet users default to the crypto rail; email users keep Stripe
+    fetch('/api/auth/me', { credentials: 'include' })
+      .then(r => r.json())
+      .then(d => { if (d.user?.wallet_address && !d.user.email) setPayMethod('crypto'); })
+      .catch(() => {});
+  }, []);
+
   const [purchased, setPurchased] = useState(false);
   const [newBalance, setNewBalance] = useState<number | null>(null);
 

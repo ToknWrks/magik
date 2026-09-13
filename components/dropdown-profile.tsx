@@ -28,6 +28,22 @@ export default function DropdownProfile({
         .then(r => r.ok ? r.json() : null)
         .then(d => d && setCredits(d.balance))
         .catch(() => {});
+    } else {
+      // Wallet sign-in and other flows may not write localStorage —
+      // fall back to the session cookie.
+      fetch('/api/auth/me', { credentials: 'include' })
+        .then(r => r.json())
+        .then(d => {
+          if (d.user) {
+            setUser(d.user);
+            try { localStorage.setItem('user', JSON.stringify(d.user)); } catch { /* private mode */ }
+            fetch('/api/credits/balance', { credentials: 'include' })
+              .then(r => r.ok ? r.json() : null)
+              .then(x => x && setCredits(x.balance))
+              .catch(() => {});
+          }
+        })
+        .catch(() => {});
     }
   }, []);
 

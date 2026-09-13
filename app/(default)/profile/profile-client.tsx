@@ -456,6 +456,7 @@ export default function ProfileClient() {
   const [credits, setCredits] = useState<number | null>(null)
   const [allReadings, setAllReadings] = useState<Reading[]>([])
   const [allSessions, setAllSessions] = useState<CoachingSession[]>([])
+  const [sigilCount, setSigilCount] = useState(0)
 
   // Edit state
   const [editing, setEditing] = useState(false)
@@ -476,7 +477,8 @@ export default function ProfileClient() {
       fetch('/api/astrology/readings', { credentials: 'include' }).then(r => r.json()),
       fetch('/api/credits/balance', { credentials: 'include' }).then(r => r.json()).catch(() => ({ balance: null })),
       fetch('/api/coaching/sessions', { credentials: 'include' }).then(r => r.json()).catch(() => ({ sessions: [] })),
-    ]).then(([authData, readingsData, creditsData, sessionsData]) => {
+      fetch('/api/sigil/list?limit=100', { credentials: 'include' }).then(r => r.ok ? r.json() : { sigils: [] }).catch(() => ({ sigils: [] })),
+    ]).then(([authData, readingsData, creditsData, sessionsData, sigilsData]) => {
       if (creditsData.balance !== undefined) setCredits(creditsData.balance);
       if (authData.user) {
         setUser(authData.user)
@@ -494,6 +496,9 @@ export default function ProfileClient() {
       }
       if (sessionsData.sessions?.length > 0) {
         setAllSessions(sessionsData.sessions)
+      }
+      if (sigilsData.sigils?.length > 0) {
+        setSigilCount(sigilsData.sigils.length)
       }
       setLoading(false)
     }).catch(() => {
@@ -805,6 +810,21 @@ export default function ProfileClient() {
                 <div>
                   <p className="text-sm font-medium text-gray-900 dark:text-gray-100">My Orders</p>
                   <p className="text-xs text-gray-500 dark:text-gray-400">View your order history</p>
+                </div>
+              </div>
+              <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+              </svg>
+            </Link>
+
+            <Link href={sigilCount > 0 ? '/sigil-creator/collection' : '/sigil-creator'} className="flex items-center justify-between px-5 py-4 hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors">
+              <div className="flex items-center gap-3">
+                <span className="astrology-symbol w-5 text-gray-400 flex-shrink-0 text-base leading-none text-center">{"\u26E4"}</span>
+                <div>
+                  <p className="text-sm font-medium text-gray-900 dark:text-gray-100">My Sigils</p>
+                  <p className="text-xs text-gray-500 dark:text-gray-400">
+                    {sigilCount > 0 ? `View your ${sigilCount} saved sigil${sigilCount === 1 ? '' : 's'}` : 'Create your first sigil'}
+                  </p>
                 </div>
               </div>
               <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">

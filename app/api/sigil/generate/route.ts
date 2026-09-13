@@ -16,9 +16,22 @@ export async function POST(req: NextRequest) {
     const letterList = consonants.split('').join(', ');
     const letterCount = consonants.length;
 
+    // Randomly pick a primary geometric structure so sigils vary between generations
+    const BASE_FORMS = [
+      'a pentagon-based composition with fivefold symmetry',
+      'a hexagon-based composition with sixfold symmetry',
+      'a triangle-based composition with threefold symmetry',
+      'a pure circle-based composition of concentric rings and arcs',
+      'a Sri Yantra inspired composition of interlocking triangles around a central point',
+      'a square and diamond based composition with fourfold symmetry',
+      'a composition of overlapping circles forming a vesica piscis and seed-of-life pattern',
+      'a heptagon-based composition with sevenfold symmetry',
+    ];
+    const baseForm = BASE_FORMS[Math.floor(Math.random() * BASE_FORMS.length)];
+
     const prompt = refine
       ? `Minimal sacred geometry sigil on pure black. Ultra-clean vector line art, silver-white lines only. Reduce to the absolute essence: a single geometric mark built from intersecting circles, precise angles, and Fibonacci proportions. Fewer elements, more negative space. No letters, no runes, no calligraphy — only pure geometric abstraction. ${letterCount} geometric anchor points. Captures the essence of: "${intention}". Flat vector aesthetic, razor-thin lines, perfect symmetry or intentional asymmetry. High contrast, no texture, no gradients.`
-      : `Sacred geometry sigil on pure black background. Clean minimal vector line art in silver-white. Composed of ${letterCount} interlocking geometric forms — circles, arcs, triangles, hexagons, and Fibonacci spirals — arranged into one unified symbol. NO letters, NO runes, NO calligraphy, NO Celtic knotwork. Pure geometric abstraction only. The ${letterCount} forms correspond to these consonants — ${letterList} — interpreted as geometry, not as text. Golden ratio proportions. The composition embodies the intention: "${intention}". Flat vector illustration, razor-thin precise lines, radiant silver glow, deep black background. Reminiscent of Metatron's Cube or the Flower of Life but unique and personal.`;
+      : `Sacred geometry sigil on pure black background. Clean minimal vector line art in silver-white. The primary structure is ${baseForm}, built from ${letterCount} interlocking geometric forms — circles, arcs, triangles, hexagons, and Fibonacci spirals — arranged into one unified symbol. NO letters, NO runes, NO calligraphy, NO Celtic knotwork. Pure geometric abstraction only. The ${letterCount} forms correspond to these consonants — ${letterList} — interpreted as geometry, not as text. Golden ratio proportions. The composition embodies the intention: "${intention}". Flat vector illustration, razor-thin precise lines, radiant silver glow, deep black background. Unique and personal — avoid generic or commonly seen sacred geometry layouts.`;
 
     const response = await fetch('https://api.x.ai/v1/images/generations', {
       method: 'POST',

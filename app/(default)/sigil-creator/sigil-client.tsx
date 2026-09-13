@@ -879,10 +879,10 @@ export default function SigilClient() {
       {/* ── SIGIL MODAL ── */}
       {showModal && (
         <div
-          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80"
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-8 bg-black/80"
           onClick={(e) => { if (e.target === e.currentTarget && !releasing) setShowModal(false); }}
         >
-          <div className="relative max-w-2xl w-full rounded-xl overflow-hidden bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700">
+          <div className="relative max-w-xl w-full max-h-[85vh] flex flex-col rounded-xl overflow-hidden bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700">
             {/* Close */}
             {!releasing && (
               <button
@@ -894,7 +894,7 @@ export default function SigilClient() {
             )}
 
             {/* Image / Canvas */}
-            <div className="relative w-full aspect-square">
+            <div className="relative w-full aspect-square max-h-[60vh] mx-auto">
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
                 src={sigilUrl}
@@ -911,8 +911,8 @@ export default function SigilClient() {
 
             {/* Actions */}
             {!releasing && (
-              <div className="px-8 py-6 flex flex-col items-center gap-4 border-t border-gray-200 dark:border-gray-700">
-                <p className="text-gray-400 dark:text-gray-500 text-xs tracking-widest uppercase mb-4">
+              <div className="px-6 py-4 flex flex-col items-center gap-3 border-t border-gray-200 dark:border-gray-700 mt-auto">
+                <p className="text-gray-400 dark:text-gray-500 text-xs tracking-widest uppercase">
                   {uniqueConsonants.split('').join(' · ')}
                 </p>
 
@@ -920,13 +920,13 @@ export default function SigilClient() {
                   <button
                     onClick={handleRefine}
                     disabled={refining}
-                    className="px-6 py-3 rounded-lg border border-gray-200 dark:border-gray-700 text-gray-600 dark:text-gray-400 text-sm font-medium hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="px-5 py-2.5 rounded-lg border border-gray-200 dark:border-gray-700 text-gray-600 dark:text-gray-400 text-sm font-medium hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     {refining ? 'Spending tokens…' : '↻ Refine · 10 tokens'}
                   </button>
                   <button
                     onClick={toggleMeditation}
-                    className={`px-6 py-3 rounded-lg border text-sm font-medium transition-colors ${
+                    className={`px-5 py-2.5 rounded-lg border text-sm font-medium transition-colors ${
                       meditating
                         ? 'border-gray-400 dark:border-gray-500 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300'
                         : 'border-gray-200 dark:border-gray-700 text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800'
@@ -936,13 +936,13 @@ export default function SigilClient() {
                   </button>
                   <button
                     onClick={handleLetItGo}
-                    className="px-6 py-3 rounded-lg bg-gray-900 dark:bg-gray-100 text-white dark:text-gray-900 text-sm font-medium hover:bg-gray-800 dark:hover:bg-white transition-colors"
+                    className="px-5 py-2.5 rounded-lg bg-gray-900 dark:bg-gray-100 text-white dark:text-gray-900 text-sm font-medium hover:bg-gray-800 dark:hover:bg-white transition-colors"
                   >
                     ✦ Let It Go
                   </button>
                 </div>
                 {error && (
-                  <p className="text-red-500 dark:text-red-400 text-xs mt-2">{error}</p>
+                  <p className="text-red-500 dark:text-red-400 text-xs">{error}</p>
                 )}
               </div>
             )}

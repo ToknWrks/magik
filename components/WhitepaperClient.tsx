@@ -418,6 +418,16 @@ export default function WhitepaperClient() {
                 commerce. SIGIL is not required to use the platform — credits are USDC
                 denominated and tokens enhance and reward; they do not gate.
               </Para>
+              <Kicker>Why SIGIL</Kicker>
+              <Para>
+                The token is named after the platform&rsquo;s flagship creation. A sigil is
+                an intention made permanent — charged, sealed, and given form. SIGIL the
+                token follows the same logic: every fee the platform generates is partly
+                used to buy SIGIL back and remove it from circulation, sealing value into
+                a fixed supply of 100,000,000. Members already create sigils on
+                illuminati.co; holding SIGIL means holding a stake in the engine that
+                makes them.
+              </Para>
               <Kicker>Value accrual</Kicker>
               <Para>
                 A defined share of platform fee revenue is used to buy SIGIL on the open

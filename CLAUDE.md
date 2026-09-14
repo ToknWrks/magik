@@ -13,6 +13,8 @@ pnpm lint       # ESLint
 
 No test suite. Package manager: **pnpm 9.13.2**. Turbopack build requires `@x402/*` peer deps (see `package.json` `pnpm.overrides`).
 
+**Git workflow:** Always commit completed work with a descriptive message — but never push; the user pushes.
+
 ## Project
 
 **Illuminati** — mystical/spiritual platform. Next.js 16 App Router, TypeScript, Tailwind, Neon PostgreSQL. Now at **illuminati.co** (code still references `illuminati.co` in `app/sitemap.ts`, `lib/web3.ts` AppKit metadata, and various content pages — pending rename).

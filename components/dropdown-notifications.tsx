@@ -42,13 +42,13 @@ export default function DropdownNotifications({ align }: {
   }, []);
 
   const tweetQuote = (quote: Quote): void => {
-    const url = `https://twitter.com/intent/tweet?text=${encodeURIComponent(quote.quote + ' - ' + quote.author + ' #realilluminati https://illuminati.earth')}`;
+    const url = `https://twitter.com/intent/tweet?text=${encodeURIComponent(quote.quote + ' - ' + quote.author + ' #realilluminati https://illuminati.co')}`;
     window.open(url, '_blank');
   };
 
   const tweetTransit = (t: TransitData): void => {
     const top = t.aspects[0] ? `${t.aspects[0].label} (${t.aspects[0].orb})` : t.skyline;
-    const text = `Today's sky: ${top}  ${t.skyline}  #Archetypal #Astrology https://illuminati.earth`;
+    const text = `Today's sky: ${top}  ${t.skyline}  #Archetypal #Astrology https://illuminati.co`;
     window.open(`https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}`, '_blank');
   };
 

@@ -923,7 +923,7 @@ export default function ProfileClient() {
                         <p className="text-sm font-semibold text-gray-900 dark:text-gray-100 leading-snug">
                           Your inner work has regenerated{' '}
                           <span className="text-green-700 dark:text-green-400">~{formatCo2(totalCo2 * 25)} CO₂</span>
-                          {' '}through illuminati.earth
+                          {' '}through illuminati.co
                         </p>
                         <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
                           {allReadings.length > 0 && `${allReadings.length} reading${allReadings.length !== 1 ? 's' : ''}`}

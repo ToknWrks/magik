@@ -3,7 +3,7 @@ import Link from 'next/link';
 
 export const metadata: Metadata = {
   title: 'Terms of Use — Solomon Spiritual Coaching',
-  description: 'Terms of Use for Solomon spiritual coaching services, archetypal astrology readings, and consciousness calibration guidance provided through illuminati.earth.',
+  description: 'Terms of Use for Solomon spiritual coaching services, archetypal astrology readings, and consciousness calibration guidance provided through illuminati.co.',
   robots: { index: true, follow: true },
 };
 

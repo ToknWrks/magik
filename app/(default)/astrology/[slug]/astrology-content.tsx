@@ -134,21 +134,21 @@ export function AstrologyContent({ slug }: AstrologyContentProps) {
     author: {
       '@type': 'Organization',
       name: 'Real Illuminati',
-      url: 'https://illuminati.earth'
+      url: 'https://illuminati.co'
     },
     publisher: {
       '@type': 'Organization',
       name: 'Real Illuminati',
       logo: {
         '@type': 'ImageObject',
-        url: 'https://illuminati.earth/images/illuminati-logo.png'
+        url: 'https://illuminati.co/images/illuminati-logo.png'
       }
     },
     datePublished: content.created_at,
     dateModified: content.updated_at,
     mainEntityOfPage: {
       '@type': 'WebPage',
-      '@id': `https://illuminati.earth/astrology/${slug}`
+      '@id': `https://illuminati.co/astrology/${slug}`
     },
     articleSection: 'Astrology',
     keywords: [content.category, content.category2, 'archetypal astrology', 'planetary combinations'],

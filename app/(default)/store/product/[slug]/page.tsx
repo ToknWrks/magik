@@ -39,7 +39,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
         address: false,
         telephone: false,
       },
-      metadataBase: new URL('https://illuminati.earth'),
+      metadataBase: new URL('https://illuminati.co'),
       alternates: {
         canonical: `/store/product/${slug}`,
       },
@@ -120,7 +120,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
             address: false,
             telephone: false,
           },
-          metadataBase: new URL('https://illuminati.earth'),
+          metadataBase: new URL('https://illuminati.co'),
           alternates: {
             canonical: `/store/product/${slug}`,
           },
@@ -174,7 +174,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
     title: 'Product Not Found | Real Illuminati Store',
     description: 'The requested product could not be found. Browse our collection of esoteric and spiritual merchandise.',
     keywords: ['illuminati merchandise', 'esoteric products', 'spiritual items', 'occult store'],
-    metadataBase: new URL('https://illuminati.earth'),
+    metadataBase: new URL('https://illuminati.co'),
     alternates: {
       canonical: `/store/product/${slug}`,
     },

@@ -54,7 +54,7 @@ export async function POST(request: NextRequest) {
 
   try {
     await resend.emails.send({
-      from: 'noreply@illuminati.earth',
+      from: 'noreply@illuminati.co',
       to: email,
       subject: 'Reset your password',
       html: `<div>

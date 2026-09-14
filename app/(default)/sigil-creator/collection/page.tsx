@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { Boundary } from '@/components/ui/boundary';
+import SigilModal from '@/components/sigil/SigilModal';
 
 interface SavedSigil {
   id: string;
@@ -20,6 +21,14 @@ export default function SigilCollectionPage() {
   const [releasing, setReleasing] = useState(false);
   const [error, setError] = useState('');
 
+  // Working modal state
+  const [working, setWorking] = useState<SavedSigil | null>(null);
+  const [savedInSession, setSavedInSession] = useState(false);
+
+  // Auth + balance (needed for modal actions)
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [balance, setBalance] = useState<number | null>(null);
+
   const loadSigils = useCallback(() => {
     fetch('/api/sigil/list?limit=100', { credentials: 'include' })
       .then(r => {
@@ -30,25 +39,116 @@ export default function SigilCollectionPage() {
       .catch(() => setSigils([]));
   }, [router]);
 
-  useEffect(() => { loadSigils(); }, [loadSigils]);
+  useEffect(() => {
+    loadSigils();
+    fetch('/api/auth/me', { credentials: 'include' })
+      .then(r => r.json())
+      .then(d => setIsLoggedIn(!!d.user))
+      .catch(() => {});
+    fetch('/api/credits/balance', { credentials: 'include' })
+      .then(r => r.ok ? r.json() : null)
+      .then(d => d && setBalance(d.balance))
+      .catch(() => {});
+  }, [loadSigils]);
 
-  const release = async () => {
-    if (!confirmRelease) return;
+  const release = async (sigil: SavedSigil) => {
     setError('');
     try {
-      const res = await fetch(`/api/sigil/list?id=${confirmRelease.id}`, {
+      const res = await fetch(`/api/sigil/list?id=${sigil.id}`, {
         method: 'DELETE',
         credentials: 'include',
       });
       const data = await res.json();
       if (!res.ok || !data.success) throw new Error(data.error || 'Failed to release');
-      setSigils(prev => (prev || []).filter(s => s.id !== confirmRelease.id));
+      setSigils(prev => (prev || []).filter(s => s.id !== sigil.id));
       setConfirmRelease(null);
     } catch (e) {
       setError(e instanceof Error ? e.message : 'Failed to release sigil');
       setConfirmRelease(null);
     }
   };
+
+  // Refine the working sigil in place (server evolves the image)
+  const handleRefine = useCallback(async () => {
+    if (!working) return;
+    setError('');
+    try {
+      const res = await fetch('/api/credits/spend', {
+        method: 'POST',
+        credentials: 'include',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ amount: 10, description: 'Sigil Collection — Refine' }),
+      });
+      const spendData = await res.json();
+      if (!res.ok || !spendData.success) throw new Error(spendData.error || 'Failed to spend tokens');
+      setBalance(spendData.balance);
+
+      const genRes = await fetch('/api/sigil/generate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ consonants: working.consonants, intention: working.intention, refine: true }),
+      });
+      const genData = await genRes.json();
+      if (!genRes.ok || !genData.url) throw new Error(genData.error || 'Generation failed');
+
+      // Swap in the new image (still the same saved record until re-saved)
+      setWorking({ ...working, blob_url: genData.url });
+      // A refined collection sigil differs from its saved version — allow re-save
+      setSavedInSession(false);
+    } catch (e) {
+      setError(e instanceof Error ? e.message : 'Refine failed');
+    }
+  }, [working]);
+
+  // Save a refined sigil (updates the collection without adding a row)
+  const handleSaveRefined = useCallback(async () => {
+    if (!working) return;
+    setError('');
+    try {
+      const res = await fetch('/api/sigil/save', {
+        method: 'POST',
+        credentials: 'include',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          url: working.blob_url,
+          intention: working.intention,
+          consonants: working.consonants,
+          baseForm: working.base_form,
+        }),
+      });
+      const data = await res.json();
+      if (!res.ok || !data.success) throw new Error(data.error || 'Failed to save');
+      // Replace the sigil in the grid with the new version, keep modal open
+      setSigils(prev => (prev || []).map(s => s.id === working.id ? { ...working, blob_url: data.sigil.blob_url } : s));
+      setWorking({ ...working, blob_url: data.sigil.blob_url });
+      setSavedInSession(true);
+      // Refresh balance (save is free but refine spent earlier)
+    } catch (e) {
+      setError(e instanceof Error ? e.message : 'Failed to save sigil');
+    }
+  }, [working]);
+
+  // Release from inside the working modal: delete server-side, close, update grid
+  const handleModalReleased = useCallback(() => {
+    if (!working) return;
+    const target = sigils?.find(s => s.blob_url === working.blob_url) || null;
+    setWorking(null);
+    setSavedInSession(false);
+    if (target) {
+      release(target);
+    }
+  }, [working, sigils]);
+
+  if (sigils === null) {
+    return (
+      <Boundary label="My Sigils">
+        <div className="text-center py-12">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-300 mx-auto" />
+          <p className="text-gray-500 dark:text-gray-400 mt-3 text-sm">Loading...</p>
+        </div>
+      </Boundary>
+    );
+  }
 
   return (
     <Boundary label="My Sigils">
@@ -58,7 +158,7 @@ export default function SigilCollectionPage() {
           <div>
             <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">My Sigils</h1>
             <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
-              {sigils && sigils.length > 0
+              {sigils.length > 0
                 ? `${sigils.length} sigil${sigils.length === 1 ? '' : 's'} kept`
                 : 'Sigils you save from the creator live here.'}
             </p>
@@ -73,16 +173,8 @@ export default function SigilCollectionPage() {
 
         {error && <p className="text-sm text-red-600 dark:text-red-400">{error}</p>}
 
-        {/* Loading */}
-        {sigils === null && (
-          <div className="text-center py-12">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-300 mx-auto" />
-            <p className="text-gray-500 dark:text-gray-400 mt-3 text-sm">Loading...</p>
-          </div>
-        )}
-
         {/* Empty state */}
-        {sigils !== null && sigils.length === 0 && (
+        {sigils.length === 0 && (
           <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-10 text-center">
             <span className="astrology-symbol text-4xl text-gray-300 dark:text-gray-600">{"\u26E4"}</span>
             <h2 className="text-lg font-bold text-gray-900 dark:text-gray-100 mt-4 mb-2">No sigils yet</h2>
@@ -99,11 +191,14 @@ export default function SigilCollectionPage() {
         )}
 
         {/* Gallery */}
-        {sigils !== null && sigils.length > 0 && (
+        {sigils.length > 0 && (
           <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
             {sigils.map(sigil => (
               <div key={sigil.id} className="group relative bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 overflow-hidden">
-                <a href={sigil.blob_url} target="_blank" rel="noopener noreferrer" className="block aspect-square bg-black">
+                <button
+                  onClick={() => { setWorking(sigil); setSavedInSession(true); setError(''); }}
+                  className="block w-full aspect-square bg-black"
+                >
                   {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img
                     src={sigil.blob_url}
@@ -111,7 +206,7 @@ export default function SigilCollectionPage() {
                     className="w-full h-full object-contain transition-transform group-hover:scale-105"
                     loading="lazy"
                   />
-                </a>
+                </button>
                 <div className="p-3">
                   <p className="text-xs font-medium text-gray-900 dark:text-gray-100 line-clamp-1" title={sigil.intention}>
                     {sigil.intention}
@@ -131,7 +226,24 @@ export default function SigilCollectionPage() {
           </div>
         )}
 
-        {/* Release confirmation */}
+        {/* Working modal — same as the creator's */}
+        {working && (
+          <SigilModal
+            open={!!working}
+            onClose={() => { setWorking(null); setSavedInSession(false); }}
+            sigilUrl={working.blob_url}
+            intention={working.intention}
+            uniqueConsonants={working.consonants}
+            alreadySaved={savedInSession}
+            balance={balance}
+            isLoggedIn={isLoggedIn}
+            onRefine={handleRefine}
+            onNeedLogin={() => { if (!isLoggedIn) router.push('/signin?redirect=/sigil-creator/collection'); }}
+            onReleased={handleModalReleased}
+          />
+        )}
+
+        {/* Release confirmation (from grid) */}
         {confirmRelease && (
           <div className="fixed inset-0 bg-black/80 z-50 flex items-center justify-center p-4" onClick={(e) => { if (e.target === e.currentTarget) setConfirmRelease(null); }}>
             <div className="bg-white dark:bg-gray-900 rounded-xl w-full max-w-sm p-6 text-center border border-gray-200 dark:border-gray-700">
@@ -149,7 +261,7 @@ export default function SigilCollectionPage() {
                   Keep it
                 </button>
                 <button
-                  onClick={release}
+                  onClick={async () => { const target = confirmRelease; setConfirmRelease(null); await release(target); }}
                   className="flex-1 py-2.5 rounded-lg bg-red-600 hover:bg-red-700 text-white text-sm font-medium transition-colors"
                 >
                   Let it go ✦

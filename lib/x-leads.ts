@@ -43,7 +43,7 @@ export async function scoreLeadWithXAI(
   const apiKey = process.env.XAI_API_KEY;
   if (!apiKey) return { score: 50, reason: 'XAI not configured' };
 
-  const prompt = `You are evaluating Twitter users as potential leads for illuminati.earth — a spiritual platform featuring astrology readings, occult teachings, sacred geometry, and mystical wisdom.
+  const prompt = `You are evaluating Twitter users as potential leads for illuminati.co — a spiritual platform featuring astrology readings, occult teachings, sacred geometry, and mystical wisdom.
 
 User: @${username}
 Bio: ${bio || '(no bio)'}
@@ -85,23 +85,23 @@ Respond with JSON only: {"score": <number>, "reason": "<one sentence>"}`;
   }
 }
 
-// Generate a personalized reply that adds value and mentions illuminati.earth
+// Generate a personalized reply that adds value and mentions illuminati.co
 export async function generateReply(
   username: string,
   tweetText: string,
 ): Promise<string> {
   const apiKey = process.env.XAI_API_KEY;
-  if (!apiKey) return `@${username} Your interest in the mystical arts is noted. Explore deeper at illuminati.earth ✨`;
+  if (!apiKey) return `@${username} Your interest in the mystical arts is noted. Explore deeper at illuminati.co ✨`;
 
   const prompt = `Write a Twitter reply to @${username} who tweeted: "${tweetText}"
 
-You represent illuminati.earth — a platform for astrology, sacred geometry, and occult wisdom.
+You represent illuminati.co — a platform for astrology, sacred geometry, and occult wisdom.
 
 Rules:
 - Max 240 characters including @username
 - Sound genuinely interested and knowledgeable, not spammy
 - Add a mystical insight or question relevant to their tweet
-- End with a subtle mention of illuminati.earth or #realilluminati
+- End with a subtle mention of illuminati.co or #realilluminati
 - No emojis spam, 1-2 max
 - Do NOT say "check out" or "visit" — be natural
 
@@ -121,12 +121,12 @@ Return just the reply text, nothing else.`;
       }),
     });
 
-    if (!res.ok) return `@${username} The stars align with your path. illuminati.earth`;
+    if (!res.ok) return `@${username} The stars align with your path. illuminati.co`;
 
     const data = await res.json();
     return data.choices[0].message.content.trim();
   } catch {
-    return `@${username} The stars align with your path. illuminati.earth`;
+    return `@${username} The stars align with your path. illuminati.co`;
   }
 }
 

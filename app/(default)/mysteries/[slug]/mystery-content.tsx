@@ -124,21 +124,21 @@ export function MysteryContent({ slug }: MysteryContentProps) {
     author: {
       '@type': 'Organization',
       name: 'Real Illuminati',
-      url: 'https://illuminati.earth'
+      url: 'https://illuminati.co'
     },
     publisher: {
       '@type': 'Organization',
       name: 'Real Illuminati',
       logo: {
         '@type': 'ImageObject',
-        url: 'https://illuminati.earth/images/illuminati-logo.png'
+        url: 'https://illuminati.co/images/illuminati-logo.png'
       }
     },
     datePublished: content.created_at,
     dateModified: content.updated_at,
     mainEntityOfPage: {
       '@type': 'WebPage',
-      '@id': `https://illuminati.earth/mysteries/${slug}`
+      '@id': `https://illuminati.co/mysteries/${slug}`
     },
     articleSection: 'Mysteries',
     keywords: ['mysteries', 'conspiracy theories', 'unexplained phenomena', 'historical enigmas'],
@@ -149,19 +149,19 @@ export function MysteryContent({ slug }: MysteryContentProps) {
           '@type': 'ListItem',
           position: 1,
           name: 'Home',
-          item: 'https://illuminati.earth'
+          item: 'https://illuminati.co'
         },
         {
           '@type': 'ListItem',
           position: 2,
           name: 'Mysteries',
-          item: 'https://illuminati.earth/mysteries'
+          item: 'https://illuminati.co/mysteries'
         },
         {
           '@type': 'ListItem',
           position: 3,
           name: content.title,
-          item: `https://illuminati.earth/mysteries/${slug}`
+          item: `https://illuminati.co/mysteries/${slug}`
         }
       ]
     }

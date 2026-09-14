@@ -56,14 +56,14 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
       address: false,
       telephone: false,
     },
-    metadataBase: new URL('https://illuminati.earth'),
+    metadataBase: new URL('https://illuminati.co'),
     alternates: {
-      canonical: `https://illuminati.earth/astrology/${slug}`,
+      canonical: `https://illuminati.co/astrology/${slug}`,
     },
     openGraph: {
       title,
       description,
-      url: `https://illuminati.earth/astrology/${slug}`,
+      url: `https://illuminati.co/astrology/${slug}`,
       siteName: 'Real Illuminati',
       locale: 'en_US',
       type: 'article',
@@ -73,7 +73,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
       tags: keywords,
       images: [
         {
-          url: `https://illuminati.earth/api/og/astrology/${slug}`,
+          url: `https://illuminati.co/api/og/astrology/${slug}`,
           width: 1200,
           height: 630,
           alt: `${template.title} - Archetypal Astrology`,
@@ -84,7 +84,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
       card: 'summary_large_image',
       title,
       description,
-      images: [`https://illuminati.earth/api/og/astrology/${slug}`],
+      images: [`https://illuminati.co/api/og/astrology/${slug}`],
       creator: '@realilluminati',
       site: '@realilluminati',
     },

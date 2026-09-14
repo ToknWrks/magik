@@ -95,7 +95,7 @@ Current planetary positions: ${planetLine}
 Active aspects (tightest first):
 ${aspectLines || 'No tight aspects today'}
 
-Write a single tweet (max 250 characters) about today's astrological energy for the @illuminati_earth account.
+Write a single tweet (max 250 characters) about today's astrological energy for the @illuminatico account.
 
 Rules:
 - Mystical, insightful, poetic tone — not generic horoscope fluff

@@ -174,7 +174,7 @@ export default function LeadsPage() {
     <div className="px-4 sm:px-6 lg:px-8 py-8 w-full max-w-7xl mx-auto">
       <h1 className="text-2xl font-bold text-gray-800 dark:text-gray-100 mb-1">X Lead Generation</h1>
       <p className="text-sm text-gray-500 dark:text-gray-400 mb-6">
-        Find astrology & occult enthusiasts on X. Score with Grok. Engage to grow @illuminati.earth.
+        Find astrology & occult enthusiasts on X. Score with Grok. Engage to grow @illuminati.co.
       </p>
 
       {/* Setup */}

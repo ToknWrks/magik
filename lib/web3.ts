@@ -57,8 +57,8 @@ export function getAppKit(): AppKit | null {
         url:
           typeof window !== 'undefined'
             ? window.location.origin
-            : 'https://illuminati.earth',
-        icons: ['https://illuminati.earth/icon.png'],
+            : 'https://illuminati.co',
+        icons: ['https://illuminati.co/icon.png'],
       },
       features: {
         analytics: false,

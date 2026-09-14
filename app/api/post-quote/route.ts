@@ -35,7 +35,7 @@ export async function GET(request: NextRequest) {
 
     // Post to Twitter
     console.log('About to tweet');
-    const tweet = await twitter.v2.tweet(`${quote.quote} - ${quote.author} #realilluminati https://illuminati.earth`);
+    const tweet = await twitter.v2.tweet(`${quote.quote} - ${quote.author} #realilluminati https://illuminati.co`);
     console.log('Tweet posted:', tweet.data.id);
 
     // Save to database

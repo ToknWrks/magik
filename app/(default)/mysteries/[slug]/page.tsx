@@ -22,7 +22,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
       title: 'Mystery Not Found | Real Illuminati',
       description: 'The requested mystery could not be found. Explore our comprehensive collection of documented mysteries, unexplained phenomena, and historical enigmas.',
       keywords: ['mysteries', 'conspiracy theories', 'unexplained phenomena', 'historical enigmas'],
-      metadataBase: new URL('https://illuminati.earth'),
+      metadataBase: new URL('https://illuminati.co'),
       alternates: {
         canonical: `/mysteries/${slug}`,
       },
@@ -56,7 +56,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
       address: false,
       telephone: false,
     },
-    metadataBase: new URL('https://illuminati.earth'),
+    metadataBase: new URL('https://illuminati.co'),
     alternates: {
       canonical: `/mysteries/${slug}`,
     },

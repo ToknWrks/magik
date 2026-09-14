@@ -8,7 +8,7 @@ import {
 import { amazonProducts } from '@/lib/amazon-products';
 import { MetadataRoute } from 'next';
 
-const baseUrl = 'https://illuminati.earth';
+const baseUrl = 'https://illuminati.co';
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const now = new Date();

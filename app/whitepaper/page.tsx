@@ -4,7 +4,7 @@ import WhitepaperClient from "@/components/WhitepaperClient";
 export const metadata: Metadata = {
   title: "Whitepaper — Illuminati",
   description:
-    "Illuminati — Pre-Launch Whitepaper. The mystical platform on Base: sigils, astrology, coaching. ILLUM governance token. illuminati.co",
+    "Illuminati — Pre-Launch Whitepaper. The mystical platform on Base: sigils, astrology, coaching. SIGIL governance token. illuminati.co",
   robots: { index: false, follow: false },
 };
 

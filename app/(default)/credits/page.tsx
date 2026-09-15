@@ -12,6 +12,7 @@ import {
 } from '@stripe/react-stripe-js';
 import { Boundary } from '@/components/ui/boundary';
 import Link from 'next/link';
+import Image from 'next/image';
 import CryptoPurchase from '@/components/web3/CryptoPurchase';
 
 const stripePromise = process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY
@@ -221,6 +222,17 @@ export default function CreditsPage() {
   const [transactions, setTransactions] = useState<any[]>([]);
   const [selected, setSelected] = useState<typeof PACKAGES[0] | null>(null);
   const [payMethod, setPayMethod] = useState<'stripe' | 'crypto'>('stripe');
+  const [isDarkMode, setIsDarkMode] = useState(false);
+
+  // Theme-aware logo (same pair of assets as the sidebar logo)
+  useEffect(() => {
+    const checkTheme = () => setIsDarkMode(document.documentElement.classList.contains('dark'));
+    checkTheme();
+    const observer = new MutationObserver(checkTheme);
+    observer.observe(document.documentElement, { attributes: true, attributeFilter: ['class'] });
+    return () => observer.disconnect();
+  }, []);
+  const logoSrc = isDarkMode ? '/images/illuminati-logo.png' : '/images/illuminati-logo-light.png';
 
   useEffect(() => {
     // Wallet users default to the crypto rail; email users keep Stripe
@@ -306,9 +318,13 @@ export default function CreditsPage() {
               {balance !== null ? balance : '—'} <span className="text-xl font-medium text-gray-400">tokens</span>
             </p>
           </div>
-          <svg className="w-10 h-10 text-yellow-200 dark:text-yellow-900" fill="currentColor" viewBox="0 0 20 20">
-            <path d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" />
-          </svg>
+          <Image
+            src={logoSrc}
+            alt="Illuminati Logo"
+            width={40}
+            height={40}
+            className="w-10 h-10 flex-shrink-0"
+          />
         </div>
 
         {/* What credits buy */}

@@ -47,7 +47,8 @@ Core features: **sigil creator** (now the home/nav centerpiece), astrology readi
 - `lib/auth.ts` — JWT + session logic
 - `components/` — reusable UI; `components/sigil/SigilModal.tsx` (sigil viewer, shared by creator + gallery)
 - `context/` — cart, selected-items, flyout (React Context)
-- `hooks/` — `useCredits`, `useAutoLinks`, `useLanguage`
+- `hooks/` — `useCredits`, `useReadingPayments` (token pricing constants + balance hook for reading checkouts), `useAutoLinks`, `useLanguage`
+- `components/TokenPaymentPanel.tsx` — standalone token-checkout panel (NO Stripe hooks — safe outside `<Elements>`); used by both reading payment flows
 - `scripts/` — DB migrations (`migrate-saved-sigils.js/.sql`, `check-schema.js`)
 
 ### Web3 (added 2026-09)
@@ -65,6 +66,15 @@ Core features: **sigil creator** (now the home/nav centerpiece), astrology readi
 ### Payments
 
 Stripe + PayPal (traditional rail, `app/api/stripe/`, `app/api/payments/`) **plus crypto rail** (USDC via wallet, see Web3 above). Webhooks handled in `app/api/stripe/` and `app/api/paypal/`.
+
+### Reading Purchases with Tokens (added 2026-09-15)
+
+Readings are purchasable three ways: Stripe card, invite/coupon code, or **tokens** (250 per reading, $1 = 100 tokens — matches cash price incl. eco contribution). Crypto users buy tokens with USDC on Base via `/credits` first (existing verify-crypto rail), then spend them — one ledger, one rail.
+
+- **Server:** `app/api/astrology/personal-reading` and `full-reading` accept `useCredits: true` — atomically deduct 250 from `user_credits` (only if balance suffices, same pattern as `/api/credits/spend`), log a `spend` row in `credit_transactions`, use `credits_<timestamp>_<rand>` as `stripe_payment_id` (that column is a generic payment reference). Requires login (tokens live on the account); 402 with clear message on insufficient balance. Card/coupon/dev-bypass paths untouched.
+- **Client:** Card ⇄ Tokens toggle on both checkouts (plain buttons, no Stripe hooks). Wallet-only users default to tokens, same rule as `/credits`. Insufficient-balance UI links to `/credits`. Full Initiation keeps its 100-token bonus when paid with tokens.
+- **CRITICAL pitfall (caused a white-screen crash, fixed):** never render a component that calls `useStripe()`/`useElements()` outside Stripe's `<Elements>` provider — it throws and Next.js shows "Application error". That's why `TokenPaymentPanel` exists as a hook-free component. `PaymentForm` (Stripe-only shape) must stay inside `<Elements>`.
+- Token price constants live in **both** `hooks/useReadingPayments.ts` (`READING_COST_TOKENS`, `FULL_INITIATION_COST_TOKENS`) and the API routes (`READING_COST_TOKENS`) — keep them in sync when changing prices. `/credits` "What tokens unlock" list also references the prices.
 
 ### Sigil Creator
 

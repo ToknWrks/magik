@@ -4,6 +4,7 @@ import React, { useState, useEffect, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { Boundary } from '@/components/ui/boundary'
+import ProfileImagePicker from '@/components/profile-image-picker'
 import { formatCo2, estimateFootprintGrams } from '@/lib/regen-footprint'
 import * as Astronomy from 'astronomy-engine'
 import { Line } from 'react-chartjs-2'
@@ -465,6 +466,7 @@ export default function ProfileClient() {
   const [avatarPreview, setAvatarPreview] = useState<string | null>(null)
   const [saving, setSaving] = useState(false)
   const [saveError, setSaveError] = useState('')
+  const [showImagePicker, setShowImagePicker] = useState(false)
 
   // Delete account
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
@@ -612,9 +614,9 @@ export default function ProfileClient() {
               {editing && (
                 <>
                   <button
-                    onClick={() => fileInputRef.current?.click()}
+                    onClick={() => setShowImagePicker(true)}
                     className="absolute -bottom-1 -right-1 w-7 h-7 bg-yellow-700 hover:bg-yellow-800 rounded-full flex items-center justify-center shadow-sm transition-colors"
-                    title="Upload photo"
+                    title="Choose profile image"
                   >
                     <svg className="w-3.5 h-3.5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
@@ -667,6 +669,12 @@ export default function ProfileClient() {
                       Cancel
                     </button>
                   </div>
+                  <button
+                    onClick={() => setShowImagePicker(true)}
+                    className="text-xs text-yellow-700 dark:text-yellow-500 hover:underline"
+                  >
+                    or choose from the Illuminati image gallery →
+                  </button>
                 </div>
               ) : (
                 <div>
@@ -1042,6 +1050,21 @@ export default function ProfileClient() {
         </div>
 
       </div>
+
+      {/* Profile image picker modal */}
+      <ProfileImagePicker
+        open={showImagePicker}
+        currentPath={avatarPreview || user?.avatar_url || null}
+        onClose={() => setShowImagePicker(false)}
+        onSelected={(path) => {
+          setAvatarPreview(path)
+          setShowImagePicker(false)
+        }}
+        onUpload={() => {
+          setShowImagePicker(false)
+          fileInputRef.current?.click()
+        }}
+      />
     </Boundary>
   )
 }

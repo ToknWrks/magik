@@ -125,10 +125,10 @@ export default function DropdownProfile({
                     {({ active }) => (
                       <Link
                         className={`flex items-center px-3 py-1.5 ${active ? 'bg-gray-50 dark:bg-gray-700/50' : ''}`}
-                        href="/sigil-creator"
+                        href="/sigil-creator/collection"
                       >
                         <span className="astrology-symbol w-4 mr-2 text-gray-400 text-sm leading-none text-center">{"\u26E4"}</span>
-                        Sigil Creator
+                        My Sigils
                       </Link>
                     )}
                   </MenuItem>

@@ -10,7 +10,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import OnboardingImage from '@/public/images/auth-image.jpg';
 
-type Path = 'full' | 'transit';
+type Path = 'full' | 'transit' | 'birthchart';
 
 export default function ReadingsPurchase() {
   const router = useRouter();
@@ -18,6 +18,7 @@ export default function ReadingsPurchase() {
 
   const handleContinue = () => {
     if (selected === 'full') router.push('/full-illuminati-initiation');
+    else if (selected === 'birthchart') router.push('/astrology/birth-chart-reading');
     else router.push('/astrology/personal-reading');
   };
 
@@ -92,6 +93,35 @@ export default function ReadingsPurchase() {
                           ].map(f => (
                             <p key={f} className="text-xs text-gray-400 flex items-center gap-1.5">
                               <span className="text-indigo-400 flex-shrink-0">✦</span>{f}
+                            </p>
+                          ))}
+                        </div>
+                      </div>
+                    </div>
+                    <div className="absolute inset-0 border-2 border-transparent peer-checked:border-yellow-500 dark:peer-checked:border-yellow-600 rounded-xl pointer-events-none" aria-hidden="true" />
+                  </label>
+
+                  {/* Birth Chart Reading */}
+                  <label className="relative block cursor-pointer">
+                    <input type="radio" name="path" value="birthchart" checked={selected === 'birthchart'} onChange={() => setSelected('birthchart')} className="peer sr-only" />
+                    <div className="flex items-start gap-4 bg-white dark:bg-gray-800 p-5 rounded-xl border border-gray-200 dark:border-gray-700/60 hover:border-gray-300 dark:hover:border-gray-600 shadow-sm transition">
+                      <div className="w-10 h-10 rounded-full overflow-hidden flex-shrink-0 mt-0.5">
+                        <Image src="/images/Spirit14.png" alt="Birth Chart Reading" width={40} height={40} className="object-cover w-full h-full" />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center justify-between mb-1">
+                          <p className="font-semibold text-gray-900 dark:text-gray-100">Birth Chart Reading</p>
+                          <span className="text-sm font-bold text-gray-700 dark:text-gray-300 flex-shrink-0 ml-2">$9</span>
+                        </div>
+                        <p className="text-sm text-gray-500 dark:text-gray-400 mb-2">Your natal chart, deeply interpreted</p>
+                        <div className="space-y-1">
+                          {[
+                            'Your core identity, emotional world, mind, heart & will',
+                            'The architecture of your soul — natal aspects',
+                            'Elemental nature and soul signature',
+                          ].map(f => (
+                            <p key={f} className="text-xs text-gray-400 flex items-center gap-1.5">
+                              <span className="text-emerald-500 flex-shrink-0">✦</span>{f}
                             </p>
                           ))}
                         </div>

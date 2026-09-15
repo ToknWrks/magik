@@ -19,7 +19,16 @@ export default function Sidebar({
   const [sidebarExpanded, setSidebarExpanded] = useState<boolean>(false)
   const segments = useSelectedLayoutSegments()  
   const [breakpoint, setBreakpoint] = useState<string | undefined>(getBreakpoint())
+  const [isAdmin, setIsAdmin] = useState<boolean>(false)
   const expandOnly = !sidebarExpanded && (breakpoint === 'lg' || breakpoint === 'xl')
+
+  // Check admin role for admin-only nav items (community Users - Tiles)
+  useEffect(() => {
+    fetch('/api/auth/me', { credentials: 'include' })
+      .then(r => r.json())
+      .then(data => setIsAdmin(data.user?.role === 'admin'))
+      .catch(() => setIsAdmin(false))
+  }, [])
 
   // close on click outside
   useEffect(() => {
@@ -323,21 +332,23 @@ export default function Sidebar({
                           <li className="mb-1 last:mb-0">
                             <SidebarLink href="/community/users-tabs">
                               <span className="text-sm font-medium lg:opacity-0 lg:sidebar-expanded:opacity-100 2xl:opacity-100 duration-200">
-                                Users - Tabs
+                                Members
                               </span>
                             </SidebarLink>
                           </li>
+                          {isAdmin && (
+                            <li className="mb-1 last:mb-0">
+                              <SidebarLink href="/community/users-tiles">
+                                <span className="text-sm font-medium lg:opacity-0 lg:sidebar-expanded:opacity-100 2xl:opacity-100 duration-200">
+                                  Users - Tiles (Admin)
+                                </span>
+                              </SidebarLink>
+                            </li>
+                          )}
                           <li className="mb-1 last:mb-0">
-                            <SidebarLink href="/community/users-tiles">
+                            <SidebarLink href="/profile">
                               <span className="text-sm font-medium lg:opacity-0 lg:sidebar-expanded:opacity-100 2xl:opacity-100 duration-200">
-                                Users - Tiles
-                              </span>
-                            </SidebarLink>
-                          </li>
-                          <li className="mb-1 last:mb-0">
-                            <SidebarLink href="/community/profile">
-                              <span className="text-sm font-medium lg:opacity-0 lg:sidebar-expanded:opacity-100 2xl:opacity-100 duration-200">
-                                Profile
+                                My Profile
                               </span>
                             </SidebarLink>
                           </li>

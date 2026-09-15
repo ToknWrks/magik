@@ -23,6 +23,7 @@ import { useTokenBalance } from '@/hooks/useReadingPayments';
 import { READING_CARD_USD, READING_CRYPTO_USD, READING_TOKENS } from '@/lib/reading-pricing';
 import CryptoPaymentPanel from '@/components/CryptoPaymentPanel';
 import TokenPaymentPanel from '@/components/TokenPaymentPanel';
+import WalletAuthButton from '@/components/web3/WalletAuthButton';
 import Link from 'next/link';
 
 const stripePromise = process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY
@@ -523,6 +524,15 @@ function PaymentForm({
   );
 }
 
+
+// Wallet connect, rendered only after mount (AppKit hooks throw during SSR)
+function MountedWalletButton({ redirectTo, label = '⛓ Connect Wallet to Continue' }: { redirectTo: string; label?: string }) {
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => setMounted(true), []);
+  if (!mounted) return <div className="h-[38px]" />;
+  return <WalletAuthButton label={label} redirectTo={redirectTo} className="[&>button]:w-full [&>button]:py-2.5 [&>button]:rounded-lg" />;
+}
+
 // ── Main component ────────────────────────────────────────────────────────────
 
 export default function BirthChartReadingClient() {
@@ -792,6 +802,12 @@ export default function BirthChartReadingClient() {
         {!isLoggedIn && (
           <div className="border border-gray-200 dark:border-gray-700 rounded-xl p-5 space-y-4">
             <h3 className="font-semibold text-gray-900 dark:text-gray-100">Your Account</h3>
+            <MountedWalletButton redirectTo="/astrology/birth-chart-reading" />
+            <div className="flex items-center gap-3 text-xs text-gray-400">
+              <span className="flex-1 border-t border-gray-200 dark:border-gray-700" />
+              or with email
+              <span className="flex-1 border-t border-gray-200 dark:border-gray-700" />
+            </div>
             <div>
               <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                 Email <span className="text-red-500">*</span>

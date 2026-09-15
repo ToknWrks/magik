@@ -20,6 +20,7 @@ import LanguageSelector from '@/components/LanguageSelector';
 import EcoContributionInfo from '@/components/EcoContributionInfo';
 import { FULL_INITIATION_COST_TOKENS, useTokenBalance } from '@/hooks/useReadingPayments';
 import TokenPaymentPanel from '@/components/TokenPaymentPanel';
+import WalletAuthButton from '@/components/web3/WalletAuthButton';
 
 const stripePromise = process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY
   ? loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY)
@@ -432,6 +433,15 @@ function ReadingResult({
   );
 }
 
+
+// Wallet connect, rendered only after mount (AppKit hooks throw during SSR)
+function MountedWalletButton({ redirectTo, label = '⛓ Connect Wallet to Continue' }: { redirectTo: string; label?: string }) {
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => setMounted(true), []);
+  if (!mounted) return <div className="h-[38px]" />;
+  return <WalletAuthButton label={label} redirectTo={redirectTo} className="[&>button]:w-full [&>button]:py-2.5 [&>button]:rounded-lg" />;
+}
+
 // ── Main ──────────────────────────────────────────────────────────────────────
 
 export default function Onboarding03() {
@@ -588,6 +598,12 @@ export default function Onboarding03() {
                       {!isLoggedIn && (
                         <div className="border border-gray-200 dark:border-gray-700 rounded-xl p-5 space-y-4">
                           <h3 className="font-semibold text-gray-900 dark:text-gray-100">Your Account</h3>
+                          <MountedWalletButton redirectTo="/full-illuminati-initiation" />
+                          <div className="flex items-center gap-3 text-xs text-gray-400">
+                            <span className="flex-1 border-t border-gray-200 dark:border-gray-700" />
+                            or with email
+                            <span className="flex-1 border-t border-gray-200 dark:border-gray-700" />
+                          </div>
                           <div>
                             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                               Email <span className="text-red-500">*</span>

@@ -234,8 +234,21 @@ export default function OnboardingSolomon() {
   const router = useRouter();
   const [mounted, setMounted] = useState(false);
   useEffect(() => setMounted(true), []);
+
   const [step, setStep] = useState<'form' | 'payment' | 'result'>('form');
   const [selectedPkg, setSelectedPkg] = useState(PACKAGES[1]); // default 3-Pack
+  // Persist package selection across wallet-login hard navigation
+  useEffect(() => {
+    try { sessionStorage.setItem('solomon_pkg', selectedPkg.id); } catch {}
+  }, [selectedPkg]);
+  useEffect(() => {
+    try {
+      const id = sessionStorage.getItem('solomon_pkg');
+      const pkg = PACKAGES.find(p => p.id === id);
+      if (pkg) setSelectedPkg(pkg);
+      sessionStorage.removeItem('solomon_pkg');
+    } catch {}
+  }, []);
   const [formData, setFormData] = useState({ email: '', password: '' });
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [balance, setBalance] = useState<number | null>(null);
@@ -374,6 +387,7 @@ export default function OnboardingSolomon() {
                             <WalletAuthButton
                               label="⛓ Connect Wallet to Continue"
                               className="[&>button]:w-full [&>button]:py-2.5"
+                              redirectTo="/onboarding-solomon"
                             />
                           )}
                           <div className="flex items-center gap-3 text-xs text-gray-400">

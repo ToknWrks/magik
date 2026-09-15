@@ -16,11 +16,14 @@ export default function WalletAuthButton({
   label = 'Sign in with Wallet',
   className = '',
   linkEmail,
+  redirectTo,
 }: {
   label?: string
   className?: string
   /** Pass an email to link a wallet to an existing account ("link:<email>" statement). */
   linkEmail?: string
+  /** Where to land after sign-in. Falls back to ?redirect= param, then /profile. */
+  redirectTo?: string
 }) {
   const { open } = useAppKit()
   const { address } = useAppKitAccount()
@@ -76,7 +79,7 @@ export default function WalletAuthButton({
       // Session cookies are set (path=/) — hard-navigate so every
       // server component / client fetch picks up the new session.
       const params = new URLSearchParams(window.location.search)
-      const next = params.get('redirect') || '/profile'
+      const next = redirectTo || params.get('redirect') || '/profile'
       window.location.href = next
     } catch (e) {
       setError(e instanceof Error ? e.message : 'Sign-in failed')

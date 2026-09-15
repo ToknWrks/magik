@@ -129,10 +129,7 @@ export function StoreClient() {
         <h1 className="text-4xl font-bold text-gray-900 dark:text-gray-100 mb-4">
           
         </h1>
-        <p className="text-lg text-gray-600 dark:text-gray-400 max-w-3xl mx-auto mb-8">
-          Premium merchandise, books, and gear for the enlightened mind.
-          
-        </p>
+       
 
         {/* Filters and Sort */}
         {!loading && (

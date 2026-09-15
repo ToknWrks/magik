@@ -156,7 +156,7 @@ export default function SigilCollectionPage() {
 
   return (
     <Boundary label="My Sigils">
-      <div className="max-w-2xl mx-auto space-y-5">
+      <div className="w-[70%] max-w-6xl mx-auto space-y-5">
         {/* Header */}
         <div className="flex items-center justify-between">
           <div>

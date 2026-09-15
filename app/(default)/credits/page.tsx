@@ -308,7 +308,7 @@ export default function CreditsPage() {
 
   return (
     <Boundary label="Credits" animateRerendering={false}>
-      <div className="max-w-2xl mx-auto space-y-8">
+      <div className="w-[70%] max-w-6xl mx-auto space-y-8">
 
         {/* Balance */}
         <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-6 flex items-center justify-between">

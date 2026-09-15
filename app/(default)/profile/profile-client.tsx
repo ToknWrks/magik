@@ -592,7 +592,7 @@ export default function ProfileClient() {
 
   return (
     <Boundary label="My Profile">
-      <div className="max-w-2xl mx-auto space-y-5">
+      <div className="w-[70%] max-w-6xl mx-auto space-y-5">
 
         {/* ── Profile Header ── */}
         <div className="bg-white dark:bg-gray-800 rounded-xl p-6">

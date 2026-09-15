@@ -168,7 +168,7 @@ export default function CoachingSessionsPage() {
 
   return (
     <Boundary label="My Sessions" animateRerendering={false}>
-      <div className="max-w-2xl mx-auto space-y-5">
+      <div className="w-[70%] max-w-6xl mx-auto space-y-5">
 
         <div className="flex items-center justify-between">
           <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">My Sessions</h1>

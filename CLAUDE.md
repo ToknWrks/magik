@@ -67,14 +67,20 @@ Core features: **sigil creator** (now the home/nav centerpiece), astrology readi
 
 Stripe + PayPal (traditional rail, `app/api/stripe/`, `app/api/payments/`) **plus crypto rail** (USDC via wallet, see Web3 above). Webhooks handled in `app/api/stripe/` and `app/api/paypal/`.
 
-### Reading Purchases with Tokens (added 2026-09-15)
+### Reading Purchases — Products & Method Pricing (updated 2026-09-15)
 
-Readings are purchasable three ways: Stripe card, invite/coupon code, or **tokens** (250 per reading, $1 = 100 tokens — matches cash price incl. eco contribution). Crypto users buy tokens with USDC on Base via `/credits` first (existing verify-crypto rail), then spend them — one ledger, one rail.
+Readings are purchasable three ways, with **method-specific pricing** on the two standalone readings: Stripe card, direct crypto (USDC on Base), or tokens. Prices live in **`lib/reading-pricing.ts`** (single source of truth — server routes import it and the client UI displays it; keep them in sync):
 
-- **Server:** `app/api/astrology/personal-reading` and `full-reading` accept `useCredits: true` — atomically deduct 250 from `user_credits` (only if balance suffices, same pattern as `/api/credits/spend`), log a `spend` row in `credit_transactions`, use `credits_<timestamp>_<rand>` as `stripe_payment_id` (that column is a generic payment reference). Requires login (tokens live on the account); 402 with clear message on insufficient balance. Card/coupon/dev-bypass paths untouched.
-- **Client:** Card ⇄ Tokens toggle on both checkouts (plain buttons, no Stripe hooks). Wallet-only users default to tokens, same rule as `/credits`. Insufficient-balance UI links to `/credits`. Full Initiation keeps its 100-token bonus when paid with tokens.
-- **CRITICAL pitfall (caused a white-screen crash, fixed):** never render a component that calls `useStripe()`/`useElements()` outside Stripe's `<Elements>` provider — it throws and Next.js shows "Application error". That's why `TokenPaymentPanel` exists as a hook-free component. `PaymentForm` (Stripe-only shape) must stay inside `<Elements>`.
-- Token price constants live in **both** `hooks/useReadingPayments.ts` (`READING_COST_TOKENS`, `FULL_INITIATION_COST_TOKENS`) and the API routes (`READING_COST_TOKENS`) — keep them in sync when changing prices. `/credits` "What tokens unlock" list also references the prices.
+- **Personal Transit Reading** (`/astrology/personal-reading`): $12 card / $10 crypto / 250 tokens
+- **Birth Chart Reading** (`/astrology/birth-chart-reading`, added 2026-09-15): standalone natal-chart interpretation (NOT the Full Initiation) — $12 card / $10 crypto / 250 tokens; saved with `reading_type='birthchart'`
+- **Full Initiation** (`/full-illuminati-initiation`): $23 card / 250 tokens (birth chart + transit reading, grants 100 bonus tokens)
+- Chooser page at `/purchase/readings` (illuminati-initiation template design, no progress dots, no Solomon's Path)
+
+- **Server:** both reading APIs (`app/api/astrology/personal-reading`, `birth-chart-reading`) accept `useCredits: true` (atomic 250-token deduct, `spend` row in `credit_transactions`) or `cryptoPaymentId` (see below). Stripe path **enforces the card price server-side** (`paymentIntent.amount` must equal `READING_CARD_USD`); dev-bypass/coupon paths unchanged.
+- **Crypto (direct):** `app/api/astrology/verify-crypto` verifies an exact-price USDC transfer → treasury (12 confirmations on Base), inserts into `reading_crypto_payments` (migration `scripts/migrate-reading-crypto.sql`, applied 2026-09-15). The reading API then atomically **claims** that row (user + reading_type + unclaimed checks) before generating — one verification per tx hash, ever.
+- **Client:** `components/TokenPaymentPanel.tsx` (token rail) and `components/CryptoPaymentPanel.tsx` (crypto rail, wagmi `useWriteContract` + `useWaitForTransactionReceipt`) are both **hook-free of Stripe** — safe outside `<Elements>`. Wallet-only users default to crypto; toggle buttons are plain (no Stripe hooks) so they render anywhere.
+- **CRITICAL pitfall (caused a white-screen crash, fixed):** never render a component that calls `useStripe()`/`useElements()` outside Stripe's `<Elements>` provider — it throws and Next.js shows "Application error". `PaymentForm` (Stripe-only shape) must stay inside `<Elements>`.
+- Crypto panel requires `NEXT_PUBLIC_TREASURY_ADDRESS` (+ `NEXT_PUBLIC_REOWN_PROJECT_ID`) — set in Vercel and `.env.local`; without it the panel degrades to "coming soon".
 
 ### Sigil Creator
 

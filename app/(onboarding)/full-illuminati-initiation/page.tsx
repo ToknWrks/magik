@@ -269,7 +269,7 @@ function PaymentForm({
             onClick={() => onPayMethodChange('tokens')}
             className={`px-3 py-1.5 rounded-md font-medium transition ${payMethod === 'tokens' ? 'bg-gray-900 dark:bg-yellow-500 text-white dark:text-gray-900' : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200'}`}
           >
-            ◎ Tokens · 250
+            ◎ Tokens · 600
           </button>
         </div>
       )}
@@ -646,7 +646,7 @@ export default function Onboarding03() {
                       <LanguageSelector value={language} onChange={setLanguage} className="flex-shrink-0 mt-2" />
                     </div>
                     <p className="text-gray-500 dark:text-gray-400 text-sm mb-8">
-                      Your complete birth chart interpretation plus a personal transit reading. One-time — $23 by card, $20 in crypto, or 250 tokens.
+                      Your complete birth chart interpretation plus a personal transit reading. One-time — $23 by card, $20 in crypto, or 600 tokens.
                     </p>
 
                     <form onSubmit={handleFormSubmit} className="space-y-5">

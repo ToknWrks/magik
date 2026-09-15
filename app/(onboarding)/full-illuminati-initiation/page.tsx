@@ -472,8 +472,8 @@ export default function Onboarding03() {
         if (data.user) {
           setIsLoggedIn(true);
           setFormData(p => ({ ...p, email: data.user.email }));
-          // Wallet users default to crypto (USDC) — most won't have tokens yet
-          if (data.user.wallet_address) setPayMethod('crypto');
+          // Wallet users default to tokens on this page (no direct crypto rail here)
+          if (data.user.wallet_address) setPayMethod('tokens');
         }
       });
   }, []);

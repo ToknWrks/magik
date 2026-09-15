@@ -52,8 +52,8 @@ const FEATURE_COSTS = [
   { label: 'Coaching session', credits: 100, duration: '10 min minimum' },
   { label: 'Content dialogue', credits: 50, duration: '5 min minimum' },
   { label: 'Profile image generation', credits: 20, duration: 'per image' },
-  { label: 'Personal Transit Reading', credits: 200, duration: 'one-time' },
-  { label: 'Birth Chart Reading', credits: 200, duration: 'one-time' },
+  { label: 'Personal Transit Reading', credits: 250, duration: 'one-time' },
+  { label: 'Birth Chart Reading', credits: 250, duration: 'one-time' },
 ];
 
 function CheckoutForm({

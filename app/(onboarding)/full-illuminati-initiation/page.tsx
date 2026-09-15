@@ -591,7 +591,7 @@ export default function Onboarding03() {
                       <LanguageSelector value={language} onChange={setLanguage} className="flex-shrink-0 mt-2" />
                     </div>
                     <p className="text-gray-500 dark:text-gray-400 text-sm mb-8">
-                      Your complete birth chart interpretation plus a personal transit reading. One-time — $23 or 200 tokens.
+                      Your complete birth chart interpretation plus a personal transit reading. One-time — $23 or 250 tokens.
                     </p>
 
                     <form onSubmit={handleFormSubmit} className="space-y-5">

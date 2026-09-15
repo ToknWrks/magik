@@ -946,7 +946,7 @@ export default function PersonalReadingClient() {
         <div>
           <h3 className="text-l font-bold text-gray-900 dark:text-gray-100 mb-2">Personal Transit Reading</h3>
           <p className="text-gray-500 dark:text-gray-400">
-            A personalized archetypal astrology reading based on your natal chart and today's transits. One-time — $12 by card, $10 in crypto, or 200 tokens.
+            A personalized archetypal astrology reading based on your natal chart and today's transits. One-time — $12 by card, $10 in crypto, or 250 tokens.
           </p>
         </div>
         <LanguageSelector value={language} onChange={setLanguage} className="flex-shrink-0 mt-1" />

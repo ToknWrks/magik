@@ -792,7 +792,7 @@ export default function BirthChartReadingClient() {
         <div>
           <h3 className="text-l font-bold text-gray-900 dark:text-gray-100 mb-2">Birth Chart Reading</h3>
           <p className="text-gray-500 dark:text-gray-400">
-            A personalized archetypal interpretation of your natal chart — your core identity, emotional world, and the architecture of your soul. One-time — $12 by card, $10 in crypto, or 200 tokens.
+            A personalized archetypal interpretation of your natal chart — your core identity, emotional world, and the architecture of your soul. One-time — $12 by card, $10 in crypto, or 250 tokens.
           </p>
         </div>
         <LanguageSelector value={language} onChange={setLanguage} className="flex-shrink-0 mt-1" />

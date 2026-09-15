@@ -5,6 +5,7 @@ import { Pool } from '@neondatabase/serverless';
 import { createUserAccount, createSession } from '@/lib/auth';
 import { languagePromptSuffix } from '@/lib/language';
 import { estimateFootprintGrams, REGEN_CONTRIBUTION_CENTS } from '@/lib/regen-footprint';
+import { FULL_INITIATION_CARD_USD } from '@/lib/reading-pricing';
 
 const ZODIAC_SIGNS = ['Aries', 'Taurus', 'Gemini', 'Cancer', 'Leo', 'Virgo', 'Libra', 'Scorpio', 'Sagittarius', 'Capricorn', 'Aquarius', 'Pisces'];
 const LUMINARIES = new Set(['Sun', 'Moon']);
@@ -61,6 +62,7 @@ export async function POST(request: NextRequest) {
     const {
       paymentIntentId,
       useCredits,
+      cryptoPaymentId,
       birthDate,
       birthTime,
       birthLocation,
@@ -75,6 +77,7 @@ export async function POST(request: NextRequest) {
     const isDev = process.env.NODE_ENV === 'development';
     const devBypass = isDev && paymentIntentId === 'dev_bypass';
     const usingCredits = !devBypass && !!useCredits;
+    const usingCrypto = !devBypass && !useCredits && !!cryptoPaymentId;
 
     // Token price of a Full Initiation Reading ($1 = 100 tokens)
     const READING_COST_TOKENS = 250;
@@ -82,7 +85,7 @@ export async function POST(request: NextRequest) {
     if (!birthDate || !birthLocation || !email) {
       return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
     }
-    if (!paymentIntentId && !useCredits) {
+    if (!paymentIntentId && !useCredits && !cryptoPaymentId) {
       return NextResponse.json({ error: 'Payment required' }, { status: 400 });
     }
 
@@ -118,10 +121,33 @@ export async function POST(request: NextRequest) {
         [uid, -READING_COST_TOKENS, 'Full Initiation Reading']
       );
       effectivePaymentId = `credits_${Date.now()}_${Math.random().toString(36).slice(2, 10)}`;
+    } else if (usingCrypto) {
+      // Pay with crypto — verify the pre-verified payment belongs to this user,
+      // is a Full Initiation payment, and is unclaimed; then claim it atomically.
+      const uid = request.cookies.get('user_id')?.value;
+      if (!uid) {
+        return NextResponse.json({ error: 'Sign in to pay with crypto' }, { status: 401 });
+      }
+      const claimed = await pool.query(
+        `UPDATE reading_crypto_payments
+         SET claimed_at = NOW()
+         WHERE id = $1 AND user_id = $2 AND reading_type = 'fullinitiation' AND claimed_at IS NULL
+         RETURNING id`,
+        [cryptoPaymentId, uid]
+      );
+      if (claimed.rows.length === 0) {
+        return NextResponse.json({ error: 'Crypto payment not found, already used, or for a different reading' }, { status: 402 });
+      }
+      effectivePaymentId = cryptoPaymentId;
     } else {
       const paymentIntent = await stripe.paymentIntents.retrieve(paymentIntentId);
       if (paymentIntent.status !== 'succeeded') {
         return NextResponse.json({ error: 'Payment not completed' }, { status: 402 });
+      }
+      // Enforce the card price server-side (Full Initiation: card = FULL_INITIATION_CARD_USD)
+      const expectedCents = Math.round(FULL_INITIATION_CARD_USD * 100);
+      if (paymentIntent.amount !== expectedCents) {
+        return NextResponse.json({ error: 'Payment amount mismatch' }, { status: 402 });
       }
       // Idempotency: check if both readings already exist for this payment
       const existing = await pool.query(

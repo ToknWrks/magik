@@ -19,6 +19,8 @@ import { useLanguage } from '@/hooks/useLanguage';
 import LanguageSelector from '@/components/LanguageSelector';
 import EcoContributionInfo from '@/components/EcoContributionInfo';
 import { FULL_INITIATION_COST_TOKENS, useTokenBalance } from '@/hooks/useReadingPayments';
+import { FULL_INITIATION_CRYPTO_USD } from '@/lib/reading-pricing';
+import CryptoPaymentPanel from '@/components/CryptoPaymentPanel';
 import TokenPaymentPanel from '@/components/TokenPaymentPanel';
 import WalletAuthButton from '@/components/web3/WalletAuthButton';
 
@@ -110,8 +112,8 @@ function PaymentForm({
   onSuccess: (birthChartReading: any, transitReading: any, accountCreated: boolean) => void;
   onBack: () => void;
   language?: string;
-  payMethod?: 'stripe' | 'tokens';
-  onPayMethodChange?: (m: 'stripe' | 'tokens') => void;
+  payMethod?: 'stripe' | 'crypto' | 'tokens';
+  onPayMethodChange?: (m: 'stripe' | 'crypto' | 'tokens') => void;
 }) {
   const stripe = useStripe();
   const elements = useElements();
@@ -221,11 +223,11 @@ function PaymentForm({
               Ecological Contribution (25x regeneration)
               <EcoContributionInfo />
             </span>
-          <span className="text-green-700 dark:text-green-400">$0.25</span>
+          <span className="text-green-700 dark:text-green-400">included</span>
         </div>
         <div className="flex justify-between text-sm font-semibold pt-1 border-t border-gray-200 dark:border-gray-700">
           <span className="text-gray-900 dark:text-gray-100">Total</span>
-          <span className="text-gray-900 dark:text-gray-100">$23.25</span>
+          <span className="text-gray-900 dark:text-gray-100">$23.00</span>
         </div>
       </div>
 
@@ -253,14 +255,21 @@ function PaymentForm({
             type="button"
             className={`px-3 py-1.5 rounded-md font-medium transition ${payMethod === 'stripe' ? 'bg-gray-900 dark:bg-yellow-500 text-white dark:text-gray-900' : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200'}`}
           >
-            💳 Card
+            💳 Card · $23
+          </button>
+          <button
+            type="button"
+            onClick={() => onPayMethodChange('crypto')}
+            className={`px-3 py-1.5 rounded-md font-medium transition ${payMethod === 'crypto' ? 'bg-gray-900 dark:bg-yellow-500 text-white dark:text-gray-900' : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200'}`}
+          >
+            ⛓ Crypto · $20
           </button>
           <button
             type="button"
             onClick={() => onPayMethodChange('tokens')}
             className={`px-3 py-1.5 rounded-md font-medium transition ${payMethod === 'tokens' ? 'bg-gray-900 dark:bg-yellow-500 text-white dark:text-gray-900' : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200'}`}
           >
-            ⛓ Tokens / Crypto
+            ◎ Tokens · 250
           </button>
         </div>
       )}
@@ -447,7 +456,7 @@ function MountedWalletButton({ redirectTo, label = '⛓ Connect Wallet to Contin
 export default function Onboarding03() {
   const { language, setLanguage } = useLanguage();
   const { balance: tokenBalance, refetch: refetchTokens } = useTokenBalance();
-  const [payMethod, setPayMethod] = useState<'stripe' | 'tokens'>('stripe');
+  const [payMethod, setPayMethod] = useState<'stripe' | 'crypto' | 'tokens'>('stripe');
   const [tokenError, setTokenError] = useState('');
   const [step, setStep] = useState<'form' | 'payment' | 'result'>('form');
   const [formData, setFormData] = useState({
@@ -472,8 +481,8 @@ export default function Onboarding03() {
         if (data.user) {
           setIsLoggedIn(true);
           setFormData(p => ({ ...p, email: data.user.email }));
-          // Wallet users default to tokens on this page (no direct crypto rail here)
-          if (data.user.wallet_address) setPayMethod('tokens');
+          // Wallet users default to crypto (USDC) — most won't have tokens yet
+          if (data.user.wallet_address) setPayMethod('crypto');
         }
       });
   }, []);
@@ -503,6 +512,39 @@ export default function Onboarding03() {
       if (!res.ok) {
         setTokenError(data.details || data.error || 'Failed to generate reading');
         await refetchTokens();
+        return;
+      }
+      handleSuccess(data.birthChartReading, data.transitReading, data.accountCreated);
+    } catch (err: any) {
+      setTokenError(err?.message || 'Failed to generate reading');
+    }
+  };
+
+
+  // Crypto rail payment: after on-chain verification, generate the reading
+  const handleCryptoVerified = async (cpid: string) => {
+    setTokenError('');
+    try {
+      const res = await fetch('/api/astrology/full-reading', {
+        method: 'POST',
+        credentials: 'include',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          cryptoPaymentId: cpid,
+          birthDate: formData.birthDate,
+          birthTime: formData.birthTime,
+          birthLocation: formData.birthLocation,
+          focus: formData.focus,
+          email: formData.email,
+          password: formData.password || undefined,
+          transits,
+          natalPositions,
+          language,
+        }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        setTokenError(data.details || data.error || 'Failed to generate reading');
         return;
       }
       handleSuccess(data.birthChartReading, data.transitReading, data.accountCreated);
@@ -556,7 +598,19 @@ export default function Onboarding03() {
               <div className="max-w-md mx-auto">
 
                 {step === 'payment' ? (
-                  payMethod === 'tokens' ? (
+                  payMethod === 'crypto' ? (
+                    <CryptoPaymentPanel
+                      priceUsd={FULL_INITIATION_CRYPTO_USD}
+                      readingType="fullinitiation"
+                      error={tokenError}
+                      onVerified={handleCryptoVerified}
+                      onBack={() => setStep('form')}
+                      title="Complete Your Initiation"
+                      onSwitchToStripe={stripePromise ? () => { setPayMethod('stripe'); setTokenError(''); } : undefined}
+                      onSwitchToTokens={() => { setPayMethod('tokens'); setTokenError(''); }}
+                      submitLabel={`Full Initiation — $${FULL_INITIATION_CRYPTO_USD} in USDC on Base`}
+                    />
+                  ) : payMethod === 'tokens' ? (
                     <TokenPaymentPanel
                       cost={FULL_INITIATION_COST_TOKENS}
                       balance={tokenBalance}
@@ -565,8 +619,9 @@ export default function Onboarding03() {
                       onBack={() => setStep('form')}
                       title="Complete Your Initiation"
                       onSwitchToStripe={stripePromise ? () => { setPayMethod('stripe'); setTokenError(''); } : undefined}
+                      onSwitchToCrypto={() => { setPayMethod('crypto'); setTokenError(''); }}
                       submitLabel={`Spend ${FULL_INITIATION_COST_TOKENS} Tokens · Begin My Initiation`}
-                      note="Crypto payments go through the token rail: buy tokens with USDC on Base, tokens are spent on the reading. Includes 100 bonus tokens for Solomon coaching."
+                      note="Includes 100 bonus tokens for Solomon coaching."
                     />
                   ) : stripePromise ? (
                     <Elements stripe={stripePromise}>
@@ -591,7 +646,7 @@ export default function Onboarding03() {
                       <LanguageSelector value={language} onChange={setLanguage} className="flex-shrink-0 mt-2" />
                     </div>
                     <p className="text-gray-500 dark:text-gray-400 text-sm mb-8">
-                      Your complete birth chart interpretation plus a personal transit reading. One-time — $23 or 250 tokens.
+                      Your complete birth chart interpretation plus a personal transit reading. One-time — $23 by card, $20 in crypto, or 250 tokens.
                     </p>
 
                     <form onSubmit={handleFormSubmit} className="space-y-5">

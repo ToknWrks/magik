@@ -3,10 +3,10 @@ import { createPublicClient, http, type Log } from 'viem';
 import { base } from 'viem/chains';
 import { Pool } from '@neondatabase/serverless';
 import { CHAINS, getPurchaseToken, getTreasuryAddress } from '@/lib/token';
-import { READING_CRYPTO_USD } from '@/lib/reading-pricing';
+import { READING_CRYPTO_USD, FULL_INITIATION_CRYPTO_USD } from '@/lib/reading-pricing';
 
 // POST /api/astrology/verify-crypto
-// Body: { txHash, chainId, readingType: 'transit' | 'birthchart' }
+// Body: { txHash, chainId, readingType: 'transit' | 'birthchart' | 'fullinitiation' }
 // Verifies an on-chain USDC transfer user → treasury for the crypto reading
 // price, then returns a payment reference the reading APIs accept. The actual
 // reading row is created when the client immediately calls the reading API
@@ -28,7 +28,7 @@ export async function POST(request: NextRequest) {
     if (!txHash || !/^0x[0-9a-fA-F]{64}$/.test(txHash)) {
       return NextResponse.json({ error: 'Invalid tx hash' }, { status: 400 });
     }
-    if (readingType !== 'transit' && readingType !== 'birthchart') {
+    if (readingType !== 'transit' && readingType !== 'birthchart' && readingType !== 'fullinitiation') {
       return NextResponse.json({ error: 'Invalid reading type' }, { status: 400 });
     }
 
@@ -80,10 +80,11 @@ export async function POST(request: NextRequest) {
     const amountUsdc = Number(totalRaw) / 10 ** token.decimals;
 
     // Method-specific crypto price — exact amount required
-    const expected = READING_CRYPTO_USD;
+    const expected = readingType === 'fullinitiation' ? FULL_INITIATION_CRYPTO_USD : READING_CRYPTO_USD;
     if (amountUsdc + 1e-9 < expected) {
+      const label = readingType === 'transit' ? 'Transit' : readingType === 'birthchart' ? 'Birth Chart' : 'Full Initiation';
       return NextResponse.json(
-        { error: `Amount too low — ${readingType === 'transit' ? 'Transit' : 'Birth Chart'} reading costs ${expected} ${token.symbol}` },
+        { error: `Amount too low — ${label} reading costs ${expected} ${token.symbol}` },
         { status: 400 }
       );
     }

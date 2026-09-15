@@ -24,7 +24,7 @@ export default function CryptoPaymentPanel({
   onSwitchToTokens,
 }: {
   priceUsd: number;
-  readingType: 'transit' | 'birthchart';
+  readingType: 'transit' | 'birthchart' | 'fullinitiation';
   error?: string;
   onVerified: (cryptoPaymentId: string) => void;
   onBack: () => void;

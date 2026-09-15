@@ -16,6 +16,7 @@ import { useLanguage } from '@/hooks/useLanguage';
 import EcoContributionInfo from '@/components/EcoContributionInfo';
 import LanguageSelector from '@/components/LanguageSelector';
 import { READING_COST_TOKENS, useTokenBalance } from '@/hooks/useReadingPayments';
+import TokenPaymentPanel from '@/components/TokenPaymentPanel';
 import Link from 'next/link';
 import { Line } from 'react-chartjs-2';
 import {
@@ -417,9 +418,6 @@ function PaymentForm({
   language = 'en',
   payMethod = 'stripe',
   onPayMethodChange,
-  tokenBalance,
-  onTokenPayment,
-  tokenError = '',
 }: {
   formData: FormData;
   transits: TransitAspect[];
@@ -430,9 +428,6 @@ function PaymentForm({
   language?: string;
   payMethod?: 'stripe' | 'tokens';
   onPayMethodChange?: (m: 'stripe' | 'tokens') => void;
-  tokenBalance?: number | null;
-  onTokenPayment?: () => void;
-  tokenError?: string;
 }) {
   const stripe = useStripe();
   const elements = useElements();
@@ -441,7 +436,6 @@ function PaymentForm({
   const [error, setError] = useState('');
   const [isDark, setIsDark] = useState(false);
   const [cardComplete, setCardComplete] = useState({ number: false, expiry: false, cvc: false });
-  const usingTokens = payMethod === 'tokens' && !!onTokenPayment;
 
   const isDev = process.env.NODE_ENV === 'development';
 
@@ -473,13 +467,6 @@ function PaymentForm({
     setError('');
 
     try {
-      if (usingTokens) {
-        // Token rail — server deducts from balance; balance check happens there
-        setLoadingMsg('Generating your reading...');
-        await onTokenPayment!();
-        return; // parent handles success/error state
-      }
-
       let paymentIntentId: string | undefined;
       let couponCode: string | undefined;
 
@@ -585,26 +572,19 @@ function PaymentForm({
         </div>
       )}
 
-      {tokenError && (
-        <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-3 mb-4">
-          <p className="text-sm text-red-800 dark:text-red-200">{tokenError}</p>
-        </div>
-      )}
-
-      {/* Payment method toggle */}
+      {/* Payment method toggle — plain buttons only, safe inside/outside Elements */}
       {onPayMethodChange && (
         <div className="flex items-center gap-2 text-xs mb-4">
           <button
             type="button"
-            onClick={() => onPayMethodChange('stripe')}
-            className={`px-3 py-1.5 rounded-md font-medium transition ${!usingTokens ? 'bg-gray-900 dark:bg-yellow-500 text-white dark:text-gray-900' : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200'}`}
+            className={`px-3 py-1.5 rounded-md font-medium transition ${payMethod === 'stripe' ? 'bg-gray-900 dark:bg-yellow-500 text-white dark:text-gray-900' : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200'}`}
           >
             💳 Card
           </button>
           <button
             type="button"
             onClick={() => onPayMethodChange('tokens')}
-            className={`px-3 py-1.5 rounded-md font-medium transition ${usingTokens ? 'bg-gray-900 dark:bg-yellow-500 text-white dark:text-gray-900' : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200'}`}
+            className={`px-3 py-1.5 rounded-md font-medium transition ${payMethod === 'tokens' ? 'bg-gray-900 dark:bg-yellow-500 text-white dark:text-gray-900' : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200'}`}
           >
             ⛓ Tokens / Crypto
           </button>
@@ -612,31 +592,7 @@ function PaymentForm({
       )}
 
       <form onSubmit={handleSubmit} className="space-y-4">
-        {usingTokens ? (
-          <div className="bg-yellow-50 dark:bg-yellow-900/10 border border-yellow-200 dark:border-yellow-800/60 rounded-lg p-4 space-y-3">
-            <div className="flex justify-between text-sm">
-              <span className="text-gray-500 dark:text-gray-400">Cost</span>
-              <span className="font-semibold text-gray-900 dark:text-gray-100">{READING_COST_TOKENS} tokens</span>
-            </div>
-            <div className="flex justify-between text-sm">
-              <span className="text-gray-500 dark:text-gray-400">Your balance</span>
-              <span className={`font-semibold ${tokenBalance != null && tokenBalance < READING_COST_TOKENS ? 'text-red-600 dark:text-red-400' : 'text-gray-900 dark:text-gray-100'}`}>
-                {tokenBalance != null ? `${tokenBalance} tokens` : '— (sign in to view)'}
-              </span>
-            </div>
-            {tokenBalance != null && tokenBalance < READING_COST_TOKENS && (
-              <p className="text-sm text-gray-600 dark:text-gray-300">
-                Not enough tokens.{' '}
-                <Link href="/credits" className="font-medium underline text-yellow-700 dark:text-yellow-500">
-                  Buy tokens with USDC on Base →
-                </Link>
-              </p>
-            )}
-            <p className="text-xs text-gray-400">
-              Crypto payments go through the token rail: buy tokens with USDC on Base, tokens are spent on the reading.
-            </p>
-          </div>
-        ) : isDev ? (
+        {isDev ? (
           <div className="bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg p-3">
             <p className="text-sm text-yellow-800 dark:text-yellow-200">Dev mode — payment bypassed</p>
           </div>
@@ -682,8 +638,6 @@ function PaymentForm({
               </svg>
               {loadingMsg || 'Processing...'}
             </span>
-          ) : usingTokens ? (
-            `Spend ${READING_COST_TOKENS} Tokens & Get My Reading`
           ) : isDev ? (
             'Get My Free Reading'
           ) : (
@@ -881,19 +835,14 @@ export default function PersonalReadingClient() {
       // Token rail — no Stripe needed
       return (
         <div className="p-6">
-          <PaymentForm
-            formData={formData}
-            transits={transits}
-            natalPositions={natalPositions}
-            onSuccess={handleSuccess}
+          <TokenPaymentPanel
+            cost={READING_COST_TOKENS}
+            balance={tokenBalance}
+            error={tokenError}
+            onPay={handleTokenPayment}
             onBack={() => setStep('form')}
-            couponApplied={couponApplied}
-            language={language}
-            payMethod={payMethod}
-            onPayMethodChange={m => { setPayMethod(m); setTokenError(''); }}
-            tokenBalance={tokenBalance}
-            onTokenPayment={handleTokenPayment}
-            tokenError={tokenError}
+            onSwitchToStripe={stripePromise ? () => { setPayMethod('stripe'); setTokenError(''); } : undefined}
+            submitLabel={`Spend ${READING_COST_TOKENS} Tokens & Get My Reading`}
           />
         </div>
       );
@@ -912,9 +861,6 @@ export default function PersonalReadingClient() {
               language={language}
               payMethod={payMethod}
               onPayMethodChange={m => { setPayMethod(m); setTokenError(''); }}
-              tokenBalance={tokenBalance}
-              onTokenPayment={handleTokenPayment}
-              tokenError={tokenError}
             />
           </Elements>
         ) : (

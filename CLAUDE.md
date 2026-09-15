@@ -47,8 +47,9 @@ Core features: **sigil creator** (now the home/nav centerpiece), astrology readi
 - `lib/auth.ts` — JWT + session logic
 - `components/` — reusable UI; `components/sigil/SigilModal.tsx` (sigil viewer, shared by creator + gallery)
 - `context/` — cart, selected-items, flyout (React Context)
-- `hooks/` — `useCredits`, `useReadingPayments` (token pricing constants + balance hook for reading checkouts), `useAutoLinks`, `useLanguage`
-- `components/TokenPaymentPanel.tsx` — standalone token-checkout panel (NO Stripe hooks — safe outside `<Elements>`); used by both reading payment flows
+- `hooks/` — `useCredits`, `useReadingPayments` (balance hook + backwards-compat price aliases), `useAutoLinks`, `useLanguage`
+- `components/TokenPaymentPanel.tsx`, `components/CryptoPaymentPanel.tsx` — token / crypto checkout panels (NO Stripe hooks — safe outside `<Elements>`); used by all reading payment flows
+- `lib/reading-pricing.ts` — method-specific reading prices (card / crypto / tokens), shared by server routes and client UIs
 - `scripts/` — DB migrations (`migrate-saved-sigils.js/.sql`, `check-schema.js`)
 
 ### Web3 (added 2026-09)
@@ -69,18 +70,32 @@ Stripe + PayPal (traditional rail, `app/api/stripe/`, `app/api/payments/`) **plu
 
 ### Reading Purchases — Products & Method Pricing (updated 2026-09-15)
 
-Readings are purchasable three ways, with **method-specific pricing** on the two standalone readings: Stripe card, direct crypto (USDC on Base), or tokens. Prices live in **`lib/reading-pricing.ts`** (single source of truth — server routes import it and the client UI displays it; keep them in sync):
+Readings are purchasable three ways with **method-specific pricing**: Stripe card, direct crypto (USDC on Base), or tokens. Prices live in **`lib/reading-pricing.ts`** (single source of truth — server routes import it and the client UI displays it; keep them in sync). Ladder intent: card is priciest, crypto ≈ token-best-rate (6-Pack $20/600 tokens).
 
-- **Personal Transit Reading** (`/astrology/personal-reading`): $12 card / $10 crypto / 250 tokens
-- **Birth Chart Reading** (`/astrology/birth-chart-reading`, added 2026-09-15): standalone natal-chart interpretation (NOT the Full Initiation) — $12 card / $10 crypto / 250 tokens; saved with `reading_type='birthchart'`
-- **Full Initiation** (`/full-illuminati-initiation`): $23 card / 250 tokens (birth chart + transit reading, grants 100 bonus tokens)
+| Product | Card | Crypto | Tokens |
+|---------|------|--------|--------|
+| Personal Transit Reading (`/astrology/personal-reading`) | $12 | $10 USDC | 250 |
+| Birth Chart Reading (`/astrology/birth-chart-reading`) — standalone natal chart, NOT the Full Initiation; saved `reading_type='birthchart'` | $12 | $10 USDC | 250 |
+| Full Initiation (`/full-illuminati-initiation`) — birth chart + transit reading, 100 bonus tokens; onboarding offer | $23 | $20 USDC | 600 |
+
 - Chooser page at `/purchase/readings` (illuminati-initiation template design, no progress dots, no Solomon's Path)
-
-- **Server:** both reading APIs (`app/api/astrology/personal-reading`, `birth-chart-reading`) accept `useCredits: true` (atomic 250-token deduct, `spend` row in `credit_transactions`) or `cryptoPaymentId` (see below). Stripe path **enforces the card price server-side** (`paymentIntent.amount` must equal `READING_CARD_USD`); dev-bypass/coupon paths unchanged.
-- **Crypto (direct):** `app/api/astrology/verify-crypto` verifies an exact-price USDC transfer → treasury (12 confirmations on Base), inserts into `reading_crypto_payments` (migration `scripts/migrate-reading-crypto.sql`, applied 2026-09-15). The reading API then atomically **claims** that row (user + reading_type + unclaimed checks) before generating — one verification per tx hash, ever.
-- **Client:** `components/TokenPaymentPanel.tsx` (token rail) and `components/CryptoPaymentPanel.tsx` (crypto rail, wagmi `useWriteContract` + `useWaitForTransactionReceipt`) are both **hook-free of Stripe** — safe outside `<Elements>`. Wallet-only users default to crypto; toggle buttons are plain (no Stripe hooks) so they render anywhere.
-- **CRITICAL pitfall (caused a white-screen crash, fixed):** never render a component that calls `useStripe()`/`useElements()` outside Stripe's `<Elements>` provider — it throws and Next.js shows "Application error". `PaymentForm` (Stripe-only shape) must stay inside `<Elements>`.
+- **Server:** reading APIs (`personal-reading`, `birth-chart-reading`, `full-reading`) accept `useCredits: true` (atomic token deduct, `spend` row in `credit_transactions`) or `cryptoPaymentId` (see below). Stripe paths **enforce card prices server-side** (`paymentIntent.amount` must match the lib's card price); dev-bypass/coupon paths unchanged.
+- **Crypto (direct):** `app/api/astrology/verify-crypto` verifies an exact-price USDC transfer → treasury (12 confirmations on Base), accepts reading types `transit` | `birthchart` | `fullinitiation`, inserts into `reading_crypto_payments` (migration `scripts/migrate-reading-crypto.sql`, applied 2026-09-15). The reading API then atomically **claims** that row (user + reading_type + unclaimed checks) before generating — one verification per tx hash, ever.
+- **Client:** `components/TokenPaymentPanel.tsx` and `components/CryptoPaymentPanel.tsx` are both **hook-free of Stripe** — safe outside `<Elements>`. Three-way toggle (Card / Crypto / Tokens) on every reading checkout; **wallet users default to crypto** (most won't have tokens yet). Toggle buttons are plain (no Stripe hooks) so they render anywhere.
+- **CRITICAL pitfall (caused a white-screen crash, fixed):** never render a component that calls `useStripe()`/`useElements()` outside Stripe's `<Elements>` provider — it throws and Next.js shows "Application error". `PaymentForm` (Stripe-only shape) must stay inside `<Elements>`; likewise, AppKit's `useAppKit` hook throws during SSR before `createAppKit()` runs — gate wallet buttons behind a mounted flag (see `MountedWalletButton` in the reading clients / onboarding pages).
 - Crypto panel requires `NEXT_PUBLIC_TREASURY_ADDRESS` (+ `NEXT_PUBLIC_REOWN_PROJECT_ID`) — set in Vercel and `.env.local`; without it the panel degrades to "coming soon".
+
+### Wallet Connect Across Flows (added 2026-09-15)
+
+`components/web3/WalletAuthButton.tsx` accepts a **`redirectTo`** prop — after SIWE sign-in the user lands there (fallback: `?redirect=` param, then `/profile`). "⛓ Connect Wallet to Continue" buttons sit in the guest account sections of both reading pages, Full Initiation, and onboarding-solomon, each redirecting back to itself so users resume mid-flow. Onboarding-solomon also persists the selected token package across the hard navigation via sessionStorage (`solomon_pkg`). User dropdown menu item is "My Sigils" → `/sigil-creator/collection`.
+
+### Solomon Content Discussions (added 2026-09-15)
+
+"Talk to Solomon" on teachings/mysteries routes to **`/spiritual-coaching/discuss/[type]/[slug]`** (`type` = `enlightenment` | `mystery`) — an intermediate page showing the content title and a suggested phrase ("I want to discuss …") before **Begin Session** hands off to `/spiritual-coaching` via the existing sessionStorage context mechanism (`solomon_content_context`). Hume prompt injection unchanged (title already flows via `systemPrompt`). Content titles are fetched from `/api/enlightenment/template/[slug]` and `/api/conspiracies/template/[slug]` (note: mysteries use the conspiracies API).
+
+### Onboarding Visuals (updated 2026-09-15)
+
+Background image (`onboarding-image.tsx`) is **`fixed` to the viewport** — not `absolute` in the page wrapper. Taller pages (option cards, payment forms) previously stretched the container and `object-cover` zoomed the image differently per page; fixed pinning gives identical framing across all onboarding steps.
 
 ### Sigil Creator
 

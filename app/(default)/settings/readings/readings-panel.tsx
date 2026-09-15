@@ -252,43 +252,6 @@ function ExpandedReading({ reading }: { reading: Reading }) {
         )}
       </div>
 
-      {sections.map((section, i) => {
-        const lines = section.trim().split('\n');
-        const heading = lines[0].replace('## ', '');
-        const body = lines.slice(1).join('\n').trim();
-        return (
-          <div key={i} className="bg-white dark:bg-gray-800 rounded-xl p-5">
-            <h3 className="text-base font-semibold text-gray-900 dark:text-gray-100 mb-2">{heading}</h3>
-            <p className="text-sm text-gray-700 dark:text-gray-300 leading-relaxed whitespace-pre-line">{body}</p>
-          </div>
-        );
-      })}
-
-      {isBirthChart && natalAspects.length > 0 && (
-        <div className="pt-2">
-          <p className="font-semibold text-gray-900 dark:text-gray-100 mb-1">Architecture of the Soul</p>
-          <p className="text-xs text-gray-500 dark:text-gray-400 mb-3">The fundamental planetary relationships in your birth chart — tap to explore.</p>
-          <div className="space-y-2">
-            {natalAspects.map((a, i) => (
-              <button
-                key={i}
-                onClick={() => openAspectModal(a)}
-                className="w-full flex items-center justify-between p-3 border border-gray-200 dark:border-gray-700 rounded-xl bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors text-left"
-              >
-                <div>
-                  <p className="font-medium text-gray-800 dark:text-gray-200 text-sm">
-                    {a.p1} {a.aspect} {a.p2}
-                  </p>
-                  <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">{a.orb}° orb</p>
-                </div>
-                <svg className="w-4 h-4 text-gray-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                </svg>
-              </button>
-            ))}
-          </div>
-        </div>
-      )}
 
       {!isBirthChart && transits.length > 0 && (
         <div className="pt-2">
@@ -320,6 +283,57 @@ function ExpandedReading({ reading }: { reading: Reading }) {
           </div>
         </div>
       )}
+
+      {isBirthChart && natalAspects.length > 0 && (
+        <div className="pt-2">
+          <p className="font-semibold text-gray-900 dark:text-gray-100 mb-1">Architecture of the Soul</p>
+          <p className="text-xs text-gray-500 dark:text-gray-400 mb-3">The fundamental planetary relationships in your birth chart — tap to explore.</p>
+          <div className="space-y-2">
+            {natalAspects.map((a, i) => (
+              <button
+                key={i}
+                onClick={() => openAspectModal(a)}
+                className="w-full flex items-center justify-between p-3 border border-gray-200 dark:border-gray-700 rounded-xl bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors text-left"
+              >
+                <div>
+                  <p className="font-medium text-gray-800 dark:text-gray-200 text-sm">
+                    {a.p1} {a.aspect} {a.p2}
+                  </p>
+                  <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">{a.orb}° orb</p>
+                </div>
+                <svg className="w-4 h-4 text-gray-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
+      {sections.map((section, i) => {
+        const lines = section.trim().split('\n');
+        const heading = lines[0].replace('## ', '');
+        const body = lines.slice(1).join('\n').trim();
+        return (
+          <div key={i} className="bg-white dark:bg-gray-800 rounded-xl p-5">
+            <h3 className="text-base font-semibold text-gray-900 dark:text-gray-100 mb-2">{heading}</h3>
+            <p className="text-sm text-gray-700 dark:text-gray-300 leading-relaxed whitespace-pre-line">{body}</p>
+          </div>
+        );
+      })}
+
+
+      {sections.map((section, i) => {
+        const lines = section.trim().split('\n');
+        const heading = lines[0].replace('## ', '');
+        const body = lines.slice(1).join('\n').trim();
+        return (
+          <div key={i} className="bg-white dark:bg-gray-800 rounded-xl p-5">
+            <h3 className="text-base font-semibold text-gray-900 dark:text-gray-100 mb-2">{heading}</h3>
+            <p className="text-sm text-gray-700 dark:text-gray-300 leading-relaxed whitespace-pre-line">{body}</p>
+          </div>
+        );
+      })}
+
 
       {/* ── Ecological Footprint ── */}
       <a

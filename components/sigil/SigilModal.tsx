@@ -95,6 +95,10 @@ export interface SigilModalProps {
   balance: number | null;
   isLoggedIn: boolean;
   onRefine: () => void;
+  /** Persist the current (possibly refined) sigil — required for Save to appear */
+  onSave?: () => void;
+  /** Show a spinner state on the Save button while the parent is saving */
+  saving?: boolean;
   onNeedLogin: () => void;
   onReleased: () => void;
 }
@@ -109,6 +113,8 @@ export default function SigilModal({
   balance,
   isLoggedIn,
   onRefine,
+  onSave,
+  saving = false,
   onNeedLogin,
   onReleased,
 }: SigilModalProps) {
@@ -222,12 +228,16 @@ export default function SigilModal({
               >
                 {meditating ? '⏸ Meditating' : '♬ Meditate'}
               </button>
-              {!alreadySaved && (
+              {!alreadySaved && onSave && (
                 <button
-                  onClick={() => { if (!isLoggedIn) { onNeedLogin(); return; } }}
-                  className="px-5 py-2.5 rounded-lg border border-gray-200 dark:border-gray-700 text-gray-600 dark:text-gray-400 text-sm font-medium hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
+                  onClick={() => {
+                    if (!isLoggedIn) { onNeedLogin(); return; }
+                    if (!saving) onSave();
+                  }}
+                  disabled={saving}
+                  className="px-5 py-2.5 rounded-lg border border-gray-200 dark:border-gray-700 text-gray-600 dark:text-gray-400 text-sm font-medium hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors disabled:opacity-50"
                 >
-                  ☆ Save
+                  {saving ? '⏳ Saving…' : '☆ Save'}
                 </button>
               )}
               <button

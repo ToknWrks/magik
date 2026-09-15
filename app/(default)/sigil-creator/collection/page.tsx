@@ -24,6 +24,7 @@ export default function SigilCollectionPage() {
   // Working modal state
   const [working, setWorking] = useState<SavedSigil | null>(null);
   const [savedInSession, setSavedInSession] = useState(false);
+  const [savingRefined, setSavingRefined] = useState(false);
 
   // Auth + balance (needed for modal actions)
   const [isLoggedIn, setIsLoggedIn] = useState(false);
@@ -104,6 +105,7 @@ export default function SigilCollectionPage() {
   const handleSaveRefined = useCallback(async () => {
     if (!working) return;
     setError('');
+    setSavingRefined(true);
     try {
       const res = await fetch('/api/sigil/save', {
         method: 'POST',
@@ -125,6 +127,8 @@ export default function SigilCollectionPage() {
       // Refresh balance (save is free but refine spent earlier)
     } catch (e) {
       setError(e instanceof Error ? e.message : 'Failed to save sigil');
+    } finally {
+      setSavingRefined(false);
     }
   }, [working]);
 
@@ -238,6 +242,8 @@ export default function SigilCollectionPage() {
             balance={balance}
             isLoggedIn={isLoggedIn}
             onRefine={handleRefine}
+            onSave={handleSaveRefined}
+            saving={savingRefined}
             onNeedLogin={() => { if (!isLoggedIn) router.push('/signin?redirect=/sigil-creator/collection'); }}
             onReleased={handleModalReleased}
           />

@@ -14,6 +14,7 @@ import {
 import Image from 'next/image';
 import Link from 'next/link';
 import OnboardingHeader from '../onboarding-header';
+import WalletAuthButton from '@/components/web3/WalletAuthButton';
 import OnboardingImage from '../onboarding-image';
 
 const stripePromise = process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY
@@ -231,6 +232,8 @@ function PaymentForm({
 
 export default function OnboardingSolomon() {
   const router = useRouter();
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => setMounted(true), []);
   const [step, setStep] = useState<'form' | 'payment' | 'result'>('form');
   const [selectedPkg, setSelectedPkg] = useState(PACKAGES[1]); // default 3-Pack
   const [formData, setFormData] = useState({ email: '', password: '' });
@@ -366,7 +369,18 @@ export default function OnboardingSolomon() {
                       {/* Account */}
                       {!isLoggedIn && (
                         <div className="border border-gray-200 dark:border-gray-700 rounded-xl p-5 space-y-4">
-                          <h3 className="font-semibold text-gray-900 dark:text-gray-100">Create Your Account</h3>
+                          <h3 className="font-semibold text-gray-900 dark:text-gray-100">Your Account</h3>
+                          {mounted && (
+                            <WalletAuthButton
+                              label="⛓ Connect Wallet to Continue"
+                              className="[&>button]:w-full [&>button]:py-2.5"
+                            />
+                          )}
+                          <div className="flex items-center gap-3 text-xs text-gray-400">
+                            <span className="flex-1 border-t border-gray-200 dark:border-gray-700" />
+                            or with email
+                            <span className="flex-1 border-t border-gray-200 dark:border-gray-700" />
+                          </div>
                           <div>
                             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                               Email <span className="text-red-500">*</span>
@@ -393,7 +407,7 @@ export default function OnboardingSolomon() {
                               placeholder="Create a password"
                               className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100"
                             />
-                            <p className="text-xs text-gray-400 mt-1">Your account is created on purchase — no free signups.</p>
+                            <p className="text-xs text-gray-400 mt-1">Your account is created on purchase so your tokens and sessions are saved.</p>
                           </div>
                         </div>
                       )}

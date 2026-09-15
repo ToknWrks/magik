@@ -589,12 +589,20 @@ export default function ReadingsPanel() {
     return (
       <div className="py-12 text-center">
         <p className="text-gray-500 dark:text-gray-400 mb-4">You don't have any readings yet.</p>
-        <Link
-          href="/astrology/personal-reading"
-          className="inline-block px-6 py-3 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl font-medium"
-        >
-          Get Your First Reading — $9
-        </Link>
+        <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
+          <Link
+            href="/astrology/personal-reading"
+            className="inline-block px-6 py-3 bg-gray-600 hover:bg-gray-700 text-white rounded-xl font-medium"
+          >
+            Personal Transit Reading — $9
+          </Link>
+          <Link
+            href="/full-illuminati-initiation"
+            className="inline-block px-6 py-3 bg-gray-600 hover:bg-gray-700 text-white rounded-xl font-medium"
+          >
+            Birthchart + Transits Readings (Full Initiation) — $23
+          </Link>
+        </div>
       </div>
     );
   }
@@ -607,12 +615,20 @@ export default function ReadingsPanel() {
     <div className="space-y-4">
       <div className="flex items-center justify-between mb-2">
         <h2 className="text-xl font-bold text-gray-900 dark:text-gray-100">My Astrology Readings</h2>
-        <Link
-          href="/astrology/personal-reading"
-          className="px-4 py-2 bg-yellow-700 hover:bg-yellow-700 text-black rounded-lg text-sm font-medium"
-        >
-          + New Reading
-        </Link>
+        <div className="flex items-center gap-2">
+          <Link
+            href="/astrology/personal-reading"
+            className="px-4 py-2 bg-gray-600 hover:bg-gray-700 text-white rounded-lg text-sm font-medium"
+          >
+            + Personal Transit Reading
+          </Link>
+          <Link
+            href="/full-illuminati-initiation"
+            className="px-4 py-2 bg-gray-600 hover:bg-gray-700 text-white rounded-lg text-sm font-medium"
+          >
+            + Birthchart + Transits (Full Initiation)
+          </Link>
+        </div>
       </div>
 
       {totalContributionCents > 0 && (

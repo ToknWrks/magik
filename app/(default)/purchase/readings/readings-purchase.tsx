@@ -33,10 +33,7 @@ export default function ReadingsPurchase() {
               <div className="max-w-md mx-auto">
                 {/* Heading */}
                 <div className="mb-8">
-                  <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-2">Astrology Readings</h1>
-                  <p className="text-sm text-gray-500 dark:text-gray-400">
-                    Choose a reading to begin — both are saved to your account.
-                  </p>
+                  <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">Astrology Readings</h1>
                 </div>
 
                 <div className="space-y-3 mb-8">
@@ -51,7 +48,7 @@ export default function ReadingsPurchase() {
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center justify-between mb-1">
                           <p className="font-semibold text-gray-900 dark:text-gray-100">Birthchart + Transits Readings (Full Initiation)</p>
-                          <span className="text-sm font-bold text-yellow-700 dark:text-yellow-500 flex-shrink-0 ml-2">$23</span>
+                          <span className="text-sm font-bold text-yellow-700 dark:text-yellow-500 flex-shrink-0 ml-2">$15</span>
                         </div>
                         <p className="text-sm text-gray-500 dark:text-gray-400 mb-2">Your complete chart, deeply interpreted</p>
                         <div className="space-y-1">

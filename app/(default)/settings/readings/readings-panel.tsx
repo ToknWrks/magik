@@ -615,10 +615,10 @@ export default function ReadingsPanel() {
             + Personal Transit Reading
           </Link>
           <Link
-            href="/full-illuminati-initiation"
+            href="/astrology/birth-chart-reading"
             className="px-4 py-2 bg-gray-600 hover:bg-gray-700 text-white rounded-lg text-sm font-medium"
           >
-            + Birthchart + Transits (Full Initiation)
+            + Birthchart Reading
           </Link>
         </div>
       </div>

@@ -713,8 +713,8 @@ export default function PersonalReadingClient() {
         if (data.user) {
           setIsLoggedIn(true);
           setFormData(p => ({ ...p, email: data.user.email }));
-          // Wallet-only users default to the token rail (same rule as /credits)
-          if (data.user.wallet_address && !data.user.email) setPayMethod('tokens');
+          // Wallet users default to crypto (USDC) — most won't have tokens yet
+          if (data.user.wallet_address) setPayMethod('crypto');
         }
       });
   }, []);

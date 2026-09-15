@@ -1,0 +1,122 @@
+'use client';
+
+// Purchase → Readings — reading chooser styled after the /illuminati-initiation
+// template (same split layout, Spirit images, radio cards). No onboarding progress
+// dots, no Solomon's Path. Pricing replaces the old free-code offer.
+
+import { useState } from 'react';
+import { useRouter } from 'next/navigation';
+import Link from 'next/link';
+import Image from 'next/image';
+import OnboardingImage from '@/public/images/auth-image.jpg';
+
+type Path = 'full' | 'transit';
+
+export default function ReadingsPurchase() {
+  const router = useRouter();
+  const [selected, setSelected] = useState<Path>('full');
+
+  const handleContinue = () => {
+    if (selected === 'full') router.push('/full-illuminati-initiation');
+    else router.push('/astrology/personal-reading');
+  };
+
+  return (
+    <main className="bg-white dark:bg-gray-900">
+      <div className="relative flex">
+        <div className="w-full md:w-1/2">
+          <div className="min-h-[100dvh] flex flex-col after:flex-1">
+            <div className="flex-1 pt-8" />
+
+            <div className="px-4 py-8">
+              <div className="max-w-md mx-auto">
+                {/* Heading */}
+                <div className="mb-8">
+                  <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-2">Astrology Readings</h1>
+                  <p className="text-sm text-gray-500 dark:text-gray-400">
+                    Choose a reading to begin — both are saved to your account.
+                  </p>
+                </div>
+
+                <div className="space-y-3 mb-8">
+
+                  {/* Full Initiation */}
+                  <label className="relative block cursor-pointer">
+                    <input type="radio" name="path" value="full" checked={selected === 'full'} onChange={() => setSelected('full')} className="peer sr-only" />
+                    <div className="flex items-start gap-4 bg-white dark:bg-gray-800 p-5 rounded-xl border border-gray-200 dark:border-gray-700/60 hover:border-gray-300 dark:hover:border-gray-600 shadow-sm transition">
+                      <div className="w-10 h-10 rounded-full overflow-hidden flex-shrink-0 mt-0.5">
+                        <Image src="/images/Spirit14.png" alt="Full Initiation" width={40} height={40} className="object-cover w-full h-full" />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center justify-between mb-1">
+                          <p className="font-semibold text-gray-900 dark:text-gray-100">Birthchart + Transits Readings (Full Initiation)</p>
+                          <span className="text-sm font-bold text-yellow-700 dark:text-yellow-500 flex-shrink-0 ml-2">$23</span>
+                        </div>
+                        <p className="text-sm text-gray-500 dark:text-gray-400 mb-2">Your complete chart, deeply interpreted</p>
+                        <div className="space-y-1">
+                          {[
+                            'Complete natal chart interpretation',
+                            'World and Personal planetary transits',
+                          ].map(f => (
+                            <p key={f} className="text-xs text-gray-400 flex items-center gap-1.5">
+                              <span className="text-yellow-600 dark:text-yellow-500 flex-shrink-0">✦</span>{f}
+                            </p>
+                          ))}
+                        </div>
+                        <span className="inline-block mt-2.5 text-xs font-medium text-yellow-700 dark:text-yellow-500 bg-yellow-50 dark:bg-blue-200/20 border border-yellow-200 dark:border-yellow-800 px-2 py-0.5 rounded-full">
+                          Most comprehensive
+                        </span>
+                      </div>
+                    </div>
+                    <div className="absolute inset-0 border-2 border-transparent peer-checked:border-yellow-500 dark:peer-checked:border-yellow-600 rounded-xl pointer-events-none" aria-hidden="true" />
+                  </label>
+
+                  {/* Personal Transit Reading */}
+                  <label className="relative block cursor-pointer">
+                    <input type="radio" name="path" value="transit" checked={selected === 'transit'} onChange={() => setSelected('transit')} className="peer sr-only" />
+                    <div className="flex items-start gap-4 bg-white dark:bg-gray-800 p-5 rounded-xl border border-gray-200 dark:border-gray-700/60 hover:border-gray-300 dark:hover:border-gray-600 shadow-sm transition">
+                      <div className="w-10 h-10 rounded-full overflow-hidden flex-shrink-0 mt-0.5">
+                        <Image src="/images/Spirit11.png" alt="Personal Transit Reading" width={40} height={40} className="object-cover w-full h-full" />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center justify-between mb-1">
+                          <p className="font-semibold text-gray-900 dark:text-gray-100">Personal Transit Reading</p>
+                          <span className="text-sm font-bold text-gray-700 dark:text-gray-300 flex-shrink-0 ml-2">$9</span>
+                        </div>
+                        <p className="text-sm text-gray-500 dark:text-gray-400 mb-2">Today's cosmos, applied to your chart</p>
+                        <div className="space-y-1">
+                          {[
+                            'Current planetary influences on your natal chart',
+                            "What the cosmos is activating right now",
+                            'Guidance for the month ahead',
+                          ].map(f => (
+                            <p key={f} className="text-xs text-gray-400 flex items-center gap-1.5">
+                              <span className="text-indigo-400 flex-shrink-0">✦</span>{f}
+                            </p>
+                          ))}
+                        </div>
+                      </div>
+                    </div>
+                    <div className="absolute inset-0 border-2 border-transparent peer-checked:border-yellow-500 dark:peer-checked:border-yellow-600 rounded-xl pointer-events-none" aria-hidden="true" />
+                  </label>
+
+                </div>
+
+                <div className="flex items-center justify-between">
+                  <Link className="text-sm underline hover:no-underline" href="/settings/readings">← Back</Link>
+                  <button onClick={handleContinue} className="btn bg-gray-900 text-gray-100 hover:bg-gray-800 dark:bg-gray-100 dark:text-gray-800 dark:hover:bg-white">
+                    Continue →
+                  </button>
+                </div>
+              </div>
+            </div>
+
+          </div>
+        </div>
+        <div className="hidden md:block absolute top-0 bottom-0 right-0 md:w-1/2" aria-hidden="true">
+          <Image className="object-cover object-center w-full h-full" src={OnboardingImage} priority width={760} height={1024} alt="Readings" />
+        </div>
+      </div>
+    </main>
+  );
+}

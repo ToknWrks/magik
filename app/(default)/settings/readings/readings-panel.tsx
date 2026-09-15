@@ -589,20 +589,12 @@ export default function ReadingsPanel() {
     return (
       <div className="py-12 text-center">
         <p className="text-gray-500 dark:text-gray-400 mb-4">You don't have any readings yet.</p>
-        <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
-          <Link
-            href="/astrology/personal-reading"
-            className="inline-block px-6 py-3 bg-gray-600 hover:bg-gray-700 text-white rounded-xl font-medium"
-          >
-            Personal Transit Reading — $9
-          </Link>
-          <Link
-            href="/full-illuminati-initiation"
-            className="inline-block px-6 py-3 bg-gray-600 hover:bg-gray-700 text-white rounded-xl font-medium"
-          >
-            Birthchart + Transits Readings (Full Initiation) — $23
-          </Link>
-        </div>
+        <Link
+          href="/purchase/readings"
+          className="inline-block px-6 py-3 bg-gray-600 hover:bg-gray-700 text-white rounded-xl font-medium"
+        >
+          Purchase a Reading
+        </Link>
       </div>
     );
   }

@@ -60,6 +60,7 @@ export async function POST(request: NextRequest) {
 
     const {
       paymentIntentId,
+      useCredits,
       birthDate,
       birthTime,
       birthLocation,
@@ -73,11 +74,15 @@ export async function POST(request: NextRequest) {
 
     const isDev = process.env.NODE_ENV === 'development';
     const devBypass = isDev && paymentIntentId === 'dev_bypass';
+    const usingCredits = !devBypass && !!useCredits;
+
+    // Token price of a Full Initiation Reading ($1 = 100 tokens)
+    const READING_COST_TOKENS = 250;
 
     if (!birthDate || !birthLocation || !email) {
       return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
     }
-    if (!paymentIntentId) {
+    if (!paymentIntentId && !useCredits) {
       return NextResponse.json({ error: 'Payment required' }, { status: 400 });
     }
 
@@ -87,6 +92,32 @@ export async function POST(request: NextRequest) {
 
     if (devBypass) {
       effectivePaymentId = `dev_full_${Date.now()}`;
+    } else if (usingCredits) {
+      // Pay with tokens — must be logged in (tokens live on the account)
+      const uid = request.cookies.get('user_id')?.value;
+      if (!uid) {
+        return NextResponse.json({ error: 'Sign in to pay with tokens' }, { status: 401 });
+      }
+      // Atomic deduct only if sufficient balance
+      const deduct = await pool.query(
+        `UPDATE user_credits
+         SET balance = balance - $1, updated_at = NOW()
+         WHERE user_id = $2 AND balance >= $1
+         RETURNING balance`,
+        [READING_COST_TOKENS, uid]
+      );
+      if (deduct.rows.length === 0) {
+        return NextResponse.json(
+          { error: `Not enough tokens — the Full Initiation costs ${READING_COST_TOKENS} tokens` },
+          { status: 402 }
+        );
+      }
+      await pool.query(
+        `INSERT INTO credit_transactions (user_id, amount, type, description)
+         VALUES ($1, $2, 'spend', $3)`,
+        [uid, -READING_COST_TOKENS, 'Full Initiation Reading']
+      );
+      effectivePaymentId = `credits_${Date.now()}_${Math.random().toString(36).slice(2, 10)}`;
     } else {
       const paymentIntent = await stripe.paymentIntents.retrieve(paymentIntentId);
       if (paymentIntent.status !== 'succeeded') {

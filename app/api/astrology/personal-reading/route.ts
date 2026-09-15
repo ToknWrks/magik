@@ -5,6 +5,7 @@ import { Pool } from '@neondatabase/serverless';
 import { createUserAccount, createSession } from '@/lib/auth';
 import { languagePromptSuffix } from '@/lib/language';
 import { estimateFootprintGrams, REGEN_CONTRIBUTION_CENTS } from '@/lib/regen-footprint';
+import { READING_CARD_USD, READING_TOKENS } from '@/lib/reading-pricing';
 
 async function ensureTable(pool: Pool) {
   await pool.query(`
@@ -35,6 +36,7 @@ export async function POST(request: NextRequest) {
       paymentIntentId,
       couponCode,
       useCredits,
+      cryptoPaymentId,
       birthDate,
       birthTime,
       birthLocation,
@@ -49,14 +51,15 @@ export async function POST(request: NextRequest) {
     const devBypass = isDev && paymentIntentId === 'dev_bypass';
     const usingCoupon = !devBypass && !!couponCode;
     const usingCredits = !devBypass && !usingCoupon && !!useCredits;
+    const usingCrypto = !devBypass && !usingCoupon && !useCredits && !!cryptoPaymentId;
 
-    // Token price of a Personal Transit Reading ($1 = 100 tokens)
-    const READING_COST_TOKENS = 250;
+    // Token price of a Personal Transit Reading (lib/reading-pricing is the source of truth)
+    const READING_COST_TOKENS = READING_TOKENS;
 
     if (!birthDate || !birthLocation || !email) {
       return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
     }
-    if (!paymentIntentId && !couponCode && !useCredits) {
+    if (!paymentIntentId && !couponCode && !useCredits && !cryptoPaymentId) {
       return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
     }
 
@@ -122,11 +125,34 @@ export async function POST(request: NextRequest) {
         [uid, -READING_COST_TOKENS, 'Personal Transit Reading']
       );
       effectivePaymentId = `credits_${Date.now()}_${Math.random().toString(36).slice(2, 10)}`;
+    } else if (usingCrypto) {
+      // Pay with crypto — verify the pre-verified payment belongs to this user,
+      // is this reading type, and is unclaimed; then claim it atomically.
+      const uid = request.cookies.get('user_id')?.value;
+      if (!uid) {
+        return NextResponse.json({ error: 'Sign in to pay with crypto' }, { status: 401 });
+      }
+      const claimed = await pool.query(
+        `UPDATE reading_crypto_payments
+         SET claimed_at = NOW()
+         WHERE id = $1 AND user_id = $2 AND reading_type = 'transit' AND claimed_at IS NULL
+         RETURNING id`,
+        [cryptoPaymentId, uid]
+      );
+      if (claimed.rows.length === 0) {
+        return NextResponse.json({ error: 'Crypto payment not found, already used, or for a different reading' }, { status: 402 });
+      }
+      effectivePaymentId = cryptoPaymentId;
     } else {
       // Verify payment with Stripe
       const paymentIntent = await stripe.paymentIntents.retrieve(paymentIntentId);
       if (paymentIntent.status !== 'succeeded') {
         return NextResponse.json({ error: 'Payment not completed' }, { status: 402 });
+      }
+      // Enforce the card price server-side (transit: card = READING_CARD_USD)
+      const expectedCents = Math.round(READING_CARD_USD * 100);
+      if (paymentIntent.amount !== expectedCents) {
+        return NextResponse.json({ error: 'Payment amount mismatch' }, { status: 402 });
       }
 
       // Check for duplicate (idempotency)

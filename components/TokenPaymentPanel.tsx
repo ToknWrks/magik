@@ -17,6 +17,7 @@ export default function TokenPaymentPanel({
   submitLabel,
   note,
   onSwitchToStripe,
+  onSwitchToCrypto,
 }: {
   cost: number;
   balance?: number | null;
@@ -27,6 +28,7 @@ export default function TokenPaymentPanel({
   submitLabel: string;
   note?: string;
   onSwitchToStripe?: () => void;
+  onSwitchToCrypto?: () => void;
 }) {
   const [loading, setLoading] = useState(false);
 
@@ -49,23 +51,32 @@ export default function TokenPaymentPanel({
       <h2 className="text-xl font-bold text-gray-900 dark:text-gray-100 mb-2">{title}</h2>
 
       {/* Payment method toggle */}
-      {onSwitchToStripe && (
-        <div className="flex items-center gap-2 text-xs mb-4">
+      <div className="flex items-center gap-2 text-xs mb-4">
+        {onSwitchToStripe && (
           <button
             type="button"
             onClick={onSwitchToStripe}
             className="px-3 py-1.5 rounded-md font-medium transition text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200"
           >
-            💳 Card
+            💳 Card · $12
           </button>
+        )}
+        {onSwitchToCrypto && (
           <button
             type="button"
-            className="px-3 py-1.5 rounded-md font-medium transition bg-gray-900 dark:bg-yellow-500 text-white dark:text-gray-900"
+            onClick={onSwitchToCrypto}
+            className="px-3 py-1.5 rounded-md font-medium transition text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200"
           >
-            ⛓ Tokens / Crypto
+            ⛓ Crypto · $10
           </button>
-        </div>
-      )}
+        )}
+        <button
+          type="button"
+          className="px-3 py-1.5 rounded-md font-medium transition bg-gray-900 dark:bg-yellow-500 text-white dark:text-gray-900"
+        >
+          ◎ Tokens · {cost}
+        </button>
+      </div>
 
       {error && (
         <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-3 mb-4">

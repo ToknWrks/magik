@@ -6,8 +6,11 @@
 
 import { useState, useEffect, useCallback } from 'react';
 
-export const READING_COST_TOKENS = 250;
-export const FULL_INITIATION_COST_TOKENS = 250;
+import { READING_TOKENS, FULL_INITIATION_TOKENS } from '@/lib/reading-pricing';
+
+// Backwards-compatible aliases
+export const READING_COST_TOKENS = READING_TOKENS;
+export const FULL_INITIATION_COST_TOKENS = FULL_INITIATION_TOKENS;
 
 export function useTokenBalance() {
   const [balance, setBalance] = useState<number | null>(null);

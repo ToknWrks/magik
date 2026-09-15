@@ -15,7 +15,9 @@ import FormattedInterpretation from '@/components/FormattedInterpretation';
 import { useLanguage } from '@/hooks/useLanguage';
 import EcoContributionInfo from '@/components/EcoContributionInfo';
 import LanguageSelector from '@/components/LanguageSelector';
-import { READING_COST_TOKENS, useTokenBalance } from '@/hooks/useReadingPayments';
+import { useTokenBalance } from '@/hooks/useReadingPayments';
+import { READING_CARD_USD, READING_CRYPTO_USD, READING_TOKENS } from '@/lib/reading-pricing';
+import CryptoPaymentPanel from '@/components/CryptoPaymentPanel';
 import TokenPaymentPanel from '@/components/TokenPaymentPanel';
 import Link from 'next/link';
 import { Line } from 'react-chartjs-2';
@@ -36,9 +38,8 @@ const stripePromise = process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY
   ? loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY)
   : null;
 
-const READING_PRICE = 9;
-const REGEN_CONTRIBUTION = 0.25;
-const PRICE = READING_PRICE + REGEN_CONTRIBUTION;
+const READING_PRICE = READING_CARD_USD;
+const PRICE = READING_CARD_USD;
 
 const PLANETS = ['Sun', 'Moon', 'Mercury', 'Venus', 'Mars', 'Jupiter', 'Saturn', 'Uranus', 'Neptune', 'Pluto'];
 const ASPECTS = [
@@ -426,8 +427,8 @@ function PaymentForm({
   onBack: () => void;
   couponApplied: string;
   language?: string;
-  payMethod?: 'stripe' | 'tokens';
-  onPayMethodChange?: (m: 'stripe' | 'tokens') => void;
+  payMethod?: 'stripe' | 'crypto' | 'tokens';
+  onPayMethodChange?: (m: 'stripe' | 'crypto' | 'tokens') => void;
 }) {
   const stripe = useStripe();
   const elements = useElements();
@@ -540,18 +541,18 @@ function PaymentForm({
       <div className="mb-6 space-y-1">
         <div className="flex justify-between text-sm">
           <span className="text-gray-500 dark:text-gray-400">Personal Transit Reading</span>
-          <span className="text-gray-900 dark:text-gray-100">$9.00</span>
+          <span className="text-gray-900 dark:text-gray-100">$12.00</span>
         </div>
         <div className="flex justify-between text-sm">
           <span className="flex items-center text-green-700 dark:text-green-400">
               Ecological Contribution (25x regeneration)
               <EcoContributionInfo />
             </span>
-          <span className="text-green-700 dark:text-green-400">$0.25</span>
+          <span className="text-green-700 dark:text-green-400">included</span>
         </div>
         <div className="flex justify-between text-sm font-semibold pt-1 border-t border-gray-200 dark:border-gray-700">
           <span className="text-gray-900 dark:text-gray-100">Total</span>
-          <span className="text-gray-900 dark:text-gray-100">$9.25</span>
+          <span className="text-gray-900 dark:text-gray-100">$12.00</span>
         </div>
       </div>
 
@@ -579,14 +580,21 @@ function PaymentForm({
             type="button"
             className={`px-3 py-1.5 rounded-md font-medium transition ${payMethod === 'stripe' ? 'bg-gray-900 dark:bg-yellow-500 text-white dark:text-gray-900' : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200'}`}
           >
-            💳 Card
+            💳 Card · $12
+          </button>
+          <button
+            type="button"
+            onClick={() => onPayMethodChange('crypto')}
+            className={`px-3 py-1.5 rounded-md font-medium transition ${payMethod === 'crypto' ? 'bg-gray-900 dark:bg-yellow-500 text-white dark:text-gray-900' : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200'}`}
+          >
+            ⛓ Crypto · $10
           </button>
           <button
             type="button"
             onClick={() => onPayMethodChange('tokens')}
             className={`px-3 py-1.5 rounded-md font-medium transition ${payMethod === 'tokens' ? 'bg-gray-900 dark:bg-yellow-500 text-white dark:text-gray-900' : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200'}`}
           >
-            ⛓ Tokens / Crypto
+            ◎ Tokens · 250
           </button>
         </div>
       )}
@@ -641,7 +649,7 @@ function PaymentForm({
           ) : isDev ? (
             'Get My Free Reading'
           ) : (
-            'Pay $9.25 & Get My Reading'
+            'Pay $12.00 & Get My Reading'
           )}
         </button>
 
@@ -663,7 +671,8 @@ function PaymentForm({
 export default function PersonalReadingClient() {
   const { language, setLanguage } = useLanguage();
   const { balance: tokenBalance, refetch: refetchTokens } = useTokenBalance();
-  const [payMethod, setPayMethod] = useState<'stripe' | 'tokens'>('stripe');
+  const [payMethod, setPayMethod] = useState<'stripe' | 'crypto' | 'tokens'>('stripe');
+  const [cryptoPaymentId, setCryptoPaymentId] = useState<string | null>(null);
   const [tokenError, setTokenError] = useState('');
   const [step, setStep] = useState<'form' | 'payment' | 'result'>('form');
   const [formData, setFormData] = useState<FormData>({
@@ -724,6 +733,39 @@ export default function PersonalReadingClient() {
       if (!res.ok) {
         setTokenError(data.error || 'Failed to generate reading');
         await refetchTokens();
+        return;
+      }
+      handleSuccess(data.reading, data.accountCreated);
+    } catch (err: any) {
+      setTokenError(err?.message || 'Failed to generate reading');
+    }
+  };
+
+
+  // Crypto rail payment: after on-chain verification, generate the reading with the
+  // verified cryptoPaymentId (server claims it atomically)
+  const handleCryptoVerified = async (cpid: string) => {
+    setTokenError('');
+    try {
+      const res = await fetch('/api/astrology/personal-reading', {
+        method: 'POST',
+        credentials: 'include',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          cryptoPaymentId: cpid,
+          birthDate: formData.birthDate,
+          birthTime: formData.birthTime,
+          birthLocation: formData.birthLocation,
+          focus: formData.focus,
+          email: formData.email,
+          password: formData.password || undefined,
+          transits,
+          language,
+        }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        setTokenError(data.error || 'Failed to generate reading');
         return;
       }
       handleSuccess(data.reading, data.accountCreated);
@@ -831,18 +873,36 @@ export default function PersonalReadingClient() {
   }
 
   if (step === 'payment') {
+    if (payMethod === 'crypto') {
+      // Crypto rail — USDC on Base, verified on-chain
+      return (
+        <div className="p-6">
+          <CryptoPaymentPanel
+            priceUsd={READING_CRYPTO_USD}
+            readingType="transit"
+            error={tokenError}
+            onVerified={handleCryptoVerified}
+            onBack={() => setStep('form')}
+            onSwitchToStripe={stripePromise ? () => { setPayMethod('stripe'); setTokenError(''); } : undefined}
+            onSwitchToTokens={() => { setPayMethod('tokens'); setTokenError(''); }}
+            submitLabel="Personal Transit Reading — $10 in USDC on Base"
+          />
+        </div>
+      );
+    }
     if (payMethod === 'tokens') {
       // Token rail — no Stripe needed
       return (
         <div className="p-6">
           <TokenPaymentPanel
-            cost={READING_COST_TOKENS}
+            cost={READING_TOKENS}
             balance={tokenBalance}
             error={tokenError}
             onPay={handleTokenPayment}
             onBack={() => setStep('form')}
             onSwitchToStripe={stripePromise ? () => { setPayMethod('stripe'); setTokenError(''); } : undefined}
-            submitLabel={`Spend ${READING_COST_TOKENS} Tokens & Get My Reading`}
+            onSwitchToCrypto={() => { setPayMethod('crypto'); setTokenError(''); }}
+            submitLabel={`Spend ${READING_TOKENS} Tokens & Get My Reading`}
           />
         </div>
       );
@@ -876,7 +936,7 @@ export default function PersonalReadingClient() {
         <div>
           <h3 className="text-l font-bold text-gray-900 dark:text-gray-100 mb-2">Personal Transit Reading</h3>
           <p className="text-gray-500 dark:text-gray-400">
-            A personalized archetypal astrology reading based on your natal chart and today's transits. One-time — $9 or 250 tokens.
+            A personalized archetypal astrology reading based on your natal chart and today's transits. One-time — $12 by card, $10 in crypto, or 250 tokens.
           </p>
         </div>
         <LanguageSelector value={language} onChange={setLanguage} className="flex-shrink-0 mt-1" />
